@@ -2,14 +2,14 @@
 
 ## Instructor: Dr. Jon Puritz, Biological Sciences
 #### Office: CBLS 183
-#### Office hours: Wed, Thu 10:00 am to 11:00 am
+#### Student hours: Wed, Thu 2:00PM to 3:00PM
 Feel free to come by during this time without an appointment, otherwise schedule a time with me via email
 #### Email: jpuritz@uri.edu  Phone: 401-874-9020
 *I will do my best to respond promptly during business hours (M-F: 9-5)*
 
 ## Meeting Time and Location for Spring 2022
-#### TBD
-#### TBD
+#### Wednesdays 11:30 AM to 2:00PM
+#### Woodward Hall Room 115
 
 ## Course Description
 The advent of next-generation sequencing (NGS) has rapidly transcended population genetics to population genomics. Sequencer outputs have expanded from kilobases to gigabases while becoming over 30,000 times less expensive. This allows population levels studies to use thousands of genetic markers across the entire genome, and to survey both neutral and adaptive loci. In this class, we will cover a variety of techniques including: restriction-site associated sequencing (RADseq), RNA sequencing and transcriptomics, exome capture, low-coverage whole genome sequencing, pooled sequencing, and methods designed to examine patterns of methylation across genomes.
