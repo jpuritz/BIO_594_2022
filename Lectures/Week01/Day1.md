@@ -81,6 +81,35 @@ Enter the password that's on the board and you should be set.
 
 ### Windows 
 
+Using OpenSSH [LINK](https://phoenixnap.com/kb/generate-ssh-key-windows-10)
+
+>1. Verify if OpenSSH Client is Installed
+>      * Open the Settings panel, then click Apps.
+>      * Under the Apps and Features heading, click **Optional Features**.
+>      * Scroll down the list to see if **OpenSSH Client** is listed.
+>            * If it’s not, click the plus-sign next to **Add a feature**.
+>            * Scroll through the list to find and select **OpenSSH Client**.
+>            * Finally, click **Install**.
+>2. Open Command Prompt
+>      * Press the **Windows key**.
+>      * Type `cmd`.
+>      * Under Best Match, right-click **Command Prompt**.
+>      * Click **Run as Administrator**.
+>      * If prompted, click **Yes** in the Do you want to allow this app to make changes to your device? pop-up.
+>3. Use OpenSSH to Generate an SSH Key Pair
+>      * In the command prompt, type the following:
+>            * `ssh-keygen`
+>      * By default, the system will save the keys to `C:\Users\your_username/.ssh/id_rsa`. You can use the default name, or you can choose more descriptive names. This can help distinguish between keys, if you are using multiple key pairs. To stick to the default option, press **Enter**.
+>      * You’ll be asked to **enter a passphrase**. Hit **Enter** to skip this step.
+>      * The system will generate the key pair, and display the **key fingerprint** and a **randomart image**.
+>      * Open your file browser.
+>      * Navigate to `C:\Users\your_username/.ssh`.
+>      * You should see two files. The identification is saved in the `id_rsa` file and the public key is labeled `id_rsa.pub`. This is your SSH key pair.
+
+To copy your key to KITT follow the instructions [here](https://www.chrisjhart.com/Windows-10-ssh-copy-id/)
+
+#### I no longer recommend using PuTTYgen to do this, but it will work
+
 I reccomend following the steps in this [LINK](https://docs.joyent.com/public-cloud/getting-started/ssh-keys/generating-an-ssh-key-manually/manually-generating-your-ssh-key-in-windows) through step 8.
 
 >To generate an SSH key with PuTTYgen, follow these steps:
@@ -113,12 +142,12 @@ Next make a directory called `repos`
 
 Change into that directory: `cd repos`
 
-Now, you can clone (copy) the whole repository: `git clone https://github.com/jpuritz/BIO_594_2019.git`
+Now, you can clone (copy) the whole repository: `git clone https://github.com/jpuritz/BIO_594_2022.git`
 
-You should have a directory called `BIO_594_2018` that will have all the current class materials.
+You should have a directory called `BIO_594_2022` that will have all the current class materials.
 We'll get into this more next week, but you can always update this repo with these two commands:
 ```
-cd ~/repos/BIO_594_2019
+cd ~/repos/BIO_594_2022
 git pull
 ```
 
@@ -157,8 +186,11 @@ All work in this class will be documented on the github repository which uses ma
 * [Haroopad](http://pad.haroopress.com/)
 
 ## Rstudio
-Class demo
+* Class demo
 
+## Visual Studio Code
+* [Visual Studio Code](https://code.visualstudio.com/)
+* Class demo
 
 ## Further Reading (Highly Recommended)
 * [Github Guide](https://guides.github.com/activities/hello-world/)
