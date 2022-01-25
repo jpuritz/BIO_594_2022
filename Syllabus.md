@@ -33,7 +33,7 @@ Students must bring their own laptop (Mac, Windows, or Linux) with the capabilit
 We will be doing the majority of our code documentation in RStudio. Please familiarize yourself with by downloading a local installation.  We will be using a server based version to unify our bioinformatics and analysis.
 
 ## Schedule
-Updated 1/22/2021 and still subject to change
+Updated 1/25/2022 and still subject to change
 
 | Date | Week| Topic | Reading Assignment|
 |-----|----|-----|----|
