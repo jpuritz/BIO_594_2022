@@ -108,6 +108,9 @@ Using OpenSSH [LINK](https://phoenixnap.com/kb/generate-ssh-key-windows-10)
 
 To copy your key to KITT follow the instructions [here](https://www.chrisjhart.com/Windows-10-ssh-copy-id/)
 
+Essentially run this command with your username in PowerShell: `type $env:USERPROFILE\.ssh\id_rsa.pub | ssh {IP-ADDRESS-OR-FQDN} "cat >> .ssh/authorized_keys"`
+
+
 #### I no longer recommend using PuTTYgen to do this, but it will work
 
 I reccomend following the steps in this [LINK](https://docs.joyent.com/public-cloud/getting-started/ssh-keys/generating-an-ssh-key-manually/manually-generating-your-ssh-key-in-windows) through step 8.
