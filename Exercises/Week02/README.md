@@ -20,3 +20,4 @@
 
 ### Tutorial 2 (On your own time)
 Please follow the this [LINK](https://www.codecademy.com/learn/learn-the-command-line) to a wonderful basic command line tutorial and please complete it
+There is also the following [tutorial] (https://astrobiomike.github.io/unix/) that has no need for a subscription.
