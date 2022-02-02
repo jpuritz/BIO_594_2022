@@ -19,4 +19,10 @@
 * If you know how, commit the changes to the github repository
 
 ### Tutorial 2 (On your own time)
-Please follow the this [LINK](https://www.codecademy.com/learn/learn-the-command-line) to a wonderful basic command line tutorial and please complete it
+
+**Codecademy now charges for this, but you can do a 7 day free trial**
+
+**It is not required!**
+
+
+Please follow the this [LINK](https://www.codecademy.com/learn/learn-the-command-line) to a wonderful basic command line tutorial
