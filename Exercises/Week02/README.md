@@ -15,7 +15,7 @@
 * Print how many individuals have a MEAN_DEPTH greater than 20.1 but less than 20.25
 * Print the average MEAN_DEPTH
 
-* Put your answers in a text file with your name on it in the ~/repos/BIO_594_2019/Exercises/Week02/ directory
+* Put your answers in a text file with your name on it in the ~/repos/BIO_594_2022/Exercises/Week02/ directory
 * If you know how, commit the changes to the github repository
 
 ### Tutorial 2 (On your own time)
