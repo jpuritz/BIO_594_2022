@@ -1,0 +1,9 @@
+head -5 out.idepth > out_5lines.idepth
+
+sed '19q;d' out.idepth > out_19.idepth
+
+awk '{if ($3 > 20.1) print}' out.idepth > out_g20.1.idepth
+
+awk '{if ($3 > 20.1 && $3 < 20.25) print}' out.idepth > out_g20.1_l20.25.idepth
+
+awk '{sum += $3; n++} END {if (n > 0) print sum / n;}' out.idepth
