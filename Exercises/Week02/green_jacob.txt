@@ -10,8 +10,8 @@ The question, O me! so sad, recurringâWhat good amid these, O me, O life?
                                        Answer.
 That you are hereâthat life exists and identity,
 That the powerful play goes on, and you may contribute a verse.
-Exercise 2.2 = head -5 /home/BIO594/Exercises/Week2
-Exercise 2.3 = sed -n "19p" out.idepth | wc -l 
+Exercise 2.2 = cut -F 3 out.idepth | head -5
+Exercise 2.3 = cut -F 2 out.idepth | sed -n "19p" 
 Exercise 2.4 = awk '$3 > 20.1' out.idepth | wc -l
-Exercise 2.5 = awk '$3 > 20.1 && $3 < 20.25' out.idepth
+Exercise 2.5 = awk '$3 > 20.1 && $3 < 20.25' out.idepth | wc -l 
 Exercise 2.6 = awk '{sum=sum+$3} END {print sum/NR}' out.idepth
