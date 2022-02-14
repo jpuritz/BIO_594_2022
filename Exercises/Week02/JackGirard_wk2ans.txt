@@ -1,0 +1,7 @@
+Answers to week2 exercise2: Solve problems in one line of code
+1 cat /home/BIO594/Exercises/sneaky/file
+2 cut -f 3 /home/BIO594/Exercises/Week_2/out.idepth | head -5
+3 awk 'NR == 19 {print }' /home/BIO594/Exercises/Week_2/out.idepth
+ 4 awk '  > 20.1 ' /home/BIO594/Exercises/Week_2/out.idepth | wc -l
+5 awk '  > 20.1 &&  < 20.25 ' /home/BIO594/Exercises/Week_2/out.idepth | wc -l
+6 awk ' {total += ; count++ } END { print total/count } ' /home/BIO594/Exercises/Week_2/out.idepth
