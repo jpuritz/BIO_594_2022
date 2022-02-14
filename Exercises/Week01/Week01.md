@@ -5,6 +5,8 @@
 * Clone the class git repository to both your server account
 * Test out terminal functionality in RStudio
 
+Testing edits
+
 ### Logging into the class server
 
 Due to security reasons this will be a live demo in class.
