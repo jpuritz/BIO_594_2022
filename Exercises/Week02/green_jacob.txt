@@ -1,6 +1,17 @@
-Exercise 2.1 = file
-Exercise 2.2 = head -5 /home/BIO594/Exercises/Week2
-Exercise 2.3 = sed -n "19p" out.idepth | wc -l 
+Exercise 2.1 = 
+Oh me! Oh life! of the questions of these recurring,
+Of the endless trains of the faithless, of cities fillâd with the foolish,
+Of myself forever reproaching myself, (for who more foolish than I, and who more faithless?)
+Of eyes that vainly crave the light, of the objects mean, of the struggle ever renewâd,
+Of the poor results of all, of the plodding and sordid crowds I see around me,
+Of the empty and useless years of the rest, with the rest me intertwined,
+The question, O me! so sad, recurringâWhat good amid these, O me, O life?
+
+                                       Answer.
+That you are hereâthat life exists and identity,
+That the powerful play goes on, and you may contribute a verse.
+Exercise 2.2 = cut -F 3 out.idepth | head -5
+Exercise 2.3 = cut -F 2 out.idepth | sed -n "19p" 
 Exercise 2.4 = awk '$3 > 20.1' out.idepth | wc -l
-Exercise 2.5 = awk '$3 > 20.1 && $3 < 20.25' out.idepth
+Exercise 2.5 = awk '$3 > 20.1 && $3 < 20.25' out.idepth | wc -l 
 Exercise 2.6 = awk '{sum=sum+$3} END {print sum/NR}' out.idepth

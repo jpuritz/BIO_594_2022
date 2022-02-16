@@ -1,0 +1,77 @@
+## Week 2
+
+Jill Ashey 
+
+Exercise 2 - Answer these challenges with one line of code
+
+I have put a text file, named file, in the directory sneaky that’s within the directory Exercises that’s within the directory BIO594 in the home directory. Tell me what the contents of the file are.
+
+```
+cd /home/BIO594/Exercises/sneaky
+cat file 
+Oh me! Oh life! of the questions of these recurring,
+Of the endless trains of the faithless, of cities fill’d with the foolish,
+Of myself forever reproaching myself, (for who more foolish than I, and who more faithless?)
+Of eyes that vainly crave the light, of the objects mean, of the struggle ever renew’d,
+Of the poor results of all, of the plodding and sordid crowds I see around me,
+Of the empty and useless years of the rest, with the rest me intertwined,
+The question, O me! so sad, recurring—What good amid these, O me, O life?
+
+                                       Answer.
+That you are here—that life exists and identity,
+That the powerful play goes on, and you may contribute a verse.
+```
+
+Print the first 5 lines of the third column of out.idepth in /home/BIO594/Exercises/Week_2
+
+```
+cd /home/BIO594/Exercises/Week_2
+head -5 out.idepth | cut -f3
+MEAN_DEPTH
+19.7475
+19.8769
+20.2284
+19.4391
+```
+
+Print only the 19th line of the second column of out.idepth
+
+```
+cut -f2 out.idepth | head -19 | tail -1
+8428
+```
+
+Print how many individuals have a MEAN_DEPTH greater than 20.1
+
+```
+awk '$3 > 20' out.idepth 
+
+INDV	N_SITES	MEAN_DEPTH
+PopA_03	8453	20.2284
+PopA_05	8448	20.4425
+PopA_08	8454	20.1047
+PopA_09	8341	20.2223
+PopA_13	8408	20.6407
+PopA_20	8342	20.1082
+PopB_07	8392	20.2092
+PopB_08	8382	20.2733
+PopB_09	8262	20.2642
+PopB_14	8370	20.2419
+```
+
+Print how many individuals have a MEAN_DEPTH greater than 20.1 but less than 20.25
+
+```
+awk '$3 > 20.1' out.idepth | awk '$3 < 20.25' | wc -l
+
+6
+```
+
+Print the average MEAN_DEPTH
+
+```
+awk '{sum=sum+$3} END {print sum/NR}' out.idepth
+ 
+19.3738
+```
+
