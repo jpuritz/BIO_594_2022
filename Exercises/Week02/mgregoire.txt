@@ -1,0 +1,16 @@
+Q1.
+Can't find file "file" in "sneaky..."
+Q2. 
+INDV	N_SITES	MEAN_DEPTH
+PopA_01	8343	19.7475
+PopA_02	8481	19.8769
+PopA_03	8453	20.2284
+PopA_04	8591	19.4391
+Q3. 
+8428
+Q4.
+15
+Q5.
+41
+Q6.
+19.3738
