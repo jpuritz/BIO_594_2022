@@ -1,0 +1,49 @@
+Detecting adapter sequence for read1...
+No adapter detected for read1
+
+Detecting adapter sequence for read2...
+No adapter detected for read2
+
+Read1 before filtering:
+total reads: 18770
+total bases: 1764380
+Q20 bases: 1764380(100%)
+Q30 bases: 1764380(100%)
+
+Read2 before filtering:
+total reads: 18770
+total bases: 1877000
+Q20 bases: 1877000(100%)
+Q30 bases: 1877000(100%)
+
+Read1 after filtering:
+total reads: 18770
+total bases: 1764380
+Q20 bases: 1764380(100%)
+Q30 bases: 1764380(100%)
+
+Read2 after filtering:
+total reads: 18770
+total bases: 1877000
+Q20 bases: 1877000(100%)
+Q30 bases: 1877000(100%)
+
+Filtering result:
+reads passed filter: 37540
+reads failed due to low quality: 0
+reads failed due to too many N: 0
+reads failed due to too short: 0
+reads with adapter trimmed: 0
+bases trimmed due to adapters: 0
+reads corrected by overlap analysis: 0
+bases corrected by overlap analysis: 0
+
+Duplication rate: 75.1145%
+
+Insert size peak (evaluated by paired-end reads): 0
+
+JSON report: fastp.json
+HTML report: /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/PopA_01.html
+
+/usr/local/bin/fastp -i /home/BIO594/DATA/Week4/PopA_01.F.fq.gz -I /home/BIO594/DATA/Week4/PopA_01.R.fq.gz -o /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/PopA_01.F.fq.gz -O /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/PopA_01.R.fq.gz --cut_right --cut_mean_quality=25 --cut_window_size 6 --detect_adapter_for_pe --correction -h /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/PopA_01.html 
+fastp v0.23.2, time used: 1 seconds
