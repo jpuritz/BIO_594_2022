@@ -45,5 +45,5 @@ Insert size peak (evaluated by paired-end reads): 0
 JSON report: fastp.json
 HTML report: /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/PopA_02.html
 
-/usr/local/bin/fastp -i /home/BIO594/DATA/Week4/PopA_02.F.fq.gz -I /home/BIO594/DATA/Week4/PopA_02.R.fq.gz -o /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/PopA_02.F.fq.gz -O /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/PopA_02.R.fq.gz --cut_right --cut_mean_quality=25 --cut_window_size 6 --detect_adapter_for_pe --correction -h /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/PopA_02.html 
-fastp v0.23.2, time used: 2 seconds
+fastp -i /home/BIO594/DATA/Week4/PopA_02.F.fq.gz -I /home/BIO594/DATA/Week4/PopA_02.R.fq.gz -o /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/PopA_02.out_F.fq.gz -O /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/PopA_02.out_R.fq.gz --cut_right --cut_mean_quality=25 --cut_window_size 6 --detect_adapter_for_pe --correction -h /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/PopA_02.html 
+fastp v0.23.1, time used: 1 seconds
