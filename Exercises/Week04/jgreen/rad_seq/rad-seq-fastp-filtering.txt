@@ -1,0 +1,9 @@
+#rad_seq fastp filtering
+#Flags: 
+# -V is verbose 
+# -e f one read's average quality score <avg_qual, then this read/pair is discarded. Default 0 means no requirement (int [=0]) 
+# -q the quality value that a base is qualified. Default 15 means phred quality >=Q15 is qualified. (int [=15]), 
+# -p one in (--overrepresentation_sampling) reads will be computed for overrepresentation analysis (1~10000), smaller is slower, default is 20. (int [=20])
+
+fastp -V -e 30 -q 30 -p -i /home/BIO594/DATA/Week4/realdata/rad_seq/FCLib1.F.fastq.gz -I /home/BIO594/DATA/Week4/realdata/rad_seq/FCLib1.R.fastq.gz -o FCLib1.F.trimq30.fastq.gz -O FCLib1.R.trimq30.fastq.gz
+fastp -V -e 30 -q 30 -p -i /home/BIO594/DATA/Week4/realdata/rad_seq/WC1_407.F.fq.gz -I /home/BIO594/DATA/Week4/realdata/rad_seq/WC1_407.R.fq.gz -o WC1_407.F.trimq30.fastq.gz -O WC1_407.R.trimq30.fastq.gz

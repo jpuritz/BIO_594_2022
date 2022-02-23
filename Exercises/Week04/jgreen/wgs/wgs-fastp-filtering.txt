@@ -1,0 +1,8 @@
+# wgs raw sequence trimming commands
+#Flags: 
+# -V is verbose 
+# -e f one read's average quality score <avg_qual, then this read/pair is discarded. Default 0 means no requirement (int [=0]) 
+# -q the quality value that a base is qualified. Default 15 means phred quality >=Q15 is qualified. (int [=15]), 
+# -p one in (--overrepresentation_sampling) reads will be computed for overrepresentation analysis (1~10000), smaller is slower, default is 20. (int [=20])
+
+fastp -V -e 30 -q 30 -p -i /home/BIO594/DATA/Week4/realdata/wgs/HC_1.F.fq.gz -I /home/BIO594/DATA/Week4/realdata/wgs/HC_1.F.fq.gzHC_1.R.fq.gz -o HC_1.F.trimq30.fq.gz -O HC_1.R.trimq30.fq.gz
