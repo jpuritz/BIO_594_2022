@@ -1,5 +1,5 @@
 # How to determine how many loci are in a RadSeq dataset using dDocent
-Loci are the genetic location of genes on chromosomes. In population genetics, the presence of different loci can be used to see differences among populations. 
+Loci are the genetic location of genes on chromosomes. In population genetics, the presence of polymorphisms in different loci can be used to see differences among populations. 
 
 RADSeq (Restriction site Associated DNA Sequencing) is a technique that is often used to sequence DNA of populations in a relatively cheap manner. 
 Analysis of RADSeq data can be performed using the dDocent pipeline. Below you will find how to use dDocent commands to determine the number of contigs that designate the loci assembled by dDocent. These commands are to be run on files that have already been demultiplexed and named appropriately.
