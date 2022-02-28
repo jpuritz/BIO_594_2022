@@ -1,0 +1,96 @@
+---
+title: "Richardson"
+author: "DB RIchardson"
+date: "2/26/2022"
+output: html_document
+---
+First, let's quality filter the reads. 
+```{bash}
+FASTQ_DIR="/home/BIO594/DATA/Week5"
+OUT_DIR="/home/dbr/wk5_activities/HW"
+for i in `ls ${FASTQ_DIR} | cut -d'.' -f1 | sort | uniq`; do fastp -i ${FASTQ_DIR}/${i}.F.fq.gz -I ${FASTQ_DIR}/${i}.R.fq.gz -o ${OUT_DIR}/${i}.F.qc.fq.gz -O ${OUT_DIR}/${i}.R.qc.fq.gz; done 
+
+QC_READS_DIR="/home/dbr/wk5_activities/HW/QC"
+mkdir ${QC_READS_DIR}
+mv ${OUT_DIR}/*.qc.fq.gz ${QC_READS_DIR}/.
+```
+
+Then, I used the commands from the activity to count the number of unique loci. 
+```{bash}
+ls ${QC_READS_DIR}/*.F.qc.fq.gz > ${OUT_DIR}/namelist
+sed -i'' -e 's/.F.fq.gz//g' namelist
+AWK1='BEGIN{P=1}{if(P==1||P==2){gsub(/^[@]/,">");print}; if(P==4)P=0; P++}'
+AWK2='!/>/'
+AWK3='!/NNN/'
+PERLT='while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}'
+
+cat namelist | parallel --no-notice -j 8 "zcat {} | mawk '$AWK1' | mawk '$AWK2' > {}.forward"
+cat namelist | parallel --no-notice -j 8 "zcat {} | mawk '$AWK1' | mawk '$AWK2' > {}.reverse"
+cat namelist | parallel --no-notice -j 8 "paste -d '-' {}.forward {}.reverse | mawk '$AWK3' | sed 's/-/NNNNNNNNNN/' | perl -e '$PERLT' > {}.uniq.seqs"
+
+
+cat ${QC_READS_DIR}/*.uniq.seqs > ${OUT_DIR}/uniq.seqs
+
+for i in {1..20};
+do
+ echo $i >> pfile
+done
+cat pfile | parallel --no-notice "echo -n {}xxx && mawk -v x={} '\$1 >= x' uniq.seqs | wc -l" | mawk  '{gsub("xxx","\t",$0); print;}'| sort -g > uniqseq.data
+rm pfile
+```
+
+It looks like there's 433930 loci that were seen at least once 
+```{bash}
+
+head uniqseq.data 
+
+```
+
+Finally, I used the commands from the coding activity to create a reference.fasta file. 
+```{bash}
+parallel --no-notice -j 8 mawk -v x=4 \''$1 >= x'\' ::: ${QC_READS_DIR}/*.uniq.seqs | cut -f2 | perl -e 'while (<>) {chomp; $z{$_}++;} while(($k,$v) = each(%z)) {print "$v\t$k\n";}' > uniqCperindv
+
+for ((i = 2; i <= 10; i++));
+do
+ echo $i >> ufile
+done
+
+ cat ufile | parallel --no-notice "echo -n {}xxx && mawk -v x={} '\$1 >= x' uniqCperindv | wc -l" | mawk  '{gsub("xxx","\t",$0); print;}'| sort -g > uniqseq.peri.data
+ rm ufile
+ 
+ mawk -v x=4 '$1 >= x' uniqCperindv > uniq.k.4.c.4.seqs
+ 
+ cut -f2 uniq.k.4.c.4.seqs > totaluniqseq
+ mawk '{c= c + 1; print ">Contig_" c "\n" $1}' totaluniqseq > uniq.fasta
+ 
+ sed -e 's/NNNNNNNNNN/\t/g' uniq.fasta | cut -f1 > uniq.F.fasta
+ 
+ cd-hit-est -i uniq.F.fasta -o xxx -c 0.8 -T 0 -M 0 -g 1
+ 
+ mawk '{if ($1 ~ /Cl/) clus = clus + 1; else  print $3 "\t" clus}' xxx.clstr | sed 's/[>Contig_,...]//g' | sort -g -k1 > sort.contig.cluster.ids
+ 
+ paste sort.contig.cluster.ids totaluniqseq > contig.cluster.totaluniqseq
+ 
+ sort -k2,2 -g contig.cluster.totaluniqseq | sed -e 's/NNNNNNNNNN/\t/g' > rcluster
+ 
+ rainbow div -i rcluster -o rbdiv.out -f 0.5 -K 10
+ 
+ rainbow merge -o rbasm.out -a -i rbdiv.out -r 2
+ 
+ cat rbasm.out <(echo "E") |sed 's/[0-9]*:[0-9]*://g' | mawk ' {
+ if (NR == 1) e=$2;
+ else if ($1 ~/E/ && lenp > len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq2 "NNNNNNNNNN" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
+ else if ($1 ~/E/ && lenp <= len1) {c=c+1; print ">dDocent_Contig_" e "\n" seq1; seq1=0; seq2=0;lenp=0;e=$2;fclus=0;len1=0;freqp=0;lenf=0}
+ else if ($1 ~/C/) clus=$2;
+ else if ($1 ~/L/) len=$2;
+ else if ($1 ~/S/) seq=$2;
+ else if ($1 ~/N/) freq=$2;
+ else if ($1 ~/R/ && $0 ~/0/ && $0 !~/1/ && len > lenf) {seq1 = seq; fclus=clus;lenf=len}
+ else if ($1 ~/R/ && $0 ~/0/ && $0 ~/1/) {seq1 = seq; fclus=clus; len1=len}
+ else if ($1 ~/R/ && $0 ~!/0/ && freq > freqp && len >= lenp || $1 ~/R/ && $0 ~!/0/ && freq == freqp && len > lenp) {seq2 = seq; lenp = len; freqp=freq}
+ }' > rainbow.fasta
+
+cd-hit-est -i rainbow.fasta -o reference.fasta -M 0 -T 0 -c 0.9
+
+```
+
