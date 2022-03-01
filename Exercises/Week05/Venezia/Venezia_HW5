@@ -1,0 +1,16 @@
+
+How many loci are there in the data set? 
+There were 1,234 loci in the data set from the analysis.  
+
+Code: 
+# to downlaod the scripts for the exercise from github
+
+curl -L -O https://github.com/jpuritz/dDocent/raw/master/scripts/remake_reference.sh
+curl -L -O https://github.com/jpuritz/dDocent/raw/master/scripts/ReferenceOpt.sh 
+
+#run reffernce assembly  
+# cutoff value of 11 with paired end  
+bash remake_reference.sh 11 11 0.95 PE 2
+ 
+# run mawk to find the nubmer of contigs in reference.fasta from the step before   
+mawk '/>/' reference.fasta | wc - l  
