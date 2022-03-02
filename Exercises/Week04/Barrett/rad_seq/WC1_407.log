@@ -1,0 +1,49 @@
+Detecting adapter sequence for read1...
+No adapter detected for read1
+
+Detecting adapter sequence for read2...
+No adapter detected for read2
+
+Read1 before filtering:
+total reads: 100000
+total bases: 14600000
+Q20 bases: 13989497(95.8185%)
+Q30 bases: 13179453(90.2702%)
+
+Read2 before filtering:
+total reads: 100000
+total bases: 15100000
+Q20 bases: 14126787(93.5549%)
+Q30 bases: 12951507(85.7716%)
+
+Read1 after filtering:
+total reads: 95928
+total bases: 13131948
+Q20 bases: 12942144(98.5546%)
+Q30 bases: 12468798(94.9501%)
+
+Read2 after filtering:
+total reads: 95928
+total bases: 13163524
+Q20 bases: 12910690(98.0793%)
+Q30 bases: 12265751(93.1798%)
+
+Filtering result:
+reads passed filter: 191856
+reads failed due to low quality: 12
+reads failed due to too many N: 0
+reads failed due to too short: 8132
+reads with adapter trimmed: 546
+bases trimmed due to adapters: 16353
+reads corrected by overlap analysis: 850
+bases corrected by overlap analysis: 1183
+
+Duplication rate: 41.337%
+
+Insert size peak (evaluated by paired-end reads): 146
+
+JSON report: fastp.json
+HTML report: /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/rad_seq/WC1_407.html
+
+fastp -i /home/BIO594/DATA/Week4/realdata/rad_seq/WC1_407.F.fq.gz -I /home/BIO594/DATA/Week4/realdata/rad_seq/WC1_407.R.fq.gz -o /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/rad_seq/WC1_407.out_F.fq.gz -O /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/rad_seq/WC1_407.out_R.fq.gz --cut_right --cut_mean_quality=25 --cut_window_size=15 --detect_adapter_for_pe --correction -h /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/rad_seq/WC1_407.html 
+fastp v0.23.1, time used: 11 seconds
