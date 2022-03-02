@@ -15,7 +15,7 @@ mkdir ${QC_READS_DIR}
 mv ${OUT_DIR}/*.qc.fq.gz ${QC_READS_DIR}/.
 ```
 
-Then, I used the commands from the activity to count the number of unique loci. 
+Then, I used the commands from the activity to count the number of unique reads that appeared at least once. 
 ```{bash}
 ls ${QC_READS_DIR}/*.F.qc.fq.gz > ${OUT_DIR}/namelist
 sed -i'' -e 's/.F.fq.gz//g' namelist
@@ -39,10 +39,10 @@ cat pfile | parallel --no-notice "echo -n {}xxx && mawk -v x={} '\$1 >= x' uniq.
 rm pfile
 ```
 
-It looks like there's 433930 loci that were seen at least once 
+It looks like there's 433930 reads that were seen at least once 
 ```{bash}
 
-head uniqseq.data 
+more uniqseq.data 
 
 ```
 
@@ -94,3 +94,8 @@ cd-hit-est -i rainbow.fasta -o reference.fasta -M 0 -T 0 -c 0.9
 
 ```
 
+There are 1234 contigs in this file representing the unique loci. 
+
+```{r}
+mawk '/>/' reference.fasta | wc -l
+```
