@@ -1,0 +1,49 @@
+Detecting adapter sequence for read1...
+No adapter detected for read1
+
+Detecting adapter sequence for read2...
+No adapter detected for read2
+
+Read1 before filtering:
+total reads: 100000
+total bases: 14200000
+Q20 bases: 13547660(95.4061%)
+Q30 bases: 12612857(88.8229%)
+
+Read2 before filtering:
+total reads: 100000
+total bases: 14200000
+Q20 bases: 13431086(94.5851%)
+Q30 bases: 12488351(87.9461%)
+
+Read1 after filtering:
+total reads: 97814
+total bases: 11974010
+Q20 bases: 11766995(98.2711%)
+Q30 bases: 11248630(93.942%)
+
+Read2 after filtering:
+total reads: 97814
+total bases: 11784296
+Q20 bases: 11561674(98.1109%)
+Q30 bases: 11086589(94.0793%)
+
+Filtering result:
+reads passed filter: 195628
+reads failed due to low quality: 26
+reads failed due to too many N: 0
+reads failed due to too short: 4346
+reads with adapter trimmed: 65866
+bases trimmed due to adapters: 2125797
+reads corrected by overlap analysis: 23721
+bases corrected by overlap analysis: 31096
+
+Duplication rate: 2.468%
+
+Insert size peak (evaluated by paired-end reads): 142
+
+JSON report: fastp.json
+HTML report: /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/exome_capture/CASE_J03.html
+
+fastp -i /home/BIO594/DATA/Week4/realdata/exome_capture/CASE_J03.F.fq.gz -I /home/BIO594/DATA/Week4/realdata/exome_capture/CASE_J03.R.fq.gz -o /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/exome_capture/CASE_J03.out_F.fq.gz -O /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/exome_capture/CASE_J03.out_R.fq.gz --cut_right --cut_mean_quality=25 --cut_window_size=15 --detect_adapter_for_pe --correction -h /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/exome_capture/CASE_J03.html 
+fastp v0.23.1, time used: 13 seconds

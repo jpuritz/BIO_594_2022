@@ -1,0 +1,51 @@
+Detecting adapter sequence for read1...
+>Illumina TruSeq Adapter Read 1
+AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+
+Detecting adapter sequence for read2...
+>Illumina TruSeq Adapter Read 2
+AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+
+Read1 before filtering:
+total reads: 100000
+total bases: 15100000
+Q20 bases: 14454860(95.7275%)
+Q30 bases: 13562956(89.8209%)
+
+Read2 before filtering:
+total reads: 100000
+total bases: 15100000
+Q20 bases: 13873553(91.8778%)
+Q30 bases: 12588578(83.3681%)
+
+Read1 after filtering:
+total reads: 93419
+total bases: 13344746
+Q20 bases: 13025465(97.6074%)
+Q30 bases: 12448800(93.2862%)
+
+Read2 after filtering:
+total reads: 93419
+total bases: 12669370
+Q20 bases: 12282888(96.9495%)
+Q30 bases: 11592803(91.5026%)
+
+Filtering result:
+reads passed filter: 186838
+reads failed due to low quality: 126
+reads failed due to too many N: 0
+reads failed due to too short: 13036
+reads with adapter trimmed: 9068
+bases trimmed due to adapters: 212800
+reads corrected by overlap analysis: 8295
+bases corrected by overlap analysis: 11554
+
+Duplication rate: 2.398%
+
+Insert size peak (evaluated by paired-end reads): 151
+
+JSON report: fastp.json
+HTML report: /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/wgs/HC_1.html
+
+fastp -i /home/BIO594/DATA/Week4/realdata/wgs/HC_1.F.fq.gz -I /home/BIO594/DATA/Week4/realdata/wgs/HC_1.R.fq.gz -o /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/wgs/HC_1.out_F.fq.gz -O /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/wgs/HC_1.out_R.fq.gz --cut_right --cut_mean_quality=25 --cut_window_size=15 --detect_adapter_for_pe --correction -h /home/gbarrett/BIO_594_2022/Exercises/Week04/Barrett/wgs/HC_1.html 
+fastp v0.23.1, time used: 6 seconds
