@@ -139,7 +139,7 @@ EOF
 ```
 ````
 
-![](2022-03-01-21-22-28.png)
+![](wk5_fg1_coverage.png)
 
 Interpretting the graph it looks like thresholding uniq seqs with coverage of 8 will preseve most most of sequences while limiting risk.
 
@@ -189,7 +189,7 @@ EOF
 ```
 ````
 
-![](2022-03-01-22-38-01.png)
+![](wk5_fg1_individuals.png)
 
 Appears to be a rapid decline as individuals increases. Convervatively 4 individuals may be the best bet without loosing more than half of the sequences.
 
@@ -375,24 +375,3 @@ curl -L -O https://github.com/jpuritz/dDocent/raw/master/scripts/remake_referenc
 bash remake_reference.sh 4 4 0.90 PE 2
 ```
 ````
-
-## PyRAD Environment Set Up
-
-Loading conda environment and creating pyrad parameters file
-
-````
-```bash
-conda info --envs # checking environments. "pyrad" environment present
-
-conda activate pyrad
-
-pyrad -n # creates a file params.txt
-```
-````
-Editing `params.txt` to include: 
-* #6 restriction sites AATT, CCG
-* #7 Setting parallel processors to 12
-* #11 settng to paird ddRAD
-* #12 set trim overhang --> preventing a pyrad specific bug in pyRAD 
-* #13 setting to 20 individuals
-
