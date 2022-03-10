@@ -1,0 +1,305 @@
+---
+title: "Week7 Assignment"
+author: Michelle Gregoire
+output: html_document
+date: '2022-03-09'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Objective and setting up for assignment
+
+For this week's assignment we first have to make a directory called "Week7"
+
+- mkdir Week7
+- cd Week7
+
+Then we have to create our environment
+
+- conda create -n week7 ddocent
+- conda activate week7
+
+## Link to the data 
+
+- ln -s /home/BIO594/Exercises/Week07_and_Week_08/simulated/*.fq.gz .
+
+## Then run dDocent
+
+dDocent
+
+- Number of processors: 20
+- Maximum memory: 0
+- Trimming: yes
+- Assembly: yes
+- Type of assembly: PE
+- Clustering similarity: 0.9
+- Mapping reads: yes
+- Mapping match value: 1
+- Mapping mis-match value: 4
+- Mapping gapOpen penalty: 6
+- Calling SNPs: yes
+- email: mjgregoire@uri.edu
+- Cutoff values: 5, 3
+
+To run dDocent in the background of your terminal:
+
+- Press  'ctrl' + z
+- Type bg and hit '--> enter'
+- Type disown -h
+
+
+## Filter SNPs
+We now need to filter the data to see if we can tease out any significant SNPs. Make a new directory called "Filter" and move into that directory
+
+-  mkdir Filter
+- cd Filter
+
+Link to the total raw SNPs VCF file from the Week7 directory
+
+- ln -s ../TotalRawSNPs.vcf .
+
+Run VCF tools on this file with the following parameters and recode keeping the info fields and name the output file TRS:
+
+- Proportion of missing data to exclude "Max missing": 0.5
+- Minor allele frequency "maf": 0.001
+- Minimum Q value to include sites above "MinQ": 20
+
+- vcftools --vcf TotalRawSNPs.vcf --max-missing 0.5 --maf 0.001 --minQ 20 --recode --recode-INFO-all --out TRS
+
+Then filter the TRS output file to only include anything below a minimum depth of 5 and recode and save the output file as TRSdp5
+
+-vcftools --vcf TRS.recode.vcf --minDP 5 --recode --recode-INFO-all --out TRSdp5
+
+Get rid of any missing data from the population map with a value 0.05:
+
+- pop_missing_filter.sh TRSdp5.recode.vcf ../popmap 0.05 1 TRSdp5p05
+
+Run the dDocent filter:
+
+- dDocent_filters TRSdp5p05.recode.vcf TRSdp5p05
+
+It will ask if the reads are expected to overlap: No
+And if the library is from a mix of SE and PE: No
+
+It will generate a histogram and ask you to choose a cutoff value as follows:
+
+-If distrubtion looks normal, a 1.645 sigma cutoff (~90% of the data) would be 5156.132535. The 95% cutoff would be 63. Would you like to use a different maximum mean depth cutoff than 63, yes or no
+
+Say yes and enter a higher cutoff ex: 70
+
+Then we need to change the formatting of the vcf file outputted from dDocent for downstream analysis into a prim file, save the output as SNP.TRSdp5p05F.prim:
+
+- vcfallelicprimitives -k -g TRSdp5p05.FIL.recode.vcf |sed 's:\.|\.:\.\/\.:g' > TRSdp5p05F.prim
+
+Then we will run the prim file in vcf tools and remove any indels, save the output as SNP.TRSdp5p05F:
+
+- vcftools --vcf TRSdp5p05F.prim --recode --recode-INFO-all --remove-indels --out SNP.TRSdp5p05F
+
+Next we can filter the data further by HardyWeinberg and save the output as SNP.TRSdp5p05FHWE:
+
+- filter_hwe_by_pop.pl -v SNP.TRSdp5p05F.recode.vcf -p ../popmap -c 0.5 -out SNP.TRSdp5p05FHWE
+
+Then run vcftools to filter this HardyWeinberg filtered set to include sites with a minimum allelic frequency of 0.05, recode this and save the output as SNP.TRSdp5p05FHWEmaf05:
+
+- vcftools --vcf SNP.TRSdp5p05FHWE.recode.vcf --maf 0.05 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWEmaf05
+
+
+## Converting VCF to other file formats
+VCF files can be converted into other file formats depending on the intended analysis. We will accomplish the coversion by copying a PGDspider configuration file and link to the popmap in the Week7 directory to map the individuals back to the population.
+
+- cp /home/BIO594/DATA/Week7/example/BSsnp.spid .
+- ln -s ../popmap .
+
+Use the following command to run PGDspider which is a java program. Specify your input file as the SNP.TRSdp5p05FHWEmaf05.recode.vcf file and your output as SNP.TRSdp5p05FHWEBS:
+
+- java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWEmaf05.recode.vcf -outputfile SNP.TRSdp5p05FHWEBS -spid BSsnp.spid
+
+## Running BayeScan
+BayeScan is used to identify loci that are under natural selection. It looks at differences in allele frequencies between populations and uses a multinomial-Dirichlet model. The differences in allele frequencies are measured by subpopulation specific FsT coefficients. 
+
+Use the following command to run BayeScan, note this will take a while to run:
+
+- BayeScan2.1_linux64bits SNP.TRSdp5p05FHWEBS -nbp 30 -thin 20
+
+Copy the R source file into the Filter folder so that you can analyze the output from BayeScan:
+
+- cp /home/BIO594/DATA/Week7/example/plot_R.r .
+
+Then open R-Studio and use the following commands to visually see the output from BayeScan. The outliers with the more negative log10 quality (Q) values indicate the SNPs of interest:
+
+```{R, echo = TRUE}
+source("/home/mgregoire/Week7/Filter/plot_R.r")
+plot_bayescan("/home/mgregoire/Week7/Filter/SNP.TRSdp5p05FH_fst.txt")
+
+```
+
+BayeScan can use multiallelic data but PCAdapt and Outflank can only process SNPs with only two alleles. Use the following command to do this:
+
+- vcftools --vcf SNP.TRSdp5p05FHWEmaf05.recode.vcf --max-alleles 2 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWE2A
+
+
+## Analyzing data with PCAdapt
+
+PCAdapt is an R based program that detects genetic markers involved in biological adaptation using tools for outlier detection based on Principal Component Analysis (PCA). All analysis once you filter for the two alleles (from the previous step) can be done in R. 
+
+```{R, echo = TRUE}
+#load pcadapt library
+library(pcadapt)
+
+#load VCF file into R
+filename <- read.pcadapt("/home/mgregoire/Week7/Filter/SNP.TRSdp5p05FHWE2A.recode.vcf", type = "vcf" )
+
+#create first PCA
+x <- pcadapt(input = filename, K = 20)
+
+#plot the likelihoods
+plot(x, option = "screeplot")
+#plot Plot the likelihoods for only first 10 K
+plot(x, option = "screeplot", K = 10)
+
+#create population designations
+poplist.names <- c(rep("POPA", 20),rep("POPB", 20),rep("POPC", 20), rep("POPD",20))
+
+#plot the actual PCA (first two PCAs)
+plot(x, option = "scores", pop = poplist.names)
+#plot PCA with PCA 2 and PCA 3
+plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
+#plot PCA with PCA 3 and PCA 4
+plot(x, option = "scores", i = 3, j = 4, pop = poplist.names)
+
+
+#redo PCA with only 3 K
+x <- pcadapt(filename, K = 3)
+
+summary(x)
+
+#start looking for outliers
+#make Manhattan Plot
+plot(x , option = "manhattan")
+#make qqplot
+plot(x, option = "qqplot", threshold = 0.1)
+#look at P-value distribution
+plot(x, option = "stat.distribution")
+
+#set FDR
+library(qvalue)
+qval <- qvalue(x$pvalues)$qvalues
+alpha <- 0.1
+
+#save outliers
+outliers <- which(qval < alpha)
+
+#test for library effects
+poplist.names <- c(rep("LIB1", 40),rep("LIB2", 40))
+x <- pcadapt(input = filename, K = 20)
+
+plot(x, option = "scores", pop = poplist.names)
+plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
+
+x <- pcadapt(filename, K = 2)
+summary(x)
+
+#make your plots
+plot(x , option = "manhattan")
+plot(x, option = "qqplot", threshold = 0.1)
+
+plot(x, option = "stat.distribution")
+
+library(qvalue)
+qval <- qvalue(x$pvalues)$qvalues
+alpha <- 0.1
+outliers <- which(qval < alpha)
+
+```
+
+
+## Analyzing data with Outflank
+Outflank can find Fst outliers in data based on an inferred distribution of neutral Fst. It can be run entirely in R once you have only allelic data from two alleles.
+
+```{R, ECHO = TRUE}
+#load the OutFLANK, vcfR, and LD pruning (bigsnpr), packages
+library(OutFLANK)  
+library(vcfR)
+library(bigsnpr)   
+
+#read in your vcf file
+my_vcf <- read.vcfR("/home/mgregoire/Week7/Filter/SNP.TRSdp5p05FHWE2A.recode.vcf")
+
+#make a character matrix with the genotypes
+geno <- extract.gt(my_vcf) 
+#add the positions in bp
+position <- getPOS(my_vcf) 
+#add the chromosome information
+chromosome <- getCHROM(my_vcf) 
+
+#modify the table to show the genotypes simply
+G <- matrix(NA, nrow = nrow(geno), ncol = ncol(geno))
+G[geno %in% c("0/0", "0|0")] <- 0
+G[geno  %in% c("0/1", "1/0", "1|0", "0|1")] <- 1
+G[geno %in% c("1/1", "1|1")] <- 2
+G[is.na(G)] <- 9
+head(G[,1:10])
+
+#load the popmap from the Week7 folder and info under variable "pop"
+pop <- read.table("/home/mgregoire/Week7/popmap", header=FALSE)
+pop <- pop$V2
+
+#use the chromosome, position, and popmaps with the MakeDiploidFSTMat command to get the FST
+my_fst <- MakeDiploidFSTMat(t(G), locusNames = paste0(chromosome,"_", position), popNames = pop)
+
+#use the OutFLANK command to finish up the analysis
+my_dist <- OutFLANK(my_fst, NumberOfSamples = 4, qthreshold=0.1, RightTrimFraction=0.1, LeftTrimFraction=0.1)
+
+#use outFLANKResultsPlotter to visualize and retrieve your results
+OutFLANKResultsPlotter(my_dist)
+plot(my_dist$results$FST, col=as.numeric(as.factor(chromosome)))
+my_dist$results[which(my_dist$results$OutlierFlag == TRUE),]
+
+```
+
+## Analyzing Data with BayEnv2
+BayEnv2 is a data analysis tool that can detect loci involved in local adaptation that show a correlation between allele frequencies and ecological variables or differences between geographic regions. This analysis is not done in R until the last few steps, so go back to your terminal!
+
+First the vcf file needs to be converted into a file that BayEnv2 recognizes use the following code: 
+
+- cp /home/BIO594/DATA/Week7/example/SNPBayEnv.spid .
+- cp /home/BIO594/DATA/Week7/example/environ .
+- java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWE2A.recode.vcf -outputfile SNP.TRSdp5p05FHWEBayEnv.txt -spid SNPBayEnv.spid
+
+Then call BayEnv2 to generate a covariance matrix:
+
+- bayenv2 -i SNP.TRSdp5p05FHWEBayEnv.txt -p 4 -k 100000 -r 63479 > matrix.out
+
+The code will generate 100,000 iterations. We only need the last one so filter that out
+
+- tail -5 matrix.out | head -4 > matrix
+
+Look at the environmental factor file:
+
+- cat environ
+
+Next calculate the Bayes Factor for each SNP for each environmental variable, note this will take awhile:
+
+- ln -s /usr/local/bin/bayenv2 .
+- calc_bf.sh SNP.TRSdp5p05FHWEBayEnv.txt environ matrix 4 10000 2
+
+Next convert the output into a file that is suitable to be opened in R:
+
+- paste <(seq 1 923) <(cut -f2,3 bf_environ.environ ) > bayenv.out
+- cat <(echo -e "Locus\tBF1\tBF2") bayenv.out > bayenv.final
+
+Then you can open R and run the following:
+
+```{R, ECHO = TRUE}
+#use fill to fill = TRUE to fill any gaps in the table
+table_bay <- read.table("/home/mgregoire/Week7/Filter/bayenv.final",header=TRUE, fill = TRUE)
+#visualize the table by plotting it
+plot(table_bay$BF1)
+#print the significant values in the table
+table_bay[which(table_bay$BF1 > 100),]
+```
+
+## Summary
+In this assignment we have practiced calling SNPs from our simulated population data with dDocent, filtering the SNPS with vcftools, converting vcf files to other formats, and analyzing the SNPs for outliers using BayeScan, PCAdapt, OutFLANK, and BayEnv2 --each of which calls upon different statistical analyses and models to determine SNP outlier significance. 
