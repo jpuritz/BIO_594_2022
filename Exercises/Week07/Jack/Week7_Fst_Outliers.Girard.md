@@ -220,7 +220,7 @@ One Population non-WEBS
 
 ~~*Ask in class about nb outliers*~~ nb = "number of"
 
-![](wk7_bayscan.figures\wk7_fig2_bayscan.outliers.webs.png)
+![](wk7_bayscan.figures/wk7_fig2_bayscan.outliers.webs.png)
 
 WEBS
 > Outliers: 189, 312, 313, 697 698
@@ -285,17 +285,17 @@ One Pop Outputs
 
 Variation explained figures
 
-![](wk7_PCAadapt.figures\PCA_fig1_percentexp.K20.png)
+![](wk7_PCAadapt.figures/PCA_fig1_percentexp.K20.png)
 
-![](wk7_PCAadapt.figures\PCA_fig2_percentexp.K10.png)
+![](wk7_PCAadapt.figures/PCA_fig2_percentexp.K10.png)
 
 PCAs
 
-![](wk7_PCAadapt.figures\PCA_fig3_pc1vpc2.png)
+![](wk7_PCAadapt.figures/PCA_fig3_pc1vpc2.png)
 
-![](wk7_PCAadapt.figures\PCA_fig4_pc2vpc3.png)
+![](wk7_PCAadapt.figures/PCA_fig4_pc2vpc3.png)
 
-![](wk7_PCAadapt.figures\PCA_fig5_pc3vpc4.png)
+![](wk7_PCAadapt.figures/PCA_fig5_pc3vpc4.png)
 
 Summary: Population D shows the greatest difference of the 4 populations along the main axis of explained variance (PC1). Population C begins to cluster from the remaining 2 along PC2. PC2 v PC3 shows a better spread of the data in one space however the clustering is minimal. PC 3v PC4 is rather unhelpful. Visually a 3-D PCA of 1, 2, 3 would give the most clear picture of these clusters.
 
@@ -303,17 +303,17 @@ Four population analysis figures
 
 Variation explained figures
 
-![](wk7_PCAadapt.figures\PCA_fig6_4p_percentexp.K20.png)
+![](wk7_PCAadapt.figures/PCA_fig6_4p_percentexp.K20.png)
 
-![](wk7_PCAadapt.figures\PCA_fig7_4p_percentexp.K10.png)
+![](wk7_PCAadapt.figures/PCA_fig7_4p_percentexp.K10.png)
 
 PCAs
 
-![](wk7_PCAadapt.figures\PCA_fig8_4p_pc1vpc2.png)
+![](wk7_PCAadapt.figures/PCA_fig8_4p_pc1vpc2.png)
 
-![](wk7_PCAadapt.figures\PCA_fig9_4p_pc2vpc3.png)
+![](wk7_PCAadapt.figures/PCA_fig9_4p_pc2vpc3.png)
 
-![](wk7_PCAadapt.figures\PCA_fig10_4p_pc3vpc4.png)
+![](wk7_PCAadapt.figures/PCA_fig10_4p_pc3vpc4.png)
 
 Summary: Conclusions between the different analysis types remains the same. Note that in the four popn analysis the PC2 axis is inverted and the PC3 axis has been slightly compressed (in the spread of points) than in the single popn analysis. Overally we are concerned with spacing between points here and there are no major differences among the groups relative to one another. Futher without a stress metric on these PCAs it is hard to know how reliable the present visualization truely is. The differences may be a product of the multivariate permuatation process instead of the differential filtering.
 
@@ -367,15 +367,15 @@ Outputs
 
 Showing the last set of plots made after thresholding alpha 0.1.
 
-![](wk7_PCAadapt.figures\PCA_fig11_Outliers.statdist.png)
+![](wk7_PCAadapt.figures/PCA_fig11_Outliers.statdist.png)
 
-![](wk7_PCAadapt.figures\PCA_fig12_outliers.qqplot.png)
+![](wk7_PCAadapt.figures/PCA_fig12_outliers.qqplot.png)
 
-![](wk7_PCAadapt.figures\PCA_fig13_outliers.manhatten.png)
+![](wk7_PCAadapt.figures/PCA_fig13_outliers.manhatten.png)
 
-![](wk7_PCAadapt.figures\PCA_fig14_outliers.pca1v2.png)
+![](wk7_PCAadapt.figures/PCA_fig14_outliers.pca1v2.png)
 
-![](wk7_PCAadapt.figures\PCA_fig15_outliers.pca2v3.png)
+![](wk7_PCAadapt.figures/PCA_fig15_outliers.pca2v3.png)
 
 
 ## Outflank
@@ -429,9 +429,9 @@ my_dist$results[which(my_dist$results$OutlierFlag == TRUE),]
 ```
 ### Output
 
-![](wk7_outflank.figures\wk7_fig16_outflank.fstdist.png)
+![](wk7_outflank.figures/wk7_fig16_outflank.fstdist.png)
 
-![](wk7_outflank.figures\wk7_fig17_outflank.fstdist_v_index.png)
+![](wk7_outflank.figures/wk7_fig17_outflank.fstdist_v_index.png)
 
 ## BayEnv2
 
@@ -511,6 +511,6 @@ table_bay[which(table_bay$BF1 > 100),]
 
 > Outlier loci: 2 Locus 648 and 649
 
-![](wk7_bayenv2.figures\wk7_fig18_bayenv.table.png)
+![](wk7_bayenv2.figures/wk7_fig18_bayenv.table.png)
 
 Goals Complete!
