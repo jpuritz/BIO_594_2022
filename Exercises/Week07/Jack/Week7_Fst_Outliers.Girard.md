@@ -218,7 +218,7 @@ One Population non-WEBS
 > Outliers: SNPs 182, 295, 296, 651, 652.
 > nb_outliers: 5
 
-*Ask in class about nb outliers*
+~~*Ask in class about nb outliers*~~ nb = "number of"
 
 ![](wk7_bayscan.figures\wk7_fig2_bayscan.outliers.webs.png)
 
