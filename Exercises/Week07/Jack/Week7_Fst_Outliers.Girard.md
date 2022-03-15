@@ -212,7 +212,7 @@ plot_bayescan("SNP.TRSdp5p05FHWEB_fst.txt")
 
 #### Output Figures
 
-![](wk7_bayscan.figures\wk7_fig1_bayscan.outliers.onepop.png)
+![](wk7_bayscan.figures/wk7_fig1_bayscan.outliers.onepop.png)
 
 One Population non-WEBS
 > Outliers: SNPs 182, 295, 296, 651, 652.
