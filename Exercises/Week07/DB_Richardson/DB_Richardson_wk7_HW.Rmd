@@ -1,0 +1,386 @@
+---
+title: "Richardson wk7"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{bash}
+mkdir /home/dbr/wk7_activity
+cd /home/dbr/wk7_activity
+ln -s /home/BIO594/Exercises/Week07_and_Week_08/simulated/*.fq.gz . 
+
+conda activate wk7
+```
+
+```{bash}
+dDocent
+80 individuals are detected. Is this correct? Enter yes or no and press [ENTER]
+yes
+
+Please enter the maximum number of processors to use for this analysis.
+20
+
+Do you want to quality trim your reads?
+Type yes or no and press [ENTER]?
+yes
+
+Do you want to perform an assembly?
+Type yes or no and press [ENTER].
+yes
+
+What type of assembly would you like to perform?  Enter SE for single end, PE for paired-end, RPE for paired-end sequencing for RAD protocols with random shearing, or OL for paired-end sequencing that has substantial overlap.
+Then press [ENTER]
+PE
+
+Reads will be assembled with Rainbow
+CD-HIT will cluster reference sequences by similarity. The -c parameter (% similarity to cluster) may need to be changed for your taxa.
+Would you like to enter a new c parameter now? Type yes or no and press [ENTER]
+yes 
+
+Please enter new value for c. Enter in decimal form (For 90%, enter 0.9)
+0.9
+
+Do you want to map reads?  Type yes or no and press [ENTER]
+yes
+
+BWA will be used to map reads.  You may need to adjust -A -B and -O parameters for your taxa.
+Would you like to enter a new parameters now? Type yes or no and press [ENTER]
+yes
+
+Please enter new value for A (match score).  It should be an integer.  Default is 1.
+1
+
+Please enter new value for B (mismatch score).  It should be an integer.  Default is 4.
+4
+
+Please enter new value for O (gap penalty).  It should be an integer.  Default is 6.
+6
+
+Do you want to use FreeBayes to call SNPs?  Please type yes or no and press [ENTER]
+yes
+
+Please enter your email address.  dDocent will email you when it is finished running.
+Don't worry; dDocent has no financial need to sell your email address to spammers.
+dbrichardson@uri.edu
+```
+
+Now, let's filter the SNPs
+```{bash}
+
+mkdir Filter
+cd Filter/
+ln -s ../TotalRawSNPs.vcf .
+vcftools --vcf TotalRawSNPs.vcf --max-missing 0.5 --maf 0.001 --minQ 20 --recode --recode-INFO-all --out TRS
+```
+
+Output:
+```{bash}
+... After filtering, kept 3140 out of a possible 3268 Sites
+Run Time = 1.00 seconds
+```
+
+Command: (min depth of 5)
+```{bash}
+vcftools --vcf TRS.recode.vcf --minDP 5 --recode --recode-INFO-all --out TRSdp5
+```
+
+Output:
+```{bash}
+After filtering, kept 80 out of 80 Individuals
+Outputting VCF file...
+After filtering, kept 3140 out of a possible 3140 Sites
+Run Time = 1.00 seconds
+```
+
+Command:
+```{bash}
+pop_missing_filter.sh TRSdp5.recode.vcf ../popmap 0.05 1 TRSdp5p05
+```
+
+Output:
+```{bash}
+After filtering, kept 80 out of 80 Individuals
+Outputting VCF file...
+After filtering, kept 2946 out of a possible 3140 Sites
+Run Time = 1.00 seconds
+```
+
+Command:
+```{bash}
+dDocent_filters TRSdp5p05.recode.vcf TRSdp5p05
+```
+
+```{bash}
+Are reads expected to overlap?  In other words, is fragment size less than 2X the read length?  Enter yes or no.
+no
+
+Is this from a mixture of SE and PE libraries? Enter yes or no.
+no
+```
+Output:
+```{bash}
+Number of sites filtered based on high depth and lower than 2*DEPTH quality score
+ 292 of 2472
+```
+dDocent dialog:
+```{bash}
+If distrubtion looks normal, a 1.645 sigma cutoff (~90% of the data) would be 5156.132535
+The 95% cutoff would be 63
+Would you like to use a different maximum mean depth cutoff than 63, yes or no
+yes
+
+Please enter new cutoff
+75
+```
+Output:
+```{bash}
+Number of sites filtered based on maximum mean depth
+ 0 of 2472
+
+Number of sites filtered based on within locus depth mismatch
+ 0 of 2250
+
+Total number of sites filtered
+ 696 of 2946
+
+Remaining sites
+ 2250
+
+Filtered VCF file is called TRSdp5p05.FIL.recode.vcf
+
+Filter stats stored in TRSdp5p05.filterstats
+```
+
+Commands: using vcfallelicprimitives and editing the output for VCF tools
+```{bash}
+vcfallelicprimitives -k -g TRSdp5p05.FIL.recode.vcf |sed 's:\.|\.:\.\/\.:g' > TRSdp5p05F.prim
+vcftools --vcf TRSdp5p05F.prim --recode --recode-INFO-all --remove-indels --out SNP.TRSdp5p05F
+```
+
+Output (VCF tools):
+```{bash}
+After filtering, kept 80 out of 80 Individuals
+Outputting VCF file...
+After filtering, kept 1888 out of a possible 2431 Sites
+Run Time = 0.00 seconds
+```
+
+Commands:
+```{bash}
+filter_hwe_by_pop.pl -v SNP.TRSdp5p05F.recode.vcf -p ../popmap -c 0.5 -out SNP.TRSdp5p05FHWE
+```
+
+Output:
+```{bash}
+Processing population: PopA (20 inds)
+Processing population: PopB (20 inds)
+Processing population: PopC (20 inds)
+Processing population: PopD (20 inds)
+Outputting results of HWE test for filtered loci to 'filtered.hwe'
+Kept 1888 of a possible 1888 loci (filtered 0 loci)
+```
+
+Command:
+```{bash}
+vcftools --vcf SNP.TRSdp5p05FHWE.recode.vcf --maf 0.05 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWEmaf05
+```
+Output:
+```{bash}
+After filtering, kept 80 out of 80 Individuals
+Outputting VCF file...
+After filtering, kept 925 out of a possible 1888 Sites
+Run Time = 0.00 seconds
+```
+
+preparing to use PGDspider
+```{bash}
+cp /home/BIO594/DATA/Week7/example/BSsnp.spid .
+ln -s ../popmap .
+```
+Using PGDspider
+```{bash}
+
+java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWEmaf05.recode.vcf -outputfile SNP.TRSdp5p05FHWEBS -spid BSsnp.spid
+```
+
+Using BayeScan
+```{bash}
+BayeScan2.1_linux64bits SNP.TRSdp5p05FHWEBS -nbp 30 -thin 20
+```
+
+copying over r scripts for plotting
+```{bash}
+cp /home/BIO594/DATA/Week7/example/plot_R.r .
+```
+Performing additional outlier detection 
+```{bash}
+vcftools --vcf SNP.TRSdp5p05FHWEmaf05.recode.vcf --max-alleles 2 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWE2A
+```
+
+Using BayEnv
+```{bash}
+cp /home/BIO594/DATA/Week7/example/SNPBayEnv.spid .
+cp /home/BIO594/DATA/Week7/example/environ .
+java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWE2A.recode.vcf -outputfile SNP.TRSdp5p05FHWEBayEnv.txt -spid SNPBayEnv.spid
+```
+Making the covariance matrix
+```{bash}
+bayenv2 -i SNP.TRSdp5p05FHWEBayEnv.txt -p 4 -k 100000 -r 63479 > matrix.out
+```
+Taking the last iteration
+```{bash}
+tail -5 matrix.out | head -4 > matrix
+```
+
+Calculating the Bayes Factor for each SNP for each environmental variable
+```{bash}
+ln -s /usr/local/bin/bayenv2 .
+calc_bf.sh SNP.TRSdp5p05FHWEBayEnv.txt environ matrix 4 10000 2
+```
+Converting the output to a format R can work with
+```{bash}
+paste <(seq 1 923) <(cut -f2,3 bf_environ.environ ) > bayenv.out
+cat <(echo -e "Locus\tBF1\tBF2") bayenv.out > bayenv.final
+```
+
+```{bash}
+
+scp -i ${PATH_to_KEY} dbr@KITT.uri.edu:/home/dbr/wk7_activity/Filter/plot_R.r ${PATH_to_WORKING_DIR}/.
+
+scp -i ${PATH_to_KEY} dbr@KITT.uri.edu:/home/dbr/wk7_activity/Filter/SNP.TRSdp5p05FHWE2A.recode.vcf ${PATH_to_WORKING_DIR}/.
+
+scp -i ${PATH_to_KEY} dbr@KITT.uri.edu:/home/dbr/wk7_activity/Filter/SNP.TRSdp5p05FH_fst.txt ${PATH_to_WORKING_DIR}/.
+
+scp -i ${PATH_to_KEY} dbr@KITT.uri.edu:/home/dbr/wk7_activity/Filter/bayenv.final ${PATH_to_WORKING_DIR}/.
+
+scp -i ${PATH_to_KEY} dbr@KITT.uri.edu:/home/dbr/wk7_activity/popmap ${PATH_to_WORKING_DIR}/.
+```
+
+```{r}
+source("~/Documents/BIO_594-Pop_Genomics/plot_R.r")
+plot_bayescan("~/Documents/BIO_594-Pop_Genomics/SNP.TRSdp5p05FH_fst.txt")
+```
+Using PCAdapt
+```{r}
+#Load pcadapt library
+library(pcadapt)
+
+#load our VCF file into R
+filename <- read.pcadapt("~/Documents/BIO_594-Pop_Genomics/SNP.TRSdp5p05FHWE2A.recode.vcf", type = "vcf" )
+
+#Create first PCA
+x <- pcadapt(input = filename, K = 20)
+
+#Plot the likelihoods
+plot(x, option = "screeplot")
+#Plot Plot the likelihoods for only first 10 K
+plot(x, option = "screeplot", K = 10)
+
+#Create population designations
+poplist.names <- c(rep("POPA", 20),rep("POPB", 20),rep("POPC", 20), rep("POPD",20))
+
+#Plot the actual PCA (first two PCAs)
+plot(x, option = "scores", pop = poplist.names)
+#Plot PCA with PCA 2 and PCA 3
+plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
+#Plot PCA with PCA 3 and PCA 4
+plot(x, option = "scores", i = 3, j = 4, pop = poplist.names)
+
+#Redo PCA with only 3 K
+x <- pcadapt(filename, K = 3)
+
+summary(x)
+
+#Start looking for outliers
+#Make Manhattan Plot
+plot(x , option = "manhattan")
+#Make qqplot
+plot(x, option = "qqplot", threshold = 0.1)
+# Look at P-value distribution
+plot(x, option = "stat.distribution")
+
+# Set FDR
+library(qvalue)
+qval <- qvalue(x$pvalues)$qvalues
+alpha <- 0.1
+
+# Save outliers
+outliers <- which(qval < alpha)
+
+
+# Testing for library effects
+
+poplist.names <- c(rep("LIB1", 40),rep("LIB2", 40))
+x <- pcadapt(input = filename, K = 20)
+
+plot(x, option = "scores", pop = poplist.names)
+plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
+
+
+
+x <- pcadapt(filename, K = 2)
+
+summary(x)
+
+plot(x , option = "manhattan")
+plot(x, option = "qqplot", threshold = 0.1)
+
+plot(x, option = "stat.distribution")
+
+library(qvalue)
+qval <- qvalue(x$pvalues)$qvalues
+alpha <- 0.1
+outliers <- which(qval < alpha) # only 772 and 773 are outliers
+
+```
+Using OutFLANK
+
+```{r}
+library(OutFLANK)  # outflank package
+library(vcfR)
+library(bigsnpr)   # package for LD pruning
+
+my_vcf <- read.vcfR("~/Documents/BIO_594-Pop_Genomics/SNP.TRSdp5p05FHWE2A.recode.vcf")
+
+geno <- extract.gt(my_vcf) # Character matrix containing the genotypes
+position <- getPOS(my_vcf) # Positions in bp
+chromosome <- getCHROM(my_vcf) # Chromosome information
+
+G <- matrix(NA, nrow = nrow(geno), ncol = ncol(geno))
+
+G[geno %in% c("0/0", "0|0")] <- 0
+G[geno  %in% c("0/1", "1/0", "1|0", "0|1")] <- 1
+G[geno %in% c("1/1", "1|1")] <- 2
+
+G[is.na(G)] <- 9
+
+head(G[,1:10])
+
+pop <- read.table("~/Documents/BIO_594-Pop_Genomics/popmap", header=FALSE)
+pop <- pop$V2
+
+
+my_fst <- MakeDiploidFSTMat(t(G), locusNames = paste0(chromosome,"_", position), popNames = pop)
+
+my_dist <- OutFLANK(my_fst, NumberOfSamples = 4, qthreshold=0.1, RightTrimFraction=0.1, LeftTrimFraction=0.1)
+
+
+OutFLANKResultsPlotter(my_dist)
+
+plot(my_dist$results$FST, col=as.numeric(as.factor(chromosome)))
+
+
+my_dist$results[which(my_dist$results$OutlierFlag == TRUE),]
+```
+
+
+Plotting BayEnv2 results
+```{r}
+table_bay <- read.table("~/Documents/BIO_594-Pop_Genomics/bayenv.final",header=TRUE)
+plot(table_bay$BF1)
+
+table_bay[which(table_bay$BF1 > 100),]
+```
