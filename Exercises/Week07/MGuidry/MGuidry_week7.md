@@ -556,11 +556,9 @@ LocusName        He       FST        T1        T2 FSTNoCorr
 
 [Documentation](https://bitbucket.org/tguenther/bayenv2_public/src)
 
-First, convert vcf to BayEnv input
+First, convert vcf to BayEnv input. This analysis will start on the terminal (back in the week7 env) and will transition to R at the end.
 ```
-bash
 cp /home/BIO594/DATA/Week7/example/SNPBayEnv.spid .
-cp /home/BIO594/DATA/Week7/example/environ .
 java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWE2A.recode.vcf -outputfile SNP.TRSdp5p05FHWEBayEnv.txt -spid SNPBayEnv.spid
 ```
 
@@ -583,7 +581,7 @@ This code generates 100,000 iterations.  We only need the last one.
 
 With the matrix we will use our environmental factor file:
 
-`cat environ`
+`cat environ` **This file did not exist?? was not able to continue past this line 3/19/22**
 
 ```
 -0.888330138    -0.565300997    0.080757285     1.37287385
