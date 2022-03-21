@@ -363,7 +363,7 @@ Here, I switched back over to my interactive R terminal in VS code.
 ### Open Rstudio 
 
 R code:
-```R
+```
 #Load pcadapt library
 library(pcadapt)
 
@@ -377,14 +377,20 @@ x <- pcadapt(input = filename, K = 20)
 png("likelihoods.png")
 plot(x, option = "screeplot")
 dev.off()
+```
+
 ![](figures/likelihoods.png)
 
+```
 #Plot the likelihoods for only first 10 K
 png("likelihoods_10K.png")
 plot(x, option = "screeplot", K = 10)
 dev.off()
+```
+
 ![](figures/likelihoods_10K.png)
 
+```
 #Create population designations
 poplist.names <- c(rep("POPA", 20),rep("POPB", 20),rep("POPC", 20), rep("POPD",20))
 
@@ -392,18 +398,29 @@ poplist.names <- c(rep("POPA", 20),rep("POPB", 20),rep("POPC", 20), rep("POPD",2
 png("PC1_PC2.png")
 plot(x, option = "scores", pop = poplist.names)
 dev.off()
+```
+
 ![](figures/PC1_PC2.png)
+
+```
 #Plot PCA with PCA 2 and PCA 3
 png("PC2_PC3.png")
 plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
 dev.off()
+```
+
 ![](figures/PC2_PC3.png)
+
+```
 #Plot PCA with PCA 3 and PCA 4
 png("PC3_PC4.png")
 plot(x, option = "scores", i = 3, j = 4, pop = poplist.names)
 dev.off()
+```
+
 ![](figures/PC3_PC4.png)
 
+```
 #Redo PCA with only 3 K
 x <- pcadapt(filename, K = 3)
 summary(x)
@@ -412,30 +429,45 @@ summary(x)
 png("3K_PC1_PC2.png")
 plot(x, option = "scores", pop = poplist.names)
 dev.off()
+```
+
 ![](figures/3K_PC1_PC2.png)
+
+```
 #Plot PCA with PCA 2 and PCA 3
 png("3K_PC2_PC3.png")
 plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
 dev.off()
+```
 ![](figures/3K_PC2_PC3.png)
 
+```
 #Start looking for outliers
 #Make Manhattan Plot
 png("manhattan.png")
 plot(x , option = "manhattan")
 dev.off()
+```
+
 ![](figures/manhattan.png)
+
+```
 #Make qqplot
 png("qqplot.png")
 plot(x, option = "qqplot", threshold = 0.1)
 dev.off()
+```
+
 ![](figures/qqplot.png)
+```
 # Look at P-value distribution
 png("pval.png")
 plot(x, option = "stat.distribution")
 dev.off()
+```
 ![](figures/pval.png)
 
+```
 # Set FDR
 library(qvalue)
 qval <- qvalue(x$pvalues)$qvalues
@@ -452,33 +484,42 @@ x <- pcadapt(input = filename, K = 20)
 png("library-PC1_PC2.png")
 plot(x, option = "scores", pop = poplist.names)
 dev.off()
+```
 ![](figures/library-PC1_PC2.png)
 
+```
 png("library-PC2_PC3.png")
 plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
 dev.off()
+```
 ![](figures/library-PC2_PC3.png)
 
 
-
+```
 x <- pcadapt(filename, K = 2)
 
 summary(x)
 png("2K-manhattan.png")
 plot(x , option = "manhattan")
 dev.off()
+```
 ![](figures/2K-manhattan.png)
 
+```
 png("2K-qqplot.png")
 plot(x, option = "qqplot", threshold = 0.1)
 dev.off()
+```
 ![](figures/2K-qqplot.png)
 
+```
 png("2K-pval.png")
 plot(x, option = "stat.distribution")
 dev.off()
+```
 ![](figures/2K-pval.png)
 
+```
 library(qvalue)
 qval <- qvalue(x$pvalues)$qvalues
 alpha <- 0.1
@@ -492,7 +533,8 @@ See documentation [here](https://github.com/whitlock/OutFLANK)
 R
 ```
 
-```R
+```
+R
 library(OutFLANK)  # outflank package
 library(vcfR)
 library(bigsnpr)   # package for LD pruning
@@ -520,21 +562,29 @@ pop <- pop$V2
 my_fst <- MakeDiploidFSTMat(t(G), locusNames = paste0(chromosome,"_", position), popNames = pop)
 
 my_dist <- OutFLANK(my_fst, NumberOfSamples = 4, qthreshold=0.1, RightTrimFraction=0.1, LeftTrimFraction=0.1)
+```
 
+```
 png("outflank-fst_without_sample_size_correction.png")
 OutFLANKResultsPlotter(my_dist)
 dev.off()
+```
+
 ![](figures/outflank-fst_without_sample_size_correction.png)
 
+```
 png("csome_plot.png")
 plot(my_dist$results$FST, col=as.numeric(as.factor(chromosome)))
 dev.off()
+```
+
 ![](figures/csome_plot.png)
 
-
+```
 my_dist$results[which(my_dist$results$OutlierFlag == TRUE),]
-
+```
 Output: 
+```
 LocusName        He       FST        T1        T2 FSTNoCorr
 797 dDocent_Contig_944_78 0.2805469 0.6666667 0.1125000 0.1687500     0.675
 798 dDocent_Contig_944_80 0.2805469 0.6666667 0.1125000 0.1687500     0.675
@@ -582,6 +632,7 @@ This code generates 100,000 iterations.  We only need the last one.
 With the matrix we will use our environmental factor file:
 
 `cat environ` 
+
 **You have to make this file! This is your environmental data split up by population. For this example, I used the following data. Be sure that your values are separated by *tabs*!**
 
 ```
@@ -618,4 +669,11 @@ dev.off()
 
 ```
 table_bay[which(table_bay$BF1 > 100),]
+```
+Output:
+
+```
+    Locus    BF1     BF2
+872   872 508.46 3.47660
+873   873 603.51 0.51944
 ```
