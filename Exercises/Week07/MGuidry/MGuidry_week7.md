@@ -581,7 +581,8 @@ This code generates 100,000 iterations.  We only need the last one.
 
 With the matrix we will use our environmental factor file:
 
-`cat environ` **This file did not exist?? was not able to continue past this line 3/19/22**
+`cat environ` 
+**You have to make this file! This is your environmental data split up by population. For this example, I used the following data. Be sure that your values are separated by *tabs*!**
 
 ```
 -0.888330138    -0.565300997    0.080757285     1.37287385
@@ -603,13 +604,18 @@ paste <(seq 1 923) <(cut -f2,3 bf_environ.environ ) > bayenv.out
 cat <(echo -e "Locus\tBF1\tBF2") bayenv.out > bayenv.final
 ```
 
-Now, open R
+Now, you can go back to R (either in VS code again or open an R studio window) and run the following
 
 `R`
 
 ```
 table_bay <- read.table("bayenv.final",header=TRUE)
+png("bayenv2_plot.png")
 plot(table_bay$BF1)
+dev.off()
+```
+![](figures/bayenv2_plot.png)
 
+```
 table_bay[which(table_bay$BF1 > 100),]
 ```
