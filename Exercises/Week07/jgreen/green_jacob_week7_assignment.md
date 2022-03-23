@@ -189,6 +189,7 @@ Initalize the given plot_R.r file and do a dry plot of the bayescan txt file
 source("plot_R.r")
 plot_bayescan("SNP.TRSdp5p05FH_fst.txt")
 ```
+![](figure/inital_bayescan_plot.png)
 
 ## More outlier Detection on the server
 
@@ -537,4 +538,10 @@ table_bay[which(table_bay$BF1 > 100),]
 851   851 323.17 1.35310
 ```
 
-Conclusion Statement
+The goal of this assignment was to call, filter, and analyze SNPs from a RAD data set. Our work was meant to flex some of the computational skills and understanding of RAD filtering that we have gained over the past seven weeks. We applied concepts such as conda environments, vcf filtering, leveraging ddocent, detecting outliers with various R packages and Bayescan, and plotting results in Rstudio. Overall, the given code from previous weeks and the documented code from Week 7 walkthrough provided a great foundation from which to launch from.
+
+This dataset contained 80 individuals from 4 populations with 20 individuals from each population. After initial filtering via vcftools and ddocent we has 2357 sites left. We then applied further vcf filters as well as a custom perl script for detecting Hardy Weinberg Equilibrium Outliers. From this final set we converted the vcf format using SPIDER so it could be used by Bayescan which aims at identifying candidate loci under natural selection from genetic data, using differences in allele frequencies. An initial plot of Bayescan allowed us to apply on last vcffilter to fully curate our dataset. Switching into RStudio we can begin to breakdown the population wide differences.
+
+Initial PCA runs showed differences between Population D and the other three Populations A, B, C along PC1. Along PC2 we saw a broad distribution between the three Populations with A, B, C with some meaningful structure. The other PC showed less structure that the first and thus are not extrapolated on. Our manhattan plot show some clear outliers of interest and setting a cutoff value of 2.5 might be significant. Our qqplot and statistics distribution showed a fairly normal distribution with right-tailed skew. From this initial set we used qvalue to test for library effects. It does not seem like there are major library effects within out dataset according to our PCA plots, but our manhattan plot was cleaned up quite a bit when filtering for library effects occurred. Generally our qqplot and statistics distribution were unchanged.
+
+We applied OutFLANK alongside vcfR and bigsnpr to find Fst Outliers based on inferred distribution of neutral Fst. After initial processing we had 906 variants from all our samples. Fst without sample correction showed a right skewed distribution of Fst with a mean < .1 and pvalues of 3.47e-06. Our last graph similar to our other manhattan plots show some significant outliers, but recoloring and adding a cutoff value would be helpful in this instance. Next we employed BayEnv2 which is “a Bayesian method that estimates the empirical pattern of covariance in allele frequencies between populations from a set of markers, and then uses this as a null model for a test at individual SNPs” [coop lab website]( https://gcbias.org/bayenv/). I am not entirely sure how to read this output and hope it is something we go over in class as review.
