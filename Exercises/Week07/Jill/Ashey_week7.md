@@ -17,7 +17,7 @@ cd week7
 ln -s /home/BIO594/Exercises/Week07_and_Week_08/simulated/*.fq.gz .
 ```
 
-#### run dDocent 
+#### run [dDocent](https://www.ddocent.com)
 
 ```
 dDocent 
@@ -190,7 +190,7 @@ cd Filter/
 ln -s ../TotalRawSNPs.vcf .
 ``` 
 
-Use vcftools to begin filtering. 
+Use [vcftools](https://vcftools.github.io/index.html) to begin filtering. 
 
 ```
 vcftools --vcf TotalRawSNPs.vcf --max-missing 0.5 --maf 0.001 --minQ 20 --recode --recode-INFO-all --out TRS
@@ -346,7 +346,7 @@ Filter stats stored in TRSdp5p05.filterstats
 
 So it looks like we have 2250 remaining SNPs??
 
-We now change the formatting of vcf file and save as a prim file (more info here xxxx). Then we can run the prim file through the vcftools software to remove the insertions/deletions
+We now change the formatting of vcf file and save as a prim file. Then we can run the prim file through the vcftools software to remove the insertions/deletions
 
 ```
 vcfallelicprimitives -k -g TRSdp5p05.FIL.recode.vcf |sed 's:\.|\.:\.\/\.:g' > TRSdp5p05F.prim
@@ -403,7 +403,7 @@ Run Time = 0.00 seconds
 
 We are now at 925 SNPs!
 
-Let's convert files from VCF to other formats using PGDspider b/c other analyses that will be done later need certain file formats. 
+Let's convert files from VCF to other formats using [PGDspider](http://www.cmpg.unibe.ch/software/PGDSpider/) b/c other analyses that will be done later need certain file formats. 
 
 Copy the PGDspider configuration file and file to map individuals to population
 
@@ -430,7 +430,7 @@ write output file done.
 
 #### Outlier detection 
 
-BayeScan attempts to find loci under selection using differences in allele frequencies between populations. Putative outliers are measured with Fst coefficients.
+[BayeScan](http://cmpg.unibe.ch/software/BayeScan/index.html) attempts to find loci under selection using differences in allele frequencies between populations. Putative outliers are measured with Fst coefficients.
 
 In this code, nbp is the "number of pilot runs" (default 20) and thin is the "thinning interval size" or the number of iterations between two samples (default 10). These values set the parameters for the Markov "chain". Because this code is an interative process, it takes a while to run.
 
@@ -461,3 +461,364 @@ cp /home/BIO594/DATA/Week7/example/plot_R.r .
 Okay now we use R. I totally forget how to use R in terminal/ on KITT. also don't remember VSC method. So maybe I'll just copy the files to my computer and do it in my own RStudio???
 
 My brain is broken, ask Megan tomorrow. 
+
+just copied it onto my own laptop for R. Ran this code in R 
+
+```
+source("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plot_R.r")
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plot/BS_plot.png") 
+plot_bayescan("~/Desktop/URI/Spring2022/BIO594/exercises/week7/SNP.TRSdp5p05FH_fst.txt")
+
+$outliers
+[1] 799 800 874 875 895
+
+$nb_outliers
+[1] 5
+```
+
+Which generated this plot: 
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/BS_plot.png)
+
+Now we need to limit SNPs to only those with two alleles with this code: 
+
+```
+vcftools --vcf SNP.TRSdp5p05FHWEmaf05.recode.vcf --max-alleles 2 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWE2A
+```
+
+Output here: 
+
+```
+After filtering, kept 80 out of 80 Individuals
+Outputting VCF file...
+After filtering, kept 923 out of a possible 925 Sites
+Run Time = 0.00 seconds
+```
+
+Now we work with [PCAdapt](https://bcm-uga.github.io/pcadapt/articles/pcadapt.html) in R. Again just copied files from KITT server to my computer 
+
+```{r}
+#Load pcadapt library
+library(pcadapt)
+library(vcfR)
+
+#load our VCF file into R
+filename <- read.pcadapt("~/Desktop/URI/Spring2022/BIO594/exercises/week7/SNP.TRSdp5p05FHWE2A.recode.vcf", type = "vcf" )
+
+#Create first PCA
+x <- pcadapt(input = filename, K = 20)
+
+#Plot the likelihoods
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/likelihoods.png")
+plot(x, option = "screeplot")
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/likelihoods.png)
+
+```
+#Plot the likelihoods for only first 10 K
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/likelihoods_10K.png")
+plot(x, option = "screeplot", K = 10)
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/likelihoods_10K.png)
+
+```
+#Create population designations
+poplist.names <- c(rep("POPA", 20),rep("POPB", 20),rep("POPC", 20), rep("POPD",20))
+
+#Plot the actual PCA (first two PCAs)
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/PC1_PC2.png")
+plot(x, option = "scores", pop = poplist.names)
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/PC1_PC2.png)
+
+```
+#Plot PCA with PCA 2 and PCA 3
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/PC2_PC3.png")
+plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/PC2_PC3.png)
+
+```
+#Plot PCA with PCA 3 and PCA 4
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/PC3_PC4.png")
+plot(x, option = "scores", i = 3, j = 4, pop = poplist.names)
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/PC3_PC4.png)
+
+```
+#Redo PCA with only 3 K
+x <- pcadapt(filename, K = 3)
+summary(x)
+
+#Plot the actual PCA (first two PCAs)
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/3K_PC1_PC2.png")
+plot(x, option = "scores", pop = poplist.names)
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/3K_PC1_PC2.png)
+
+```
+#Plot PCA with PCA 2 and PCA 3
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/3K_PC2_PC3.png")
+plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/3K_PC2_PC3.png)
+
+```
+#Start looking for outliers
+#Make Manhattan Plot
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/manhattan.png")
+plot(x , option = "manhattan")
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/manhattan.png)
+
+```
+#Make qqplot
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/qqplot.png")
+plot(x, option = "qqplot", threshold = 0.1)
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/qqplot.png)
+
+```
+# Look at P-value distribution
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/pval.png")
+plot(x, option = "stat.distribution")
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/pval.png)
+
+```
+# Set FDR
+library(qvalue)
+qval <- qvalue(x$pvalues)$qvalues
+alpha <- 0.1
+
+# Save outliers
+outliers <- which(qval < alpha)
+
+# Testing for library effects
+
+poplist.names <- c(rep("LIB1", 40),rep("LIB2", 40))
+x <- pcadapt(input = filename, K = 20)
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/library-PC1_PC2.png")
+plot(x, option = "scores", pop = poplist.names)
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/library-PC1_PC2.png)
+
+```
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/library-PC2_PC3.png")
+plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/library-PC2_PC3.png)
+
+```
+x <- pcadapt(filename, K = 2)
+
+summary(x)
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/2K-manhattan.png")
+plot(x , option = "manhattan")
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/2K-manhattan.png)
+
+```
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/2K-qqplot.png")
+plot(x, option = "qqplot", threshold = 0.1)
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/2K-qqplot.png)
+
+```
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/2K-pval.png")
+plot(x, option = "stat.distribution")
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/2K-pval.png)
+
+```
+library(qvalue)
+qval <- qvalue(x$pvalues)$qvalues
+alpha <- 0.1
+outliers <- which(qval < alpha)
+```
+
+Run [outflank](https://github.com/whitlock/OutFLANK) in R
+
+```
+library(OutFLANK)  # outflank package
+library(vcfR)
+library(bigsnpr)   # package for LD pruning
+
+my_vcf <- read.vcfR("~/Desktop/URI/Spring2022/BIO594/exercises/week7/SNP.TRSdp5p05FHWE2A.recode.vcf")
+
+# Scanning file to determine attributes.
+# File attributes:
+#   meta lines: 65
+#   header_line: 66
+#   variant count: 923
+#   column count: 89
+# Meta line 65 read in.
+# All meta lines processed.
+# gt matrix initialized.
+# Character matrix gt created.
+#   Character matrix gt rows: 923
+#   Character matrix gt cols: 89
+#   skip: 0
+#   nrows: 923
+#   row_num: 0
+# Processed variant: 923
+# All variants processed
+
+geno <- extract.gt(my_vcf) # Character matrix containing the genotypes
+position <- getPOS(my_vcf) # Positions in bp
+chromosome <- getCHROM(my_vcf) # Chromosome information
+
+G <- matrix(NA, nrow = nrow(geno), ncol = ncol(geno))
+
+G[geno %in% c("0/0", "0|0")] <- 0
+G[geno  %in% c("0/1", "1/0", "1|0", "0|1")] <- 1
+G[geno %in% c("1/1", "1|1")] <- 2
+
+G[is.na(G)] <- 9
+
+head(G[,1:10])
+
+#      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10]
+# [1,]    2    2    1    2    2    2    2    2    2     2
+# [2,]    2    1    2    1    1    2    2    1    2     2
+# [3,]    2    2    1    1    1    2    2    2    2     2
+# [4,]    0    0    0    0    0    1    1    0    0     0
+# [5,]    0    0    0    0    0    0    0    0    0     0
+# [6,]    0    0    0    0    0    0    0    0    0     0
+
+pop <- read.table("~/Desktop/URI/Spring2022/BIO594/exercises/week7/popmap", header=FALSE)
+pop <- pop$V2
+
+# calculates Fst coefficients
+my_fst <- MakeDiploidFSTMat(t(G), locusNames = paste0(chromosome,"_", position), popNames = pop)
+
+my_dist <- OutFLANK(my_fst, NumberOfSamples = 4, qthreshold=0.1, RightTrimFraction=0.1, LeftTrimFraction=0.1)
+```
+
+```
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/outflank-fst_without_sample_size_correction.png")
+OutFLANKResultsPlotter(my_dist)
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/outflank-fst_without_sample_size_correction.png)
+
+```
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/csome_plot.png")
+plot(my_dist$results$FST, col=as.numeric(as.factor(chromosome)))
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/csome_plot.png)
+
+```
+my_dist$results[which(my_dist$results$OutlierFlag == TRUE),]
+```
+
+Now go back to terminal to run some [BayEnv2](https://github.com/lotteanna/Bioinformatics/blob/master/GBS_BayEnv.md). convert vcf file into BayEnv output 
+
+```
+cp /home/BIO594/DATA/Week7/example/SNPBayEnv.spid .
+java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWE2A.recode.vcf -outputfile SNP.TRSdp5p05FHWEBayEnv.txt -spid SNPBayEnv.spid
+```
+
+Output: 
+
+```
+WARN  14:53:26 - PGDSpider configuration file not found! Loading default configuration.
+initialize convert process...
+read input file...
+read input file done.
+write output file...
+write output file done.
+```
+
+now run BayEnv to generate covariance matrix 
+
+```
+bayenv2 -i SNP.TRSdp5p05FHWEBayEnv.txt -p 4 -k 100000 -r 63479 > matrix.out
+```
+
+pull out only the last iteration
+
+```
+tail -5 matrix.out | head -4 > matrix
+```
+
+With the matrix we will use our environmental factor file:
+
+```
+cat environ
+
+-0.888330138	-0.565300997	0.080757285	1.37287385
+-0.565300997	-0.484543712	-0.565300997	-0.403786427
+```
+
+You have to make this file! This is your environmental data split up by population. For this example, I used the following data. Be sure that your values are separated by tabs!
+
+The environmental file are standardized environmental data with each line representing an environemtal factor with the value for each population tab delimited. The dummy file has 2 variables for 4 populations
+
+Now calculate the Bayes Factor for each SNP for each environmental variable:
+
+```
+ln -s /usr/local/bin/bayenv2 .
+calc_bf.sh SNP.TRSdp5p05FHWEBayEnv.txt environ matrix 4 10000 2
+```
+
+took a few mins. Now convert bayenv to format that's good for R
+
+```
+paste <(seq 1 923) <(cut -f2,3 bf_environ.environ ) > bayenv.out
+cat <(echo -e "Locus\tBF1\tBF2") bayenv.out > bayenv.final
+```
+
+Go back to R and plot bayenv 
+
+```
+table_bay <- read.table("~/Desktop/URI/Spring2022/BIO594/exercises/week7/bayenv.final",header=TRUE)
+png("~/Desktop/URI/Spring2022/BIO594/exercises/week7/plots/bayenv2_plot.png")
+plot(table_bay$BF1)
+dev.off()
+```
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/Week07/Jill/plots/bayenv2_plot.png)
+
+```
+table_bay[which(table_bay$BF1 > 100),]
+```
+
+Output here: 
+```
+    Locus    BF1     BF2
+873   873 201.66 0.66737
+```
