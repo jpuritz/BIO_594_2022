@@ -12,3 +12,6 @@ Also checkout this great resource from a working group she co-leads [https://mar
 From the Repo from Silliman et al. 2019 [LINK](https://github.com/ksil91/Ostrea_PopStructure) repeat a few examples of the following:
 * *F<sub>ST</sub>*   heatmap	
 * PCA with special coloring
+
+#### Want a challenge? 
+Try to run an example EEMS analysis either from Silliman or from [here](https://github.com/amyzyck/EecSeq_NB_EasternOyster/blob/master/Analysis/PopGen_SeaGen_Analyses/EEMS/NB_EEMS_OutlierHap.md) using Fast EEMS [Link](https://github.com/NovembreLab/feems) instead!
