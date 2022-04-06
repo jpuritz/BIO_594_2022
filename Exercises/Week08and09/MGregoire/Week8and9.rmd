@@ -1,0 +1,478 @@
+---
+title: "Week8and9"
+author: "Michelle Gregoire"
+date: '2022-03-23'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# PART 1: Population Analysis on Real Data
+
+First we need to access some real data. This can be found here:
+
+- /home/BIO594/Exercises/Week07_and_Week_08
+
+To access it, make a folder in your home directory called Week8and9
+
+- mkdir Week8and9
+
+In this folder, make a subfolder called realdata
+
+- mkdir realdata
+
+Now let's link to the real data with the following command:
+
+- ln -s /home/BIO594/Exercises/Week07_and_Week_08/realdata/* .
+
+These files contain information that has already been filtered and converted into vcf! If you type "ls" you will also see some files which include:
+
+- popmap: this is used to map individuals to populations
+- environ: this is the environmental factor file used in BayEnv
+- LibraryInfo: this maps samples to the sequencing library
+- .spid files: these are PGDspider configuration files
+- plot_R.r: this is the R file that is used for the BayeScan output plotting
+
+## Run Bayescan on real data
+
+Like we learned last class, BayeScan is used to identify loci that are under natural selection. It looks at differences in allele frequencies between populations and uses a multinomial-Dirichlet model. The differences in allele frequencies are measured by subpopulation specific FsT coefficients.
+
+First we need to convert the VCF file to formats that can be run downstream. We will use PGDspider a Java program. To do this we need the BSsnp.spid file and the popmap files to map the individuals back to the population.
+
+Use the following command to run PGDspider which is a java program. Specify your input file as the SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.recode.vcf file and your output as SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL:
+
+- java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.recode.vcf -outputfile SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL -spid BSsnp.spid
+
+Use the following code to run BayeScan: *Note this will take a LONG TIME to run!
+
+- BayeScan2.1_linux64bits SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL -nbp 30 -thin 20
+
+Then open R-Studio and use the following commands to visually see the output from BayeScan. The outliers with the more negative log10 quality (Q) values indicate the SNPs of interest:
+
+```{r, echo = TRUE}
+source("/home/mgregoire/Week8and9/realdata/plot_R.r")
+plot_bayescan("/home/mgregoire/Week8and9/realdata/SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE_fst.txt")
+```
+
+## Run BayEnv on real data
+As we learned last class, BayEnv2 is a data analysis tool that can detect loci involved in local adaptation that show a correlation between allele frequencies and ecological variables or differences between geographic regions. 
+
+First the vcf file needs to be converted into a file that BayEnv2 recognizes. You'll use PGDSpider for this again with the following files:SNPBayEnv.spid and environ which has the environmental variables stored. Specify SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.recode.vcf as your input file and SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.BayEnv.txt as your output: 
+
+- java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.recode.vcf -outputfile SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.BayEnv.txt -spid SNPBayEnv.spid
+
+Then we can call BayEnv2 to generate a covariance matrix which will generate 100,000 iterations. We only need the last one so filter that out:
+
+- bayenv2 -i SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.BayEnv.txt -p 4 -k 100000 -r 63479 > matrix.out
+- tail -5 matrix.out | head -4 > matrix
+
+Next calculate the Bayes Factor for each SNP for each environmental variable, note this will take awhile:
+
+- ln -s /usr/local/bin/bayenv2 .
+- calc_bf.sh SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.BayEnv.txt environ matrix 4 10000 2
+
+Next convert the output into a file that is suitable to be opened in R:
+
+- paste <(seq 1 923) <(cut -f2,3 environ ) > bayenv.out
+- cat <(echo -e "Locus\tBF1\tBF2") bayenv.out > bayenv.final
+
+Then you can open R and run the following:
+
+```{R, ECHO = TRUE}
+#use fill to fill = TRUE to fill any gaps in the table
+table_bay <- read.table("/home/mgregoire/Week8and9/realdata/bayenv.final",header=TRUE, fill = TRUE)
+#visualize the table by plotting it
+plot(table_bay$BF1)
+#print the significant values in the table
+table_bay[which(table_bay$BF1 > 100),]
+```
+## Run PCA on real data
+
+Now we'll run PCA using R code. This code is based on the Week8 code from class.
+
+```{R, echo=TRUE}
+#load the libraries we'll be using for the PCA
+#install.packages("adegenet")
+#install.packages("vcfR")
+library(adegenet)
+library(vcfR)
+
+#read in the vcf with vcfR and save it as my_vcf
+my_vcf <- read.vcfR("/home/mgregoire/Week8and9/realdata/SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.recode.vcf")
+#save the gene ids from the vcf 
+my_genind <- vcfR2genind(my_vcf)
+
+#the strata and LibraryInfo files will tell you the individual, population they're from, as well as the library, save the strata
+
+strata<- read.table("/home/mgregoire/Week8and9/realdata/LibraryInfo", header=TRUE)
+strata_df <- data.frame(strata)
+strata(my_genind) <- strata_df
+setPop(my_genind) <- ~Population #save the population 
+
+
+install.packages("hierfstat")
+
+#Test Population Structure
+#load the library and then run the stat
+library(hierfstat)
+#fstat(my_genind) #NOT WORKING, COULD NOT FIND FUNCTION
+#matFst <- pairwise.fst(my_genind) # NOT WORKING, COULD NOT FIND FUNCTION
+
+#now do the PCA
+X <- tab(my_genind, freq = TRUE, NA.method = "mean")
+pca1 <- dudi.pca(X, scale = FALSE, scannf = FALSE, nf = 3)
+barplot(pca1$eig[1:50], main = "PCA eigenvalues", col = heat.colors(50))
+s.class(pca1$li, pop(my_genind))
+title("PCA of simulated dataset\naxes 1-2")
+add.scatter.eig(pca1$eig[1:20], 3,1,2)
+
+col <- funky(15)
+s.class(pca1$li, pop(my_genind),xax=1,yax=2, col=col, axesell=FALSE, cstar=0, cpoint=3, grid=FALSE)
+```
+
+## Run DAPC on real data  
+DAPC can look at the structure of populations based on PCA and DA(discriminant analysis) without making assumptions of panmixia.
+This code will ask you in the console to choose the number of PCs to retain, the number of clusters, and the number of discriminant functions to retain. In this case, I chose 4 for all. 
+
+```{r, echo=TRUE}
+#DAPC
+#read in the vcf with vcfR and save it as my_vcf
+my_vcf <- read.vcfR("/home/mgregoire/Week8and9/realdata/SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.recode.vcf")
+#save the gene ids from the vcf 
+strata<- read.table("/home/mgregoire/Week8and9/realdata/LibraryInfo", header=TRUE)
+strata_df <- data.frame(strata)
+strata(my_genind) <- strata_df
+setPop(my_genind) <- ~Population
+
+#my_genind <- vcfR2genind(my_vcf)
+#grp <- find.clusters(my_genind, max.n.clust=40)
+#table(pop(my_genind), grp$grp)
+
+#table.value(table(pop(my_genind), grp$grp), col.lab=paste("inf", 1:2), row.lab=paste("ori", 1:4))
+
+dapc1 <- dapc(my_genind, grp$grp)
+scatter(dapc1,col=col,bg="white", solid=1)
+
+contrib <- loadingplot(dapc1$var.contr, axis=1, thres=.01, lab.jitter=1)
+contrib
+
+setPop(my_genind) <- ~Library
+
+dapc1 <- dapc(my_genind, pop(my_genind))
+contrib <- loadingplot(dapc1$var.contr, axis=1, thres=.05, lab.jitter=1)
+
+#Structure Like
+compoplot(dapc1, posi="bottomright",txt.leg=paste("Cluster", 1:2), lab = "", ncol=1, xlab="individuals")
+
+
+temp <- which(apply(dapc1$posterior,1, function(e) all(e<0.9)))
+
+compoplot(dapc1, subset=temp, posi="bottomright", txt.leg=paste("Cluster", 1:2), ncol=2)
+
+```
+
+## Two Analyses from Siliman et al. on real data: OutFLANK and PCAdapt
+### OutFLANK  
+Outflank can find Fst outliers in data based on an inferred distribution of neutral Fst. It is run entirely in R once you have only allelic data from two alleles.
+```{R, ECHO = TRUE}
+#load the OutFLANK, vcfR, and LD pruning (bigsnpr), packages
+library(OutFLANK)  
+library(vcfR)
+library(bigsnpr)   
+
+#read in your vcf file, this will take awhile
+my_vcf <- read.vcfR("/home/mgregoire/Week8and9/realdata/SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.recode.vcf")
+
+#make a character matrix with the genotypes
+geno <- extract.gt(my_vcf) 
+#add the positions in bp
+position <- getPOS(my_vcf) 
+#add the chromosome information
+chromosome <- getCHROM(my_vcf) 
+
+#modify the table to show the genotypes simply
+G <- matrix(NA, nrow = nrow(geno), ncol = ncol(geno))
+G[geno %in% c("0/0", "0|0")] <- 0
+G[geno  %in% c("0/1", "1/0", "1|0", "0|1")] <- 1
+G[geno %in% c("1/1", "1|1")] <- 2
+G[is.na(G)] <- 9
+head(G[,1:10])
+
+#load the popmap 
+pop <- read.table("/home/mgregoire/Week8and9/realdata/popmap", header=FALSE)
+summary(pop)
+pop <- pop$V2
+
+#use the chromosome, position, and popmaps with the MakeDiploidFSTMat command to get the FST
+my_fst <- MakeDiploidFSTMat(t(G), locusNames = paste0(chromosome,"_", position), popNames = pop)
+
+#use the OutFLANK command to finish up the analysis
+my_dist <- OutFLANK(my_fst, NumberOfSamples = 16, qthreshold=0.1, RightTrimFraction=0.1, LeftTrimFraction=0.1)
+
+#use outFLANKResultsPlotter to visualize and retrieve your results
+OutFLANKResultsPlotter(my_dist)
+plot(my_dist$results$FST, col=as.numeric(as.factor(chromosome)))
+my_dist$results[which(my_dist$results$OutlierFlag == TRUE),]
+
+```
+
+###PCAdapt
+PCAdapt is an R based program that detects genetic markers involved in biological adaptation using tools for outlier detection based on Principal Component Analysis (PCA). All analysis once you filter for two alleles can be done in R. 
+
+```{R, echo = TRUE}
+#load pcadapt library
+library(pcadapt)
+
+#load VCF file into R
+filename <- read.pcadapt("/home/mgregoire/Week8and9/realdata/SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.recode.vcf", type = "vcf" )
+
+#create first PCA
+x <- pcadapt(input = filename, K = 20)
+
+#plot the likelihoods
+plot(x, option = "screeplot")
+#plot Plot the likelihoods for only first 10 K
+plot(x, option = "screeplot", K = 10)
+
+#create population designations
+pop <- read.table("/home/mgregoire/Week8and9/realdata/LibraryInfo", header=FALSE)
+pop <- pop$V2
+summary(pop)
+poplist.names <- c(rep("ACM", 19), rep("BHS", 19), rep("BRS", 26), rep("CCM", 70), rep("DMS", 16), rep("DRM", 11), rep("FMS", 19), rep("IPM", 12), rep("LHM", 62), rep("MCM", 11), rep("PGS", 20), rep("PMM", 20), rep("SPS", 20), rep("SSM", 20), rep("TCS", 20), rep("WPS", 19))
+
+
+ #plot the actual PCA (first two PCAs)
+plot(x, option = "scores", pop = poplist.names)
+ #plot PCA with PCA 2 and PCA 3
+plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
+ #plot PCA with PCA 3 and PCA 4
+plot(x, option = "scores", i = 3, j = 4, pop = poplist.names)
+
+
+#redo PCA with only 3 K
+x <- pcadapt(filename, K = 3)
+
+summary(x)
+
+#start looking for outliers
+#make Manhattan Plot
+plot(x , option = "manhattan")
+#make qqplot
+plot(x, option = "qqplot", threshold = 0.1)
+#look at P-value distribution
+plot(x, option = "stat.distribution")
+
+#set FDR
+library(qvalue)
+qval <- qvalue(x$pvalues)$qvalues
+alpha <- 0.1
+
+#save outliers
+outliers <- which(qval < alpha)
+
+#test for library effects
+poplist.names <- c(rep("LIB1", 192),rep("LIB2", 192))
+x <- pcadapt(input = filename, K = 20)
+
+plot(x, option = "scores", pop = poplist.names)
+plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
+
+x <- pcadapt(filename, K = 2)
+summary(x)
+
+#make your plots
+plot(x , option = "manhattan")
+plot(x, option = "qqplot", threshold = 0.1)
+
+plot(x, option = "stat.distribution")
+
+library(qvalue)
+qval <- qvalue(x$pvalues)$qvalues
+alpha <- 0.1
+outliers <- which(qval < alpha)
+```
+
+# PART 2   
+## Redundancy Analysis ## keep running into errors here    
+This redundancy analysis is done in R code and is based on the analysis performed by Amy Zyck available at: https://github.com/amyzyck/EecSeq_NB_EasternOyster/blob/master/Analysis/PopGen_SeaGen_Analyses/RedundancyAnalysis/RDA_Outlier_Hap.Rmd
+
+Make a new directory and then download the files using wget:
+
+- mkdir NB_EEMS_OutlierHap
+- cd NB_EEMS_OutlierHap
+- wget https://raw.githubusercontent.com/amyzyck/EecSeq_NB_EasternOyster/master/Analysis/PopGen_SeaGen_Analyses/RedundancyAnalysis/input_files/HapMasked_Outlier/all_allele_freqs.csv # HapMasked_Outlier -> all allele freqs
+- wget https://raw.githubusercontent.com/amyzyck/EecSeq_NB_EasternOyster/master/Analysis/PopGen_SeaGen_Analyses/RedundancyAnalysis/input_files/HapMasked_Outlier/environmental_data.csv # HapMasked_Outlier -> environmental data
+- wget https://raw.githubusercontent.com/amyzyck/EecSeq_NB_EasternOyster/master/Analysis/PopGen_SeaGen_Analyses/RedundancyAnalysis/input_files/HapMasked_Outlier/dbmems.csv # spatial data
+
+The rest can be done in R
+
+```{r, echo=TRUE}
+
+#load libraries
+library(psych)
+library(dplyr)
+library(adespatial)
+library(vegan)
+
+#import the genetic data
+allele_freqs_outlier = read.csv("/home/mgregoire/Week8and9/RedundancyAnalysis/all_allele_freqs.csv")
+#allele_freqs_outlier_BayEnv = read.csv("/home/mgregoire/Week8and9/NB_EEMS_OutlierHap/all_allele_freqs_BayEnv.csv", row.names = 1, check.names = FALSE)
+
+#import environmental data
+env.raw = read.csv("/home/mgregoire/Week8and9/RedundancyAnalysis/environmental_data.csv")
+
+#import spatial data
+dbmem.raw = read.csv("/home/mgregoire/Week8and9/RedundancyAnalysis/dbmems.csv")
+
+#set seed
+set.seed(123)
+
+#plot and run correlation test on environmental variables
+pairs.panels(env.raw, scale = TRUE)
+
+#remove correlated variables
+env.data = subset(env.raw, select = -c(Population,Latitude,Longitude))
+pairs.panels(env.data, scale = TRUE)
+
+#use forward selection to identify significant environmental variables
+Y = allele_freqs_outlier
+X_raw = list(env.data)
+X = as.numeric(unlist(X_raw))
+env.for = forward.sel(Y, X , alpha = TRUE)
+env.for
+
+#use forward selection to identify significant dbmems
+dbmem.for = forward.sel(Y = allele_freqs_outlier, X = dbmem.raw, alpha = TRUE)
+dbmem.for
+
+#subset only significant independent variables to include in the RDA
+env.sig = subset(env.data, select = env.for$variables)
+str(env.sig)
+dbmem.sig = subset(dbmem.raw, select = dbmem.for$variables)
+str(dbmem.sig)
+
+
+#combine environmental variables and dbmems
+env.dbmems = cbind(env.sig, dbmem.sig)
+str(env.dbmems)
+
+# Perform RDA with all variables
+rda1 = rda(allele_freqs_outlier ~ ., data = env.sig, scale = FALSE)
+rda1
+
+# Model summaries
+RsquareAdj(rda1) # adjusted Rsquared 
+vif.cca(rda1) # variance inflation factor (<10 OK)
+anova.cca(rda1, permutations = 1000) # full model
+anova.cca(rda1, permutations = 1000, by="margin") # per variable
+
+
+# Variance explained by each canonical axis
+summary(eigenvals(rda1, model = "constrained"))
+screeplot(rda1)
+
+# Create a dataframe to correctly colour regions
+col_dframe = data.frame("site" = rownames(allele_freqs_outlier))
+
+# Function to add regional labels to dataframe
+addregion = function(x){
+  # If pop label is present function will output the region
+  if(x=="BIS") y = " Bissel Cove (BIS) "
+  if(x=="GB") y = " Greenwich Bay (GB) "
+  if(x=="NAR") y = " Narrow River (NAR) "
+  if(x=="PVD") y = " Providence (PVD) "
+  return(y)
+}
+
+# Add regional labels
+col_dframe$region = sapply(col_dframe$site, addregion)
+
+# Add factor levels
+region_order = c(" Bissel Cove (BIS) "," Greenwich Bay (GB) "," Narrow River (NAR) ", " Providence (PVD) ")
+col_dframe$region = factor(col_dframe$region, levels = region_order)
+
+# Create colour scheme
+# blue=#377EB8, green=#7FC97F, orange=#FDB462, red=#E31A1C
+cols = c("#7FC97F","#377EB8","#FDB462","#E31A1C")
+
+# Visualise results of RDA
+png("rda.png", width = 8, height = 7, units = "in", res = 600)
+plot(rda1, type="n", scaling = 3)
+title("Seascape redundancy analysis - Outlier SNPs")
+# SITES
+points(rda1, display="sites", pch=21, scaling=3, cex=2, col="black",
+       bg=cols[col_dframe$region]) # sites
+# text(rda1, display="sites", scaling = 3, col="black", font=2, pos=4)
+# PREDICTORS
+text(rda1, display="bp", scaling=3, col="red1", cex=1.4, lwd=2)
+# SNPS
+# text(rda1, display="species", scaling = 3, col="blue", cex=0.7, pos=4) # SNPs
+# LEGEND
+legend("topright", legend=levels(col_dframe$region), bty="n", col="black",
+       pch=21, cex=1.3, pt.bg=cols)
+# OTHER LABELS
+adj.R2 = round(RsquareAdj(rda1)$adj.r.squared, 3)
+mtext(bquote(italic("Adjusted R")^"2"~"= "~.(adj.R2)), side = 3, adj = 0.5)
+dev.off()
+         
+# Perform RDA while controlling for geographical location
+pRDA = rda(allele_freqs_outlier_BayEnv ~ Salinity + DO + Condition(MEM1),
+           data = env.dbmems, scale = FALSE)
+pRDA
+RsquareAdj(pRDA) # adjusted Rsquared 
+vif.cca(pRDA) # variance inflation factor (<10 OK)
+anova.cca(pRDA, permutations = 1000) # full model
+anova.cca(pRDA, permutations = 1000, by = "margin") # per variable
+      
+# Visualise results of RDA
+png("partial_rda.png", width = 9, height = 7, units = "in", res = 600)
+plot(pRDA, type="n", scaling = 3)
+title("pRDA - Outlier SNPs")
+# SITES
+points(pRDA, display="sites", pch=21, scaling=3, cex=2, col="black",
+       bg=cols[col_dframe$region]) # sites
+text(pRDA, display="sites", scaling = 3, col="black", font=2, pos=4)
+# PREDICTORS
+text(pRDA, display="bp", scaling=3, col="red1", cex=1.4, lwd=2)
+# SNPS
+# text(pRDA, display="species", scaling = 3, col="blue", cex=0.7, pos=4) # SNPs
+# LEGEND
+legend("topright", legend=levels(col_dframe$region), bty="n", col="black",
+       pch=21, cex=1.3, pt.bg=cols)
+# OTHER LABELS
+R2 = round(RsquareAdj(pRDA)$r.squared, 3)
+mtext(bquote(italic("R")^"2"~"= "~.(R2)), side = 3, adj = 0.5)
+dev.off()
+
+
+# Which axes are significant?
+anova.cca(pRDA, permutations = 1000, by = "axis")
+
+# Extract SNP loadings for sig. axes
+snp.load = scores(pRDA, choices = 1, display = "species")
+
+# Plot histograms of SNP loadings
+hist(snp.load, main = "SNP loadings on RDA1")
+
+# Identify SNPs in the tails of the distribution
+# Function from https://popgen.nescent.org/2018-03-27_RDA_GEA.html
+outliers = function(x,z){
+  lims = mean(x) + c(-1, 1) * z * sd(x) # find loadings +/-z sd from mean loading     
+  x[x < lims[1] | x > lims[2]]          # locus names in these tails
+}
+
+# x = loadings vector, z = number of standard deviations to use
+candidates = outliers(x = snp.load, z = 3)
+
+# Convert matric to dataframe
+snp.load.df = snp.load %>% as.data.frame
+snp.load.df$SNP_ID = rownames(snp.load.df)
+str(snp.load.df)
+
+# Extract locus ID
+snp.load.df %>% filter(RDA1 == candidates)
+```
+
+## EEMS Analysis  ##where to get data/ how to run this??
+EEMS (Estimating effective migration surfaces) uses the concept of “effective migration” to model the relationship between genetics and geography by assuming that effective migration is low in regions where genetic similarity decays quickly. It relates effective migration rates to expected genetic dissimilarities. 
