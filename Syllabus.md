@@ -49,10 +49,9 @@ Updated 1/25/2022 and still subject to change
 |||Analyzing Population Structure|[Primary Literature](https://github.com/jpuritz/BIO_594_2022/tree/main/Readings/Week_08/)|
 |3/30/22|9| Analyzing Population Structure|[Primary Literature](https://github.com/jpuritz/BIO_594_2022/tree/main/Readings/Week_08/)|
 |||Population Genomic Methods|[Allendorf *et al.* 2010](https://github.com/jpuritz/BIO_594_2022/raw/main/Readings/Week_09/PopulationGenomicMethods/Allendorf%2C%20Hohenlohe%2C%20Luikart_2010_Genomics%20and%20the%20future%20of%20conservation%20genetics.pdf); [Jones & Good 2015](https://github.com/jpuritz/BIO_594_2022/raw/main/Readings/Week_09/PopulationGenomicMethods/Jones%2C%20Good_2015_Targeted%20capture%20in%20evolutionary%20and%20ecological%20genomics(2).pdf); [Matz 2017](https://github.com/jpuritz/BIO_594_2022/raw/main/Readings/Week_09/PopulationGenomicMethods/Matz_2017_Fantastic%20Beasts%20and%20How%20To%20Sequence%20Them%20Ecological%20Genomics%20for%20Obscure%20Model%20Organisms.pdf)|
-|4/06/22|10| Exome and other Capture Methods [Primary Literature](https://github.com/jpuritz/BIO_594_2022/tree/main/Readings/Week_11/)|
+|4/06/22|10| Exome and other Capture Methods | [Primary Literature](https://github.com/jpuritz/BIO_594_2022/tree/main/Readings/Week_11/)|
 |||Pool-seq, and Low Coverage Whole Genome Sequencing |[Primary Literature](https://github.com/jpuritz/BIO_594_2022/tree/main/Readings/Week_09/PopulationGenomicMethods)|
 |4/13/22|11|  RNAseq | Project Plans Due! [Primary Literature](https://github.com/jpuritz/BIO_594_2022/tree/main/Readings/Week_10/)|
-
 |4/20/22|12| Final Projects | No Readings|
 |4/27/22|13| Final Projects | No Readings|
 |5/02/22|14| **FINAL PROJECTS DUE**|
