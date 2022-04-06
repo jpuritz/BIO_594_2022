@@ -1,0 +1,396 @@
+---
+title: "Week08_09"
+author: "DB Richardson"
+date: "3/31/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+preparing to use PGDspider
+```{bash}
+ln -s /home/BIO594/Exercises/Week07_and_Week_08/realdata/ .
+ln -s realdata/ .
+ln -s realdata/environ .
+ln -s realdata/popmap . 
+```
+Using PGDspider
+```{bash}
+java -jar  /usr/local/bin/PGDSpider2-cli.jar -inputfile realdata/SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.recode.vcf -outputfile SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.BS -spid realdata/BSsnp.spid
+```
+
+Using BayeScan
+```{bash}
+BayeScan2.1_linux64bits SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.BS -nbp 30 -thin 20
+```
+
+```{bash}
+vcftools --vcf realdata/SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL.recode.vcf --max-alleles 2 --recode --recode-INFO-all --out SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL_2A.recode
+```
+
+Using BayEnv
+```{bash}
+java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL_2A.recode.recode.vcf -outputfile SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL_2A.recode.BayEnv.txt -spid realdata/SNPBayEnv.spid
+```
+Making the covariance matrix
+```{bash}
+bayenv2 -i SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL_2A.recode.BayEnv.txt -p 16 -k 10000 -r 63479 > matrix.out
+```
+Taking the last iteration
+```{bash}
+tail -17 matrix.out | head -16 > matrix
+```
+
+Calculating the Bayes Factor for each SNP for each environmental variable
+```{bash}
+ln -s /usr/local/bin/bayenv2 .
+calc_bf.sh SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL_2A.recode.BayEnv.txt realdata/environ matrix 16 1000 2 > bf_environ.environ
+```
+Converting the output to a format R can work with
+```{bash}
+paste <(seq 1 7229) <(cut -f2,3 bf_environ.environ ) > bayenv.out
+cat <(echo -e "Locus\tBF1\tBF2") bayenv.out > bayenv.final
+```
+
+*** I had a lot of problems with BayEnv.  
+#########################[END OF EDIT]############################
+##################################################################
+##################################################################
+```{bash}
+scp -i ~/.ssh/id_rsa dbr@KITT.uri.edu:/home/dbr/week8/SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL_2A.recode.recode.vcf ~/Documents/BIO_594-Pop_Genomics/.
+
+scp -i ~/.ssh/id_rsa dbr@KITT.uri.edu:/home/dbr/week8/bayenv.final  ~/Documents/BIO_594-Pop_Genomics/.
+
+scp -i ~/.ssh/id_rsa dbr@KITT.uri.edu:/home/dbr/week8/SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FI_fst.txt~/Documents/BIO_594-Pop_Genomics/.
+
+scp -i ~/.ssh/id_rsa dbr@KITT.uri.edu:/home/BIO594/Exercises/Week07_and_Week_08/realdata/popmap ~/Documents/BIO_594-Pop_Genomics/.
+```
+
+I edited the header for the popmap file to use is a sort of strata file, but I might not use it. 
+```{r}
+source("~/Documents/BIO_594-Pop_Genomics/plot_R.r")
+plot_bayescan("~/Documents/BIO_594-Pop_Genomics/SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FI_fst.txt")
+```
+
+
+Plotting BayEnv2 results - I had a lot of problems with this 
+```{r}
+#table_bay <- read.table("~/Documents/BIO_594-Pop_Genomics/bayenv.final",header=TRUE)
+#plot(table_bay$BF1)
+#table_bay[which(table_bay$BF1 > 100),]
+```
+
+```{r}
+library(adegenet)
+library(vcfR)
+
+
+my_vcf <- read.vcfR("~/Documents/BIO_594-Pop_Genomics/SNP.DP3g98maf01_85INDoutFIL.NO2a.HWE.FIL_2A.recode.recode.vcf")
+my_genind <- vcfR2genind(my_vcf)
+
+strata<- read.table("~/Documents/BIO_594-Pop_Genomics/popmap", header=TRUE)
+strata_df <- data.frame(strata)
+strata(my_genind) <- strata_df
+
+setPop(my_genind) <- ~Population
+
+
+
+#PCA
+real_data_pca <- tab(my_genind, freq = TRUE, NA.method = "mean")
+pca1 <- dudi.pca(real_data_pca, scale = FALSE, scannf = FALSE, nf = 3)
+barplot(pca1$eig[1:50], main = "PCA eigenvalues", col = heat.colors(50))
+s.class(pca1$li, pop(my_genind)) 
+# title("PCA of simulated dataset\naxes 1-2")
+add.scatter.eig(pca1$eig[1:20], 3,1,2)
+
+col <- funky(15)
+s.class(pca1$li, pop(my_genind),xax=1,yax=2, col=col, axesell=FALSE, cstar=0, cpoint=3, grid=FALSE)
+
+grp <- find.clusters(my_genind, max.n.clust=40) #20 PCs 40 Clusters (maybe this should have been 16 instead)
+table(pop(my_genind), grp$grp)
+
+table.value(table(pop(my_genind), grp$grp), col.lab=paste("inf", 1:2), row.lab=paste("ori", 1:4))
+```
+DAPC
+```{r}
+#DAPC
+dapc1 <- dapc(my_genind, grp$grp)# 20 PCs, 5 Discriminant functions
+scatter(dapc1,col=col,bg="white", solid=1)
+
+
+
+contrib <- loadingplot(dapc1$var.contr, axis=1, thres=.01, lab.jitter=1)
+contrib
+
+
+#setPop(my_genind) <- ~Library
+
+dapc1 <- dapc(my_genind, pop(my_genind))
+contrib <- loadingplot(dapc1$var.contr, axis=1, thres=.05, lab.jitter=1)
+
+```
+
+
+RDA
+
+# Redundancy Analysis
+
+This code follows that documented by [Tom Jenkins](https://github.com/Tom-Jenkins/seascape_rda_tutorial).
+
+Steps for completing the redundancy analysis for Outlier SNPs. Steps for preparing the allele frequency data and environmental data can be found [here](https://github.com/amyzyck/EecSeq_NB_EasternOyster/blob/master/Analysis/PopGen_SeaGen_Analyses/HaplotigMasked_Genome/Outlier_SNPs/NB_PopGen_OutlierHap.Rmd), and steps for preparing spatial data can be found [here](https://github.com/amyzyck/EecSeq_NB_EasternOyster/blob/master/Analysis/PopGen_SeaGen_Analyses/HaplotigMasked_Genome/Outlier_SNPs/RedundancyAnalysis/PrepSpatialData.Rmd). 
+
+```{r}
+# Load packages
+library(psych)
+library(dplyr)
+library(adespatial)
+library(vegan)
+```
+
+```{r}
+# Import genetic data
+allele_freqs_outlier = read.csv("all_allele_freqs.csv", row.names = 1, check.names = FALSE)
+allele_freqs_outlier_BayEnv = read.csv("all_allele_freqs_BayEnv.csv", row.names = 1, check.names = FALSE)
+```
+
+```{r}
+# Import environmental data
+env.raw = read.csv("environmental_data.csv", row.names = 1)
+```
+
+```{r}
+# Import spatial data
+dbmem.raw = read.csv("dbmems.csv")
+```
+
+```{r}
+# Set seed
+set.seed(123)
+```
+
+
+#--------------#
+#
+# Multicollinearity checks
+#
+#--------------#
+
+```{r}
+# Plot and run correlation test on environmental variables
+pairs.panels(env.raw, scale = TRUE)
+```
+
+```{r}
+# Remove correlated variables
+env.data = subset(env.raw, select = -c(Latitude,Longitude))
+pairs.panels(env.data, scale = TRUE)
+```
+
+For now, continue without removing correlated variables - replace env.data with env.raw
+
+#--------------#
+#
+# Identify significant variables
+#
+#--------------#
+
+```{r}
+# Use forward selection to identify significant environmental variables
+Y = allele_freqs_outlier
+X = env.raw
+env.for = forward.sel(Y, X, alpha = TRUE)
+env.for
+```
+
+Only one dbMEM 
+
+```{r}
+# Use forward selection to identify significant dbmems
+dbmem.for = forward.sel(Y = allele_freqs_outlier, X = dbmem.raw, alpha = TRUE)
+dbmem.for
+```
+
+```{r}
+# Subset only significant independent variables to include in the RDA
+env.sig = subset(env.data, select = env.for$variables)
+str(env.sig)
+dbmem.sig = subset(dbmem.raw, select = dbmem.for$variables)
+str(dbmem.sig)
+```
+
+```{r}
+# Combine environmental variables and dbmems
+env.dbmems = cbind(env.sig, dbmem.sig)
+str(env.dbmems)
+```
+
+
+#--------------#
+#
+# Redundancy analysis
+#
+#--------------#
+
+```{r}
+# Perform RDA with all variables
+rda1 = rda(allele_freqs_outlier ~ ., data = env.sig, scale = FALSE)
+rda1
+```
+
+```{r}
+# Model summaries
+RsquareAdj(rda1) # adjusted Rsquared 
+vif.cca(rda1) # variance inflation factor (<10 OK)
+anova.cca(rda1, permutations = 1000) # full model
+anova.cca(rda1, permutations = 1000, by="margin") # per variable 
+```
+
+```{r}
+# Variance explained by each canonical axis
+summary(eigenvals(rda1, model = "constrained"))
+screeplot(rda1)
+```
+
+```{r}
+# Create a dataframe to correctly colour regions
+col_dframe = data.frame("site" = rownames(allele_freqs_outlier))
+```
+
+```{r}
+# Function to add regional labels to dataframe
+addregion = function(x){
+  # If pop label is present function will output the region
+  if(x=="BIS") y = " Bissel Cove (BIS) "
+  if(x=="GB") y = " Greenwich Bay (GB) "
+  if(x=="NAR") y = " Narrow River (NAR) "
+  if(x=="PVD") y = " Providence (PVD) "
+  return(y)
+}
+```
+
+```{r}
+# Add regional labels
+col_dframe$region = sapply(col_dframe$site, addregion)
+```
+
+```{r}
+# Add factor levels
+region_order = c(" Bissel Cove (BIS) "," Greenwich Bay (GB) "," Narrow River (NAR) ", " Providence (PVD) ")
+col_dframe$region = factor(col_dframe$region, levels = region_order)
+```
+
+```{r}
+# Create colour scheme
+# blue=#377EB8, green=#7FC97F, orange=#FDB462, red=#E31A1C
+cols = c("#7FC97F","#377EB8","#FDB462","#E31A1C")
+```
+
+```{r}
+# Visualise results of RDA
+png("rda.png", width = 8, height = 7, units = "in", res = 600)
+plot(rda1, type="n", scaling = 3)
+title("Seascape redundancy analysis - Outlier SNPs")
+# SITES
+points(rda1, display="sites", pch=21, scaling=3, cex=2, col="black",
+       bg=cols[col_dframe$region]) # sites
+# text(rda1, display="sites", scaling = 3, col="black", font=2, pos=4)
+# PREDICTORS
+text(rda1, display="bp", scaling=3, col="red1", cex=1.4, lwd=2)
+# SNPS
+# text(rda1, display="species", scaling = 3, col="blue", cex=0.7, pos=4) # SNPs
+# LEGEND
+legend("topright", legend=levels(col_dframe$region), bty="n", col="black",
+       pch=21, cex=1.3, pt.bg=cols)
+# OTHER LABELS
+adj.R2 = round(RsquareAdj(rda1)$adj.r.squared, 3)
+mtext(bquote(italic("Adjusted R")^"2"~"= "~.(adj.R2)), side = 3, adj = 0.5)
+dev.off()
+```
+
+#--------------#
+#
+# Partial redundancy analysis
+#
+#--------------#
+
+```{r}
+# Perform RDA while controlling for geographical location
+pRDA = rda(allele_freqs_outlier_BayEnv ~ Salinity + DO + Condition(MEM1),
+           data = env.dbmems, scale = FALSE)
+pRDA
+RsquareAdj(pRDA) # adjusted Rsquared 
+vif.cca(pRDA) # variance inflation factor (<10 OK)
+anova.cca(pRDA, permutations = 1000) # full model
+anova.cca(pRDA, permutations = 1000, by = "margin") # per variable
+```
+
+```{r}
+# Visualise results of RDA
+png("partial_rda.png", width = 9, height = 7, units = "in", res = 600)
+plot(pRDA, type="n", scaling = 3)
+title("pRDA - Outlier SNPs")
+# SITES
+points(pRDA, display="sites", pch=21, scaling=3, cex=2, col="black",
+       bg=cols[col_dframe$region]) # sites
+text(pRDA, display="sites", scaling = 3, col="black", font=2, pos=4)
+# PREDICTORS
+text(pRDA, display="bp", scaling=3, col="red1", cex=1.4, lwd=2)
+# SNPS
+# text(pRDA, display="species", scaling = 3, col="blue", cex=0.7, pos=4) # SNPs
+# LEGEND
+legend("topright", legend=levels(col_dframe$region), bty="n", col="black",
+       pch=21, cex=1.3, pt.bg=cols)
+# OTHER LABELS
+R2 = round(RsquareAdj(pRDA)$r.squared, 3)
+mtext(bquote(italic("R")^"2"~"= "~.(R2)), side = 3, adj = 0.5)
+dev.off()
+```
+
+# --------------#
+#
+# Candidate SNPs for local adaptation
+#
+# --------------#
+
+```{r}
+# Which axes are significant?
+anova.cca(pRDA, permutations = 1000, by = "axis")
+```
+
+```{r}
+# Extract SNP loadings for sig. axes
+snp.load = scores(pRDA, choices = 1, display = "species")
+```
+
+```{r}
+# Plot histograms of SNP loadings
+hist(snp.load, main = "SNP loadings on RDA1")
+```
+
+```{r}
+# Identify SNPs in the tails of the distribution
+# Function from https://popgen.nescent.org/2018-03-27_RDA_GEA.html
+outliers = function(x,z){
+  lims = mean(x) + c(-1, 1) * z * sd(x) # find loadings +/-z sd from mean loading     
+  x[x < lims[1] | x > lims[2]]          # locus names in these tails
+}
+# x = loadings vector, z = number of standard deviations to use
+candidates = outliers(x = snp.load, z = 3)
+```
+
+```{r}
+# Convert matric to dataframe
+snp.load.df = snp.load %>% as.data.frame
+snp.load.df$SNP_ID = rownames(snp.load.df)
+str(snp.load.df)
+```
+
+```{r}
+# Extract locus ID
+snp.load.df %>% filter(RDA1 == candidates)
+```
+
+```
+
