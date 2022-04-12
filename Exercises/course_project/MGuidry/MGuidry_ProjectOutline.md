@@ -12,6 +12,6 @@ The data for this project originate from 1 replicate block of CON, CA, SE and CA
 ## Status of project
 The RNASeq Analysis (QC, filtering, aligning reads to oyster genome, assembling alignments to transcripts, counting transcripts, DESeq2 pipeline, and gene ontology analysis) were completed by Maggie Schedl. That analysis and more detailed project background can be found in [Maggie's Larval-Oyster-CASE-RNA Github repository](https://github.com/mguid73/Larval-Oyster-CASE-RNA). 🙌
 
-## Applying a [Weighted Gene Co-Expression Network Analysis (WGCNA](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-9-559))
+## Applying a [Weighted Gene Co-Expression Network Analysis (WGCNA)](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-9-559)
 This analysis identifies clusters (called modules) of highly correlated genes, describes module characteristics (eigengene values and hub genes), relates modules to each other and sample metadata, and measures strength of module membership. Network correlations like this can be powerful tools to identify potential genes of interest after exposure to stress. 
 
