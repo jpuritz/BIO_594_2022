@@ -34,5 +34,8 @@ Raw sequence reads in fastq format are on the URI Andromeda server (add path). G
 
 For my analysis, I will complete the following workflow: 
 
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/course_project/JAshey/BIO594_FinalProject_Workflow.jpg)
+
+
 
 
