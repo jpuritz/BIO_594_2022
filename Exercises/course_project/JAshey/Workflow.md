@@ -53,69 +53,13 @@ Count number of reads per file. Some reads have @HISEQ as header, some reads hav
 
 ```
 zgrep -c "HISEQ" *.fastq > HISEQ_raw_length.txt
-11_2.fastq:0
-1_2.fastq:0
-19_T33_Ac_WK.fastq:19665420
-2_2.fastq:0
-24_T12_Ac_FM.fastq:13786799
-25_ctl1_Ac_GF_2.fastq:14630151
-27_ctl2_Ac_YG_2.fastq:15708593
-28_2.fastq:0
-31_2.fastq:0
-31_T22_Ac_UV.fastq:0
-35_2.fastq:0
-35_T43_Ac_MT.fastq:23846590
-36_2.fastq:0
-37_T13_Ac_ML.fastq:14171723
-38_2.fastq:0
-38_T23_Ac_IN.fastq:21348241
-39_2.fastq:0
-41_2.fastq:0
-41_ctl3_Ac_RN_2.fastq:16449541
-42_2.fastq:0
-4_2.fastq:0
-45_T41_Ac_SC_2.fastq:20233577
-47_2.fastq:0
-47_T31_Ac_JB.fastq:14229140
-52_T11_Ac_II.fastq:0
-53_T21_Ac_NH.fastq:0
-54_T42_Ac_JQ.fastq:0
-57_T32_Ac_NM.fastq:0
 
 zgrep -c "HWI" *.fastq > HWI_raw_length.txt
-11_2.fastq:12258611
-1_2.fastq:13929799
-19_T33_Ac_WK.fastq:0
-2_2.fastq:11635325
-24_T12_Ac_FM.fastq:0
-25_ctl1_Ac_GF_2.fastq:0
-27_ctl2_Ac_YG_2.fastq:0
-28_2.fastq:13471856
-31_2.fastq:6132
-31_T22_Ac_UV.fastq:13317263
-35_2.fastq:18193298
-35_T43_Ac_MT.fastq:0
-36_2.fastq:16274979
-37_T13_Ac_ML.fastq:0
-38_2.fastq:15506141
-38_T23_Ac_IN.fastq:0
-39_2.fastq:14861455
-41_2.fastq:14403072
-41_ctl3_Ac_RN_2.fastq:0
-42_2.fastq:18099916
-4_2.fastq:13298701
-45_T41_Ac_SC_2.fastq:0
-47_2.fastq:11361956
-47_T31_Ac_JB.fastq:0
-52_T11_Ac_II.fastq:17303453
-53_T21_Ac_NH.fastq:10306635
-54_T42_Ac_JQ.fastq:23542186
-57_T32_Ac_NM.fastq:11679142
 ```
 
 ### Quality check
 
-Quality checking will be done using FastQC and MultiQC. 
+Quality checking will be done using [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) and [MultiQC](https://multiqc.info). 
 
 Make folders for raw and trimmed QC information
 
@@ -173,8 +117,6 @@ Copy MultiQC files onto computer and look at plots
 
 I didn't add all the plots, just the ones that I thought were most important. Sequences were either 50 or 125 bp long. Quality scores are all above 30 and the per sequence GC content follows a normal distribution. Some of the sequences still have a high proportion of adapter sequences. 
 
-Look at the rest of the raw MultiQC report [here](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/QC/multiqc_raw_report.html)
-
 ### Trim 
 
 Trimmomatic will be used to trim and clean reads. 
@@ -189,6 +131,44 @@ cd /data/putnamlab/jillashey/BIO594_FinalProject/data/raw
 
 
 redo trimming step, check adapter code 4/13/22
+
+try trimming w/ [fastp](https://github.com/OpenGene/fastp)
+
+```
+nano fastp.sh
+
+#!/bin/bash
+#SBATCH -t 18:00:00
+#SBATCH --nodes=1 --ntasks-per-node=20
+#SBATCH --export=NONE
+#SBATCH --mem=100GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=jillashey@uri.edu
+#SBATCH --error="fastp_out_error"
+#SBATCH --output="fastp_out"
+
+echo "START"; date
+
+module load fastp/0.19.7-foss-2018b 
+
+base="/data/putnamlab/jillashey/BIO594_FinalProject"
+
+for file in "$base"/data/raw/*.fastq
+do
+fastp -i $file -o $file.trim.fastp.fq 
+done
+
+mv *trim.fastp.fq "$base"/data/trimmed
+
+echo "STOP"; date
+
+sbatch fastp.sh
+```
+
+Submitted batch job 129676
+
+Rerun QC with trimmed (fastp) data
+
 
 
 
