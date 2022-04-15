@@ -119,19 +119,6 @@ I didn't add all the plots, just the ones that I thought were most important. Se
 
 ### Trim 
 
-Trimmomatic will be used to trim and clean reads. 
-
-Copy Ilumina adapter clip information into directory. This info is from Ilumina about the adapter lengths that were specifically used to sequence these samples. 
-
-```
-cd /data/putnamlab/jillashey/BIO594_FinalProject/data/raw
-cp Illumina_adapter_reads_PE_SE.fa /data/putnamlab/jillashey/BIO594_FinalProject/data
-cd /data/putnamlab/jillashey/BIO594_FinalProject/data/raw
-```
-
-
-redo trimming step, check adapter code 4/13/22
-
 try trimming w/ [fastp](https://github.com/OpenGene/fastp)
 
 ```
@@ -167,65 +154,7 @@ sbatch fastp.sh
 
 Submitted batch job 129676
 
-Rerun QC with trimmed (fastp) data
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run Trimmomatic 
-
-```
-nano trimmomatic.sh
-
-#!/bin/bash
-#SBATCH -t 18:00:00
-#SBATCH --nodes=1 --ntasks-per-node=20
-#SBATCH --export=NONE
-#SBATCH --mem=100GB
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=jillashey@uri.edu
-#SBATCH --error="trimmomatic_out_error"
-#SBATCH --output="trimmomatic_out_error"
-
-echo "START"; date
-
-module load Trimmomatic/0.39-Java-11 
-
-base="/data/putnamlab/jillashey/BIO594_FinalProject"
-
-for file in "$base"/data/raw/*.fastq
-do
-java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar SE -phred33 $file $file.trim.fq ILLUMINACLIP:"$base"/data/Illumina_adapter_reads_PE_SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:20 >> amtTrimmed.txt
-done 
-
-mv *trim.fq "$base"/data/trimmed
-
-echo "STOP"; date
-
-sbatch trimmomatic.sh
-```
-
-Submitted batch job 129350
-
-`Trimmomatic` arguments:
-
-- `SE` = single end reads 
-- `phred33` = specifies base quality encoding 
-- `ILLUMINACLIP` = cuts adapters and other Illumina specific sequences from read 
-- `LEADING` = cut off bases (in this case, up to 3) at start of read, if below a certain quality 
-- `TRAILING` = cut off bases (in this case, up to 3) at end of read, if below a certain quality 
-- `SLIDINGWINDOW` = xxxxxxx
-- `MINLEN` = drop read if below a certain length (in this case, 20 bp)
+add QC plots
 
 ### Quality check trimmed reads 
 
@@ -240,9 +169,9 @@ ls | wc -l
 Count number of reads per file. Some reads have @HISEQ as header, some reads have @HWI
 
 ```
-zgrep -c "HISEQ" *.trim.fq > HISEQ_trim_length.txt
+zgrep -c "HISEQ" *.trim.fastp.fq  > HISEQ_trim_length.txt
 
-zgrep -c "HWI" *.trim.fq > HWI_trim_length.txt
+zgrep -c "HWI" *.trim.fastp.fq  > HWI_trim_length.txt
 ```
 
 Run QC on raw reads 
@@ -268,7 +197,7 @@ module load MultiQC/1.9-intel-2020a-Python-3.8.2
 base="/data/putnamlab/jillashey/BIO594_FinalProject"
 
 # Run fastqc on raw files 
-for file in "$base"/data/trimmed/*.trim.fq
+for file in "$base"/data/trimmed/*.trim.fastp.fq 
 do
 fastqc $file --outdir "$base"/QC/trimmed/
 done
@@ -291,14 +220,16 @@ Copy MultiQC files onto computer and look at plots
 Obtain genomic/transcriptomic information for both species. 
 
 ##### A. cervicornis 
-- Download genomic information here xxxx
+- Download genomic information [here](https://usegalaxy.org/u/skitch/h/acervicornis-genome)
 - Path to genomic info: `/data/putnamlab/jillashey/genome/Acerv`
 
 ##### P. acuta 
-- Download genomic information here xxxx
+- Download genomic information [here](http://cyanophora.rutgers.edu/Pocillopora_acuta/)
 - Path to genomic info: `/data/putnamlab/jillashey/genome/Pacuta`
 
 #### Align against genome - STAR
+
+[STAR](https://github.com/alexdobin/STAR)
 
 ```
 cd STAR 
@@ -369,6 +300,10 @@ sbatch GenomeIndex_Pacuta.sh
 
 #### Align against transcriptome - Bowtie2
 
+[Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml)
+
 #### Pseudoalignment - Kallisto
+
+[Kallisto](https://pachterlab.github.io/kallisto/manual)
 
 ### Compare 
