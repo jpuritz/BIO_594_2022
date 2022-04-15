@@ -109,11 +109,11 @@ Submitted batch job 129345
 
 Copy MultiQC files onto computer and look at plots
 
-![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/course_project/JAshey/images/fastqc_per_base_sequence_quality_plot.png)
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/course_project/JAshey/images/raw_fastqc_per_base_sequence_quality_plot.png)
 
-![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/course_project/JAshey/images/fastqc_per_sequence_gc_content_plot.png)
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/course_project/JAshey/images/raw_fastqc_per_sequence_gc_content_plot.png)
 
-![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/course_project/JAshey/images/fastqc_adapter_content_plot.png)
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/course_project/JAshey/images/raw_fastqc_adapter_content_plot.png)
 
 I didn't add all the plots, just the ones that I thought were most important. Sequences were either 50 or 125 bp long. Quality scores are all above 30 and the per sequence GC content follows a normal distribution. Some of the sequences still have a high proportion of adapter sequences. 
 
@@ -213,7 +213,14 @@ sbatch fastqc_trim.sh
 
 Submitted batch job 129499
 
-Copy MultiQC files onto computer and look at plots
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/course_project/JAshey/images/trim_fastqc_per_base_sequence_quality_plot.png)
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/course_project/JAshey/images/trim_fastqc_per_sequence_gc_content_plot.png)
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/course_project/JAshey/images/trim_fastqc_adapter_content.png)
+
+Like the raw QC, quality scores are all above 30 and the per sequence GC content still follows a normal distribution. But the adapters are gone!
+
 
 ### Align reads using different read aligners 
 
