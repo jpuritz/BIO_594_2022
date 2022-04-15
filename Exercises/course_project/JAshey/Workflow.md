@@ -247,6 +247,8 @@ cd STAR
 Use the genome to make an index
 
 ```
+mkdir GenomeIndex_Acerv
+
 nano GenomeIndex_Acerv.sh 
 
 #!/bin/bash
@@ -273,11 +275,73 @@ echo "STOP"; date
 sbatch GenomeIndex_Acerv.sh 
 ```
 
+Submitted batch job 130259
+
+`STAR` parameters: 
+
+- `runThreadN` - number of threads to run STAR
+- `runMode genomeGenerate` - runs a genome index generation job 
+- `genomeDir` - path to directory where genome indices are stored 
+- `genomeFastaFiles` - path to file with genome reference sequences 
+
+Align reads to genome 
+
+```
+mkdir AlignReads_acerv
+cd AlignReads_acerv
+
+nano AlignReads_Acerv.sh 
+
+#!/bin/bash
+#SBATCH -t 24:00:00
+#SBATCH --nodes=1 --ntasks-per-node=20
+#SBATCH --export=NONE
+#SBATCH --mem=100GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=jillashey@uri.edu
+#SBATCH --error="acerv_align_out_error"
+#SBATCH --output="acerv_align_out"
+
+echo "START"; date
+
+module load STAR/2.7.2b-GCC-8.3.0 
+
+F=/data/putnamlab/jillashey/BIO594_FinalProject/STAR/AlignReads_acerv 
+
+# make symbolic link to trimmed data
+ln -s /data/putnamlab/jillashey/BIO594_FinalProject/data/trimmed/*trim.fastp.fq .
+
+# align reads 
+array1=($(ls $F/*.trim.fastp.fq ))
+for i in ${array1[@]}
+do
+STAR --runMode alignReads \
+--genomeDir /data/putnamlab/jillashey/BIO594_FinalProject/STAR/GenomeIndex_Acerv/ \
+--runThreadN 6 \
+--readFilesIn ${i} \
+--outFileNamePrefix ${i}.
+--outSAMtype BAM Unsorted SortedByCoordinate \
+#--outStd Log BAM_Unsorted BAM_Quant \
+#--quantMode TranscriptomeSAM \
+--twopassMode Basic \
+--twopass1readsN -1 \
+--outReadsUnmapped Fastx 
+done
+
+echo "STOP"; date
+
+sbatch AlignReads_Acerv.sh 
+```
+
+Submitted batch job 130265
+
 ##### P. acuta 
 
 Use the genome to make an index
 
 ```
+mkdir GenomeIndex_Pacuta
+
 nano GenomeIndex_Pacuta.sh 
 
 #!/bin/bash
@@ -304,6 +368,7 @@ echo "STOP"; date
 sbatch GenomeIndex_Pacuta.sh 
 ```
 
+Submitted batch job 130266
 
 #### Align against transcriptome - Bowtie2
 
