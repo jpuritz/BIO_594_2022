@@ -476,6 +476,40 @@ Submitted batch job 131040
 - `twopass1readsN`
 - `outReadsUnmapped`
 
+Convert SAM to BAM files using samtools 
+
+```
+nano samtools.sh
+
+#!/bin/bash
+#SBATCH -t 24:00:00
+#SBATCH --nodes=1 --ntasks-per-node=20
+#SBATCH --export=NONE
+#SBATCH --mem=100GB
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=jillashey@uri.edu
+#SBATCH --error="samtools_out_error"
+#SBATCH --output="samtools_out"
+
+echo "START"; date
+
+module load SAMtools/1.9-foss-2018b
+
+F=/data/putnamlab/jillashey/BIO594_FinalProject/STAR/AlignReads_pacuta
+
+array1=($(ls $F/*Aligned.out.sam))
+for i in ${array1[@]}
+do
+samtools sort -@ 8 -o ${i}.bam ${i}
+done
+
+echo "STOP"; date
+
+sbatch samtools.sh
+```
+
+Submitted batch job 131285
+
 #### Align against transcriptome - Trinity & Bowtie2
 
 [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml)
