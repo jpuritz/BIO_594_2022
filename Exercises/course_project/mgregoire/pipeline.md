@@ -1,5 +1,5 @@
 # Analyzing Pumpkin's DNA 
-![Pumpkin](C:~\Users\mjgregoire\Pictures\pumpkin.jpeg)
+![Pumpkin](C:~\Users\mjgregoire\Pictures\pumpkin.jpeg?raw=true)
 ## Set up your directories, softwares, and files 
 Make sure that bioconda is is installed on your server. I am using the Kitt server and bioconda has already been installed. Bioconda makes it easy to install many of the various programs that will be used in this pipeline (eg: fastqc).
 Make a folder for the project and cd into it.
