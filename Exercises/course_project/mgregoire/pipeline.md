@@ -25,7 +25,7 @@ Run fastqc and download the .html output files
 -  `get AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS_fastqc.html` | get AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS_fastqc.html | get AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS_fastqc.html`
 
 The fastqc files from Pumpkin's DNA reveal the following:
-- Per base sequence quality: The quality scores across all bases look good for all 3 fastq files! The reads start to drop off towards the tail ends (this is expected as the reads get longer), but the scores stay in the green zone the entire time hovering around 36-34 and only with error bars dropping to about 25 from 100-150bp.
+- Per base sequence quality: The quality scores across all bases look good for all 3 fastq files! The reads start to drop off towards the tail ends (this is expected as the reads get longer), but the scores stay in the green zone the entire time hovering around 36-34 and only with error bars dropping to about 25 from 100-150bp. This means that the average of the reads had >99.9% accuracy.
 - Per sequence quality scores: The quality score distribution across all sequences peak at 36 for all three files. This means that Q36 had more read numbers than other quality scores.
 - Per base sequence content: This metric shows that the percentage of each of the four nucleotides (A, T, C, G) at each position across all reads showed normal random distributions without bias for all three files. There is some bias seen in the beginning from bases 1-10, though this could be due to adaptors.
 - Per sequence GC content: The per sequence GC content for all three files demonstrated that the sequences have a normal distrubution of overall GC content signifying that the samples are likely not contaminated.
@@ -35,14 +35,18 @@ The fastqc files from Pumpkin's DNA reveal the following:
 - Overrepresented sequences: There were no overrepresented sequences for any of the files.
 - Adapter Content: The adapter content for all three files indicated low to no adaptor content. 
 
-## Trim reads with Trimmomatic for the first 10 base pairs, anything below an average quality score of 28, and any reads less than 20 base pairs
-We will trim the first 10 base pairs off the reads because these showed some bias in the per base sequence content (however low). We will also filter anything with an average quality score of 28 out (though the average for all three files was around 36 so this is futile), and anything that is less than 20bp (though fastqc said the sequences were all between 31-151bp so this is also futile).
-- `trimmomatic SE R163.fq AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS.fastq HEADCROP:10 AVGQUAL:28 MINLEN:20`
-- `trimmomatic SE R160.fq AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq HEADCROP:10 AVGQUAL:28 MINLEN:20`
-- `trimmomatic SE R170.fq AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq HEADCROP:10 AVGQUAL:28 MINLEN:20`
+## Trim reads with FastP for the first 10 base pairs, anything below an average quality score of 28, and any reads less than 20 base pairs
+We will trim the first 10 base pairs off the reads because these showed some bias in the per base sequence content (however low). We will also filter anything with an average quality score of 28 out, and anything that is less than 20bp, although the average quality score for all three files was around 36 and the fastqc said the sequences were all between 31-151bp so these flags are futile.
+- `fastp -i AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS.fastq -o R163.fq -f 10 --qualified_quality_phred 28 --length_required 20`
+- `fastp -i AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq -o R160.fq -f 10 --qualified_quality_phred 28 --length_required 20`
+- `fastp -i AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq -o R170.fq -f 10 --qualified_quality_phred 28 --length_required 20`
 
 ## Check quality after trimming with fastqc
-- `fastqc *.fq`
+- `fastqc R163.fq`
+- `fastqc R160.fq`
+- `fastqc R170.fq`
+
+
 
 ## Align Pumpkin’s DNA to the domestic cat reference genome Felis catus 9.0 using the Burrows Wheeler Aligner and the default parameters 
 Download the reference genome
