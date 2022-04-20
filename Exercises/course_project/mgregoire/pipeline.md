@@ -7,7 +7,7 @@ Make a folder for the project and cd into it.
 Since the files were supplied to me on a flashdrive from Basepaws, I sftp'd the files onto the kitt server with the following commands:
 - `sftp -P {port number here} {username}@kitt.uri.edu`
 - `cd FinalProject`
-- `lcd D:`
+- `lcd D: | lls`
 - `put AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS.fastq.gz | put AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq.gz | put AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq.gz | put pumpkin_102.hard-filtered.gvcf | put pumpkin_102.hard-filtered.gvcf.gz.tbi`
 
 Unzip the files
@@ -19,7 +19,7 @@ Unzip the files
 Run fastqc
 - `fastqc *.fastq`
 
-## Trim reads with Trimmomatic or Cutadapt for anything below a quality score of 28, any reads with less than 20 base pairs, or any adaptor sequences
+## Trim reads with Trimmomatic or Cutadapt for any adaptor sequences, anything below an average quality score of 28, and any reads less than 20 base pairs
 - `trimmomatic SE R163.fq AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS.fastq ILLUMINACLIP [[HEADCROP:5 (change this if need first 5 cut)]]] AVGQUAL 28 MINLEN:20`
 - `trimmomatic SE R160.fq AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq ILLUMINACLIP [[HEADCROP:5 (change this if need first 5 cut)]]] AVGQUAL 28 MINLEN:20`
 - `trimmomatic SE R170.fq AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq ILLUMINACLIP [[HEADCROP:5 (change this if need first 5 cut)]]] AVGQUAL 28 MINLEN:20`
@@ -33,7 +33,7 @@ Download the reference genome
 First make an index of the reference genome
 - `bwa index [-a bwtsw|is] GCA_000181335.5.fasta FelisCatus`
 Align the reads
-- `
+- `bwa mem ref.fa reads.fq > aln-se.sam`
 
 ## After alignment, Samblaster can then be used to identify and remove any duplicate reads
 - `samtools view -h samp.bam | samblaster --ignoreUnmated [-e] --maxReadLength 100000 [-s samp.split.sam] [-u samp.umc.fasta] | samtools view -Sb - > samp.out.bam`
