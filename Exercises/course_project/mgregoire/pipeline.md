@@ -2,7 +2,7 @@
 ![Pumpkin](https://github.com/jpuritz/BIO_594_2022/tree/main/Exercises/course_project/mgregoire/pumpkin_resize.jpg?raw=true)
 ## Set up your directories, softwares, and files 
 Make sure that bioconda is is installed on your server. I am using the Kitt server and bioconda has already been installed. Bioconda makes it easy to install many of the various programs that will be used in this pipeline (eg: fastqc).
-Make a folder for the project and cd into it.
+Make a folder for the project and cd into it. 
 - `mkdir FinalProject | cd FinalProject`
 
 Since the files were supplied to me on a flashdrive from Basepaws, I sftp'd the files onto the kitt server with the following commands:
