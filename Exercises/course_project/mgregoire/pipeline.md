@@ -1,5 +1,5 @@
 # Analyzing Pumpkin's DNA 
-![Pumpkin](https://github.com/jpuritz/BIO_594_2022/tree/main/Exercises/course_project/mgregoire/pumpkin_resize.jpg?raw=true)
+![Pumpkin](https://github.com/jpuritz/BIO_594_2022/tree/main/Exercises/course_project/mgregoire/pumpkin_resize.jpg)
 ## Set up your directories, softwares, and files 
 Make sure that bioconda is is installed on your server. I am using the Kitt server and bioconda has already been installed. Bioconda makes it easy to install many of the various programs that will be used in this pipeline (eg: fastqc).
 Make a folder for the project and cd into it. 
@@ -21,9 +21,9 @@ Run fastqc
 - `fastqc *.fastq`
 
 ## Trim reads with Trimmomatic or Cutadapt for any adaptor sequences, anything below an average quality score of 28, and any reads less than 20 base pairs
-- `trimmomatic SE R163.fq AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS.fastq ILLUMINACLIP [[HEADCROP:5 (change this if need first 5 cut)]]] AVGQUAL 28 MINLEN:20`
-- `trimmomatic SE R160.fq AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq ILLUMINACLIP [[HEADCROP:5 (change this if need first 5 cut)]]] AVGQUAL 28 MINLEN:20`
-- `trimmomatic SE R170.fq AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq ILLUMINACLIP [[HEADCROP:5 (change this if need first 5 cut)]]] AVGQUAL 28 MINLEN:20`
+- `trimmomatic SE R163.fq AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS.fastq ILLUMINACLIP [[HEADCROP:5 (change this if need first 5 cut)]]] AVGQUAL:28 MINLEN:20`
+- `trimmomatic SE R160.fq AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq ILLUMINACLIP [[HEADCROP:5 (change this if need first 5 cut)]]] AVGQUAL:28 MINLEN:20`
+- `trimmomatic SE R170.fq AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq ILLUMINACLIP [[HEADCROP:5 (change this if need first 5 cut)]]] AVGQUAL:28 MINLEN:20`
 
 ## Check quality after trimming with fastqc
 - `fastqc *.fq`
