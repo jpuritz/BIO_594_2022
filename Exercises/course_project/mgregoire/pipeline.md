@@ -17,13 +17,29 @@ Unzip the files
 - `gunzip AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq.gz`
 
 ## Run fastqc on the files to check for quality
-Run fastqc
+Run fastqc and download the .html output files
 - `fastqc *.fastq`
+- `sftp -P {port number here} {username}@kitt.uri.edu`
+- `cd FinalProject`
+- `lcd Documents\Pumpkin`
+-  `get AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS_fastqc.html` | get AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS_fastqc.html | get AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS_fastqc.html`
 
-## Trim reads with Trimmomatic or Cutadapt for any adaptor sequences, anything below an average quality score of 28, and any reads less than 20 base pairs
-- `trimmomatic SE R163.fq AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS.fastq ILLUMINACLIP [[HEADCROP:5 (change this if need first 5 cut)]]] AVGQUAL:28 MINLEN:20`
-- `trimmomatic SE R160.fq AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq ILLUMINACLIP [[HEADCROP:5 (change this if need first 5 cut)]]] AVGQUAL:28 MINLEN:20`
-- `trimmomatic SE R170.fq AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq ILLUMINACLIP [[HEADCROP:5 (change this if need first 5 cut)]]] AVGQUAL:28 MINLEN:20`
+The fastqc files from Pumpkin's DNA reveal the following:
+- Per base sequence quality: The quality scores across all bases look good for all 3 fastq files! The reads start to drop off towards the tail ends (this is expected as the reads get longer), but the scores stay in the green zone the entire time hovering around 36-34 and only with error bars dropping to about 25 from 100-150bp.
+- Per sequence quality scores: The quality score distribution across all sequences peak at 36 for all three files. This means that Q36 had more read numbers than other quality scores.
+- Per base sequence content: This metric shows that the percentage of each of the four nucleotides (A, T, C, G) at each position across all reads showed normal random distributions without bias for all three files. There is some bias seen in the beginning from bases 1-10, though this could be due to adaptors.
+- Per sequence GC content: The per sequence GC content for all three files demonstrated that the sequences have a normal distrubution of overall GC content signifying that the samples are likely not contaminated.
+- Per base N content: This paramater shows that there was a low call of Ns (or unknown bases) in the sequences for all three files.
+- Sequence Length Distribution: This parameter was flagged for all three files with an "!" meaning that it is not ideal but not detrimental. This metric looks at the size of the sequence fragments. Some sequencers keep this relatively uniform with a normal distribution, whereas others can output reads of varying lengths showing increasing distribution on the graphs.
+- Sequence Duplication Levels: The sequence duplication levels were flagged with "!" for two of the files "AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq" and "AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq." This parameter counts the degree of duplication for every sequence in the library and creates a plot showing the relative number of sequences with different degrees of duplication. For these files the percent duplication shows that about 15% of the reads were duplicated around 10 times. This is okay, it is a low level of duplication that may indicate a very high level of coverage of the target sequence. If this number was high (above 20% for a large number of reads) it could signify enrichment bias (like PCR duplication).
+- Overrepresented sequences: There were no overrepresented sequences for any of the files.
+- Adapter Content: The adapter content for all three files indicated low to no adaptor content. 
+
+## Trim reads with Trimmomatic for the first 10 base pairs, anything below an average quality score of 28, and any reads less than 20 base pairs
+We will trim the first 10 base pairs off the reads because these showed some bias in the per base sequence content (however low). We will also filter anything with an average quality score of 28 out (though the average for all three files was around 36 so this is futile), and anything that is less than 20bp (though fastqc said the sequences were all between 31-151bp so this is also futile).
+- `trimmomatic SE R163.fq AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS.fastq HEADCROP:10 AVGQUAL:28 MINLEN:20`
+- `trimmomatic SE R160.fq AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq HEADCROP:10 AVGQUAL:28 MINLEN:20`
+- `trimmomatic SE R170.fq AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq HEADCROP:10 AVGQUAL:28 MINLEN:20`
 
 ## Check quality after trimming with fastqc
 - `fastqc *.fq`
