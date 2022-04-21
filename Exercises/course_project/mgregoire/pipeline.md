@@ -109,15 +109,21 @@ reads with adapter trimmed: 0,
 bases trimmed due to adapters: 0
 
 ## Check quality again with fastqc after trimming 
-- `fastqc R163.fq` --> The trimming cleaned up the per base sequence quality and per base sequence content.
-- `fastqc R160.fq` -->
-- `fastqc R170.fq` -->
-
-
+Run fastqc as follows and download the output .html files with sftp.
+- `sftp -P {port number here} {username}@kitt.uri.edu`
+- `cd FinalProject`
+- `lcd Documents\Pumpkin`
+- `fastqc R163.fq` `get R163_fastqc.html` ---> The trimming cleaned up the per base sequence quality and per base sequence content.
+- `fastqc R160.fq` `get R160_fastqc.html`--> The trimming cleaned up the per base sequence quality and per base sequence content.
+- `fastqc R170.fq` `get R170_fastqc.html`--> The trimming cleaned up the per base sequence quality and per base sequence content.
 
 ## Align Pumpkin’s DNA to the domestic cat reference genome Felis catus 9.0 using the Burrows Wheeler Aligner and the default parameters 
 Download the reference genome
-- `wget https://www.ncbi.nlm.nih.gov/assembly/GCA_000181335.5`
+Go to: https://www.ncbi.nlm.nih.gov/assembly/GCA_000181335.5 and download the reference fasta assembly. Upload this to the server with sftp.
+- `sftp -P {port number here} {username}@kitt.uri.edu`
+- `cd FinalProject`
+- `lcd Downloads`
+- `put felis_catus9.0.tar`
 First make an index of the reference genome
 - `bwa index [-a bwtsw|is] GCA_000181335.5.fasta FelisCatus`
 Align the reads
