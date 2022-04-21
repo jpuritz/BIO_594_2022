@@ -87,6 +87,7 @@ reads with adapter trimmed: 0
 bases trimmed due to adapters: 0
 
 - `fastp -i AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq -o R170.fq -f 10 --qualified_quality_phred 28 --length_required 20`
+
 No adapter detected
 
 Read1 before filtering:
@@ -119,7 +120,7 @@ Run fastqc as follows and download the output .html files with sftp.
 - `fastqc R170.fq` `get R170_fastqc.html`--> The trimming cleaned up the per base sequence quality and per base sequence content.
 
 ## Align Pumpkin’s DNA to the domestic cat reference genome Felis catus 9.0 using the Burrows Wheeler Aligner and the default parameters 
-Download the reference genome
+Download the reference genome.
 Go to: https://www.ncbi.nlm.nih.gov/assembly/GCA_000181335.5 and download the reference fasta assembly. Upload this to the server with sftp.
 - `sftp -P {port number here} {username}@kitt.uri.edu`
 - `cd FinalProject`
@@ -128,8 +129,10 @@ Go to: https://www.ncbi.nlm.nih.gov/assembly/GCA_000181335.5 and download the re
 - `tar -xvf felis_catus9.0.tar`
 - `cd ncbi-genomes-2022-04-21`
 - `gunzip GCA_000181335.5_Felis_catus_9.0_genomic.fna`
+
 Then make an index of the reference genome
 - `bwa index GCA_000181335.5_Felis_catus_9.0_genomic.fna FelisCatus`
+
 Align the reads
 - `bwa mem ref.fa ../R163.fq > aln-R163.sam`
 - `bwa mem ref.fa ../R160.fq > aln-R160.sam`
