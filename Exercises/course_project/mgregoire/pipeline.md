@@ -35,8 +35,8 @@ The fastqc files from Pumpkin's DNA reveal the following:
 - **Overrepresented sequences**: There were no overrepresented sequences for any of the files.
 - **Adapter Content**: The adapter content for all three files indicated low to no adaptor content. 
 
-## Trim reads with FastP for the first 10 base pairs, anything below an average quality score of 28, and any reads less than 20 base pairs
-Fastp will automatically trim adaptor content, which is not really necessary since Pumpkin's files all show low to no adaptor content from the fastqc. Fastp will also trim out reads with high N content. We will also trim the first 10 base pairs off the reads because these showed some bias in the per base sequence content (however low), and we will filter anything with an average quality score of 28 out and anything that is less than 20bpin length.
+## Trim reads with FastP 
+Fastp will automatically trim adaptor content, which is not really necessary since Pumpkin's files all show low to no adaptor content from the fastqc. Fastp will also trim out reads with high N content. We will also use flags to trim the first 10 base pairs off the reads because these showed some bias in the per base sequence content (however low), and we will filter anything with an average quality score of 28 out and anything that is less than 20bp in length.
 - `fastp -i AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS.fastq -o R163.fq -f 10 --qualified_quality_phred 28 --length_required 20`
 
 No adapter detected
@@ -108,10 +108,10 @@ reads failed due to too short: 0,
 reads with adapter trimmed: 0,
 bases trimmed due to adapters: 0
 
-## Check quality after trimming with fastqc
-- `fastqc R163.fq`
-- `fastqc R160.fq`
-- `fastqc R170.fq`
+## Check quality again with fastqc after trimming 
+- `fastqc R163.fq` --> The trimming cleaned up the per base sequence quality and per base sequence content.
+- `fastqc R160.fq` -->
+- `fastqc R170.fq` -->
 
 
 
