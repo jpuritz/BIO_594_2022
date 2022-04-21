@@ -131,14 +131,24 @@ Go to: https://www.ncbi.nlm.nih.gov/assembly/GCA_000181335.5 and download the re
 - `gunzip GCA_000181335.5_Felis_catus_9.0_genomic.fna`
 
 Then make an index of the reference genome
-- `bwa index GCA_000181335.5_Felis_catus_9.0_genomic.fna FelisCatus`
+- `bwa index -a bwtsw GCA_000181335.5_Felis_catus_9.0_genomic.fna FelisCatus`
 
 Align the reads
-- `bwa mem ref.fa ../R163.fq > aln-R163.sam`
-- `bwa mem ref.fa ../R160.fq > aln-R160.sam`
-- `bwa mem ref.fa ../R170.fq > aln-R170.sam`
+- `bwa mem GCA_000181335.5_Felis_catus_9.0_genomic.fna ../R163.fq > aln-R163.sam`
+- `bwa mem GCA_000181335.5_Felis_catus_9.0_genomic.fna ../R160.fq > aln-R160.sam`
+- `bwa mem GCA_000181335.5_Felis_catus_9.0_genomic.fna ../R170.fq > aln-R170.sam`
 
-## After alignment, Samblaster can then be used to identify and remove any duplicate reads
+## Manipulating the files with Samtools and removing duplicate reads
+For further analysis, the SAM files from the alignments must be converted to BAM files. 
+- `samtools view -S -b sample.sam > sample.bam`
+
+The alignments produced are in random order with respect to their position in the reference genome. We want to be able to call for variants so we must manipulate these BAM files so that the alignments occur in an order positionally based upon their alignment coordinates on each chromosome.
+- `samtools sort sample.bam -o sample.sorted.bam`
+
+Now we can indexing the genome sorted BAM files to allows us to quickly extract alignments overlapping particular genomic regions. This allows us to quickly display alignments in each genomic region and is required by some genome viewers.
+-`samtools index sample.sorted.bam`
+
+When we checked the quality of the reads with Fastqc we saw that sequence duplication levels were flagged with "!" for two of the files "R170" and "R160." About 15% of the reads were duplicated around 10 times. This is an okay number because, it is a low level of duplication that may indicate a very high level of coverage of the target sequence. If this number was high (above 20% for a large number of reads) it could signify enrichment bias (like PCR duplication). However, the duplication could be due to PCR and also to provide a computational benefit of reducing the number of reads to be processed in downstream steps. 
 - `samtools view -h samp.bam | samblaster --ignoreUnmated [-e] --maxReadLength 100000 [-s samp.split.sam] [-u samp.umc.fasta] | samtools view -Sb - > samp.out.bam`
 - `samtools view -h samp.bam | samblaster --ignoreUnmated -a [-e] [-s samp.split.sam] [-u samp.umc.fasta] -o /dev/null`
 
