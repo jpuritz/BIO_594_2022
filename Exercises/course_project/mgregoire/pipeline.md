@@ -36,29 +36,29 @@ The fastqc files from Pumpkin's DNA reveal the following:
 - **Adapter Content**: The adapter content for all three files indicated low to no adaptor content. 
 
 ## Trim reads with FastP for the first 10 base pairs, anything below an average quality score of 28, and any reads less than 20 base pairs
-Fastp will automatically trim adaptor content, which is not really necessary since Pumpkin's files all show low to no adaptor content from the fastqc. We will trim the first 10 base pairs off the reads because these showed some bias in the per base sequence content (however low). We will also filter anything with an average quality score of 28 out and anything that is less than 20bp, although the average quality score for all three files was around 36 and the fastqc said the sequences were all between 31-151bp so these flags are futile.
+Fastp will automatically trim adaptor content, which is not really necessary since Pumpkin's files all show low to no adaptor content from the fastqc. Fastp will also trim out reads with high N content. We will also trim the first 10 base pairs off the reads because these showed some bias in the per base sequence content (however low), and we will filter anything with an average quality score of 28 out and anything that is less than 20bpin length.
 - `fastp -i AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS.fastq -o R163.fq -f 10 --qualified_quality_phred 28 --length_required 20`
 
 No adapter detected
 
 Read1 before filtering:
-total reads: 15850172
-total bases: 2388224481
-Q20 bases: 2317822638(97.0521%)
+total reads: 15850172,
+total bases: 2388224481,
+Q20 bases: 2317822638(97.0521%),
 Q30 bases: 2205087463(92.3317%)
 
 Read1 after filtering:
-total reads: 15468994
-total bases: 2330708994
-Q20 bases: 2280601657(97.8501%)
-Q30 bases: 2177721163(93.436%)
+total reads: 15392560,
+total bases: 2165270001,
+Q20 bases: 2119478868(97.8852%),
+Q30 bases: 2023136059(93.4357%)
 
 Filtering result:
-reads passed filter: 15468994
-reads failed due to low quality: 379058
-reads failed due to too many N: 2120
-reads failed due to too short: 0
-reads with adapter trimmed: 0
+reads passed filter: 15392560,
+reads failed due to low quality: 455513,
+reads failed due to too many N: 2099,
+reads failed due to too short: 0,
+reads with adapter trimmed: 0,
 bases trimmed due to adapters: 0
 
 - `fastp -i AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq -o R160.fq -f 10 --qualified_quality_phred 28 --length_required 20`
@@ -66,39 +66,15 @@ bases trimmed due to adapters: 0
 No adapter detected
 
 Read1 before filtering:
-total reads: 15850172
-total bases: 2388224481
-Q20 bases: 2317822638(97.0521%)
-Q30 bases: 2205087463(92.3317%)
-
-Read1 after filtering:
-total reads: 15392560
-total bases: 2165270001
-Q20 bases: 2119478868(97.8852%)
-Q30 bases: 2023136059(93.4357%)
-
-Filtering result:
-reads passed filter: 15392560
-reads failed due to low quality: 455513
-reads failed due to too many N: 2099
-reads failed due to too short: 0
-reads with adapter trimmed: 0
-bases trimmed due to adapters: 0
-
-- `fastp -i AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq -o R170.fq -f 10 --qualified_quality_phred 28 --length_required 20`
-
-No adapter detected
-
-Read1 before filtering:
-total reads: 430051432
-total bases: 64402029541
-Q20 bases: 62491745953(97.0338%)
+total reads: 430051432,
+total bases: 64402029541,
+Q20 bases: 62491745953(97.0338%),
 Q30 bases: 59427089941(92.2752%)
 
 Read1 after filtering:
-total reads: 417529051
-total bases: 58342047891
-Q20 bases: 57096870097(97.8657%)
+total reads: 417529051,
+total bases: 58342047891,
+Q20 bases: 57096870097(97.8657%),
 Q30 bases: 54482802212(93.3851%)
 
 Filtering result:
@@ -109,33 +85,27 @@ reads failed due to too short: 0
 reads with adapter trimmed: 0
 bases trimmed due to adapters: 0
 
-JSON report: fastp.json
-HTML report: fastp.html
-
-fastp -i AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq -o R160.fq -f 10 --qualified_quality_phred 28 --length_required 20
-fastp v0.12.4, time used: 1335 seconds
-(base) [mgregoire@KITT FinalProject]$ fastp -i AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq -o R170.fq -f 10 --qualified_quality_phred 28 --length_required 20
-Detecting adapter for single end input...
+- `fastp -i AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq -o R170.fq -f 10 --qualified_quality_phred 28 --length_required 20`
 No adapter detected
 
 Read1 before filtering:
-total reads: 415960080
-total bases: 62751336061
-Q20 bases: 60405119840(96.2611%)
+total reads: 415960080,
+total bases: 62751336061,
+Q20 bases: 60405119840(96.2611%),
 Q30 bases: 56854227696(90.6024%)
 
 Read1 after filtering:
-total reads: 400922995
-total bases: 56472690729
-Q20 bases: 54913988356(97.2399%)
+total reads: 400922995,
+total bases: 56472690729,
+Q20 bases: 54913988356(97.2399%),
 Q30 bases: 51889157727(91.8836%)
 
 Filtering result:
-reads passed filter: 400922995
-reads failed due to low quality: 15019183
-reads failed due to too many N: 17902
-reads failed due to too short: 0
-reads with adapter trimmed: 0
+reads passed filter: 400922995,
+reads failed due to low quality: 15019183,
+reads failed due to too many N: 17902,
+reads failed due to too short: 0,
+reads with adapter trimmed: 0,
 bases trimmed due to adapters: 0
 
 ## Check quality after trimming with fastqc
