@@ -140,15 +140,21 @@ Align the reads
 
 ## Manipulating the files with Samtools and removing duplicate reads
 For further analysis, the SAM files from the alignments must be converted to BAM files. 
-- `samtools view -S -b sample.sam > sample.bam`
+- `samtools view -S -b aln-R163.sam > aln-R163.bam`
+- `samtools view -S -b aln-R160.sam > aln-R160.bam`
+- `samtools view -S -b aln-R170.sam > aln-R170.sam`
 
 The alignments produced are in random order with respect to their position in the reference genome. We want to be able to call for variants so we must manipulate these BAM files so that the alignments occur in an order positionally based upon their alignment coordinates on each chromosome.
-- `samtools sort sample.bam -o sample.sorted.bam`
+- `samtools sort aln-R163.bam -o aln-R163.sorted.bam`
+- `samtools sort aln-R160.bam -o aln-R160.sorted.bam`
+- `samtools sort aln-R170.bam -o aln-R170.sorted.bam`
 
-Now we can indexing the genome sorted BAM files to allows us to quickly extract alignments overlapping particular genomic regions. This allows us to quickly display alignments in each genomic region and is required by some genome viewers.
--`samtools index sample.sorted.bam`
+Now we can index the genome sorted BAM files to allows us to extract alignments overlapping particular genomic regions. This allows us to quickly display alignments in each genomic region and is required by some genome viewers.
+- `samtools index aln-R163.sorted.bam`
+- `samtools index aln-R160.sorted.bam`
+- `samtools index aln-R170.sorted.bam`
 
-When we checked the quality of the reads with Fastqc we saw that sequence duplication levels were flagged with "!" for two of the files "R170" and "R160." About 15% of the reads were duplicated around 10 times. This is an okay number because, it is a low level of duplication that may indicate a very high level of coverage of the target sequence. If this number was high (above 20% for a large number of reads) it could signify enrichment bias (like PCR duplication). However, the duplication could be due to PCR and also to provide a computational benefit of reducing the number of reads to be processed in downstream steps. 
+When we checked the quality of the reads with Fastqc we saw that sequence duplication levels were flagged with "!" for two of the files "R170" and "R160." About 15% of the reads were duplicated around 10 times. This is an okay number because it is a low level of duplication and may indicate a very high level of coverage of the target sequence. If this number was higher it could signify enrichment bias (like PCR duplication). However, the duplication could be due to PCR so we will filter out the duplicates. Filtering the duplicates out will also provide a computational benefit of reducing the number of reads to be processed in downstream steps. 
 - `samtools view -h samp.bam | samblaster --ignoreUnmated [-e] --maxReadLength 100000 [-s samp.split.sam] [-u samp.umc.fasta] | samtools view -Sb - > samp.out.bam`
 - `samtools view -h samp.bam | samblaster --ignoreUnmated -a [-e] [-s samp.split.sam] [-u samp.umc.fasta] -o /dev/null`
 
@@ -156,4 +162,8 @@ When we checked the quality of the reads with Fastqc we saw that sequence duplic
 - `freebayes -f ref.fa aln.bam >var.vcf`
 - `env/bin/platypus callVariants --bamFiles=input.bam --refFile=reference.fa --output=variant_calls.vcf`
 
+compare with the vcf file provided by Basepaws
+
 ## SnpEff can then be used to detect variant effects. 
+
+compare with the vcf file provided by Basepaws
