@@ -1,7 +1,7 @@
-# Analyzing Pumpkin's DNA 
+# Analyzing Pumpkin's DNA: WGS Data Analysis Pipeline
 ![Pumpkin](https://github.com/jpuritz/BIO_594_2022/tree/main/Exercises/course_project/mgregoire/pumpkin_resize.jpg)
-## Set up your directories, softwares, and files 
-Make sure that bioconda is is installed on your server. I am using the Kitt server and bioconda has already been installed. Bioconda makes it easy to install many of the various programs that will be used in this pipeline (eg: fastqc).
+## Set up directories, softwares, and files 
+Make sure that bioconda is is installed. I am using the Kitt server and bioconda has already been installed. Bioconda makes it easy to install many of the various programs that will be used in this pipeline (eg: fastqc).
 Make a folder for the project and cd into it. 
 - `mkdir FinalProject | cd FinalProject`
 
