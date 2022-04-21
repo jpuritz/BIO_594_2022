@@ -114,7 +114,7 @@ Run fastqc as follows and download the output .html files with sftp.
 - `sftp -P {port number here} {username}@kitt.uri.edu`
 - `cd FinalProject`
 - `lcd Documents\Pumpkin`
-- `fastqc R163.fq` `get R163_fastqc.html` ---> The trimming cleaned up the per base sequence quality and per base sequence content.
+- `fastqc R163.fq` `get R163_fastqc.html`--> The trimming cleaned up the per base sequence quality and per base sequence content.
 - `fastqc R160.fq` `get R160_fastqc.html`--> The trimming cleaned up the per base sequence quality and per base sequence content.
 - `fastqc R170.fq` `get R170_fastqc.html`--> The trimming cleaned up the per base sequence quality and per base sequence content.
 
@@ -125,10 +125,15 @@ Go to: https://www.ncbi.nlm.nih.gov/assembly/GCA_000181335.5 and download the re
 - `cd FinalProject`
 - `lcd Downloads`
 - `put felis_catus9.0.tar`
-First make an index of the reference genome
-- `bwa index [-a bwtsw|is] GCA_000181335.5.fasta FelisCatus`
+- `tar -xvf felis_catus9.0.tar`
+- `cd ncbi-genomes-2022-04-21`
+- `gunzip GCA_000181335.5_Felis_catus_9.0_genomic.fna`
+Then make an index of the reference genome
+- `bwa index GCA_000181335.5_Felis_catus_9.0_genomic.fna FelisCatus`
 Align the reads
-- `bwa mem ref.fa reads.fq > aln-se.sam`
+- `bwa mem ref.fa ../R163.fq > aln-R163.sam`
+- `bwa mem ref.fa ../R160.fq > aln-R160.sam`
+- `bwa mem ref.fa ../R170.fq > aln-R170.sam`
 
 ## After alignment, Samblaster can then be used to identify and remove any duplicate reads
 - `samtools view -h samp.bam | samblaster --ignoreUnmated [-e] --maxReadLength 100000 [-s samp.split.sam] [-u samp.umc.fasta] | samtools view -Sb - > samp.out.bam`
