@@ -159,23 +159,24 @@ When we checked the quality of the reads with Fastqc we saw that sequence duplic
 - `samtools view -h samp.bam | samblaster --ignoreUnmated -a [-e] [-s samp.split.sam] [-u samp.umc.fasta] -o /dev/null`
 
 ## SNPs and small indels can be investigated with Samtools 1.2, Platypus, or FreeBayes, filtering out anything with a low quality of less than 20
+Next I will use FreeBays, a Bayesian genetic variant detector, to find small polymorphisms (such as SNPs and indels) in Pumpkin's DNA.
+
 - `freebayes -f GCA_000181335.5_Felis_catus_9.0_genomic.fna aln-R163.sorted.bam > aln-R163var.vcf`
 - `freebayes -f GCA_000181335.5_Felis_catus_9.0_genomic.fna aln-R160.sorted.bam > aln-R160var.vcf`
 - `freebayes -f GCA_000181335.5_Felis_catus_9.0_genomic.fna aln-R170.sorted.bam > aln-R170var.vcf`
+
+
 - `env/bin/platypus callVariants --bamFiles=input.bam --refFile=reference.fa --output=variant_calls.vcf`
 
 compare with the vcf file provided by Basepaws
 
 ## SnpEff can then be used to detect variant effects. 
+The vcf or variant call format files list all the differences between Pumpkin's DNA and the reference genome. To learn more about these variants other than their genetic coordinates (such as if they are in a gene, an exon, cause a protein coding change) we need to annotate the vcf file. SnpEff is a program that can do this for us.
+
 - `conda install -c bioconda snpeff`
-- `snpEff GCA_000181335.5_Felis_catus_9.0_genomic.fna path/to/YOURFILE.vcf > OUTPUT.EFF.vcf
+- `snpEff GCA_000181335.5_Felis_catus_9.0_genomic.fna path/to/YOURFILE.vcf > OUTPUT.EFF.vcf`
+
 compare with the vcf file provided by Basepaws
-
-o, you have a huge file describing all the differences between your sample and the reference genome. But you want to know more about these variants than just their genetic coordinates. E.g.: Are they in a gene? In an exon? Do they change protein coding? Do they cause premature stop codons?
-
-SnpEff can help you answer all these questions. The process of adding this information about the variants is called "Annotation".
-
-SnpEff provides several degrees of annotations, from simple (e.g. which gene is each variant affecting) to extremely complex annotations (e.g. will this non-coding variant affect the expression of a gene?). It should be noted that the more complex the annotations, the more it relies in computational predictions. Such computational predictions can be incorrect, so results from SnpEff (or any prediction algorithm) cannot be trusted blindly, they must be analyzed and independently validated by corresponding wet-lab experiments.
 
 
 ## References
