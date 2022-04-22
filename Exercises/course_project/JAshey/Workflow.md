@@ -2,6 +2,8 @@ Code for my bio594 project. Analysis done on Andromeda
 
 Proposal [here](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Ashey_BIO594_FinalProjectProposal.md)
 
+idk who said this but wise words: "the computer is never wrong, it is you who is wrong"
+
 ### Set up directories and data 
 
 Make directory for project
@@ -357,10 +359,10 @@ STAR --runMode alignReads \
 --genomeDir /data/putnamlab/jillashey/BIO594_FinalProject/STAR/GenomeIndex_Acerv/ \
 --runThreadN 6 \
 --readFilesIn ${i} \
---outFileNamePrefix ${i}.
---outTmpDir ${i}_TMP
+--outFileNamePrefix ${i}. \
+--outTmpDir ${i}_TMP \
 --outSAMtype BAM Unsorted SortedByCoordinate \
---outStd Log BAM_Unsorted BAM_Quant \
+--outStd Log \
 --quantMode TranscriptomeSAM \
 --twopassMode Basic \
 --twopass1readsN -1 \
@@ -372,10 +374,12 @@ echo "STOP"; date
 sbatch AlignReads_Acerv.sh 
 ```
 
-Submitted batch job 130433
+Submitted batch job 131653
 
-Convert SAM to BAM files using samtools 
+rerunning star 4/21/22
 
+
+Didn't make bam files???? so going to convert SAM to BAM files using [samtools](https://www.htslib.org/doc/samtools-sort.html)
 ```
 nano samtools.sh
 
@@ -444,10 +448,10 @@ STAR --runMode alignReads \
 --genomeDir /data/putnamlab/jillashey/BIO594_FinalProject/STAR/GenomeIndex_Pacuta/ \
 --runThreadN 6 \
 --readFilesIn ${i} \
---outFileNamePrefix ${i}.
---outTmpDir ${i}_TMP
+--outFileNamePrefix ${i}. \
+--outTmpDir ${i}_TMP \
 --outSAMtype BAM Unsorted SortedByCoordinate \
---outStd Log BAM_Unsorted BAM_Quant \
+--outStd Log \
 --quantMode TranscriptomeSAM \
 --twopassMode Basic \
 --twopass1readsN -1 \
@@ -459,24 +463,24 @@ echo "STOP"; date
 sbatch AlignReads_Pacuta.sh 
 ```
 
-Submitted batch job 131040
+Submitted batch job 131679 -- rerunning star
 
 `STAR` parameters: 
 
-- `runMode alignReads` - runs a read alignment job
-- `genomeDir` - path to genome index
-- `runThreadN` - number of threads to run STAR
-- `readFilesIn` - reading fastq files in 
-- `outFileNamePrefix` - naming the output files
-- `outTmpDir` - name of temporary directory STAR creates to align reads. This will be deleted by the end of the job
-- `outSAMtype`
-- `outStd`
-- `quantMode`
-- `twopassMode`
-- `twopass1readsN`
-- `outReadsUnmapped`
+- `--runMode alignReads` - runs a read alignment job
+- `--genomeDir` - path to genome index
+- `--runThreadN` - number of threads to run STAR
+- `--readFilesIn` - reading fastq files in 
+- `--outFileNamePrefix` - naming the output files
+- `--outTmpDir` - name of temporary directory that STAR creates (will be removed by STAR after its finished)
+- `--outSAMtype` - type of SAM/BAM output (requesting unsorted and sorted BAM files)
+- `--outStd` - file type where output information will be stored
+- `--quantMode` - type of quantification requested (TranscriptomeSAM means put SAM/BAM alignments in separate file)
+- `--twopassMode` - 2-pass mapping mode (Basic means all 1st pass junctions will be inserted into genome indices for 2nd pass)
+- `--twopass1readsN` - number of reads to process for 1st pass (-1 means map all reads in 1st pass)
+- `--outReadsUnmapped` - output of unmapped and partially mapped reads (Fastx indicates file type is a fasta/fastq file)
 
-Convert SAM to BAM files using samtools 
+convert SAM to BAM files using [samtools](https://www.htslib.org/doc/samtools-sort.html)
 
 ```
 nano samtools.sh
@@ -509,6 +513,13 @@ sbatch samtools.sh
 ```
 
 Submitted batch job 131285
+
+`samtools` parameters: 
+
+- `sort` - sort alignment by coordinate and create bam file
+- `-@` - number of sorting and compression threads 
+- `-o` - name of output file
+
 
 #### Align against transcriptome - Trinity & Bowtie2
 
@@ -946,7 +957,109 @@ Pseudoalignment by species:
 | A.cervicornis | 31 | 33,322 | 34,006,771 | 84,017 |
 | P.acuta | 31 | 38,913 | 38,267,300 | 88,498 |
 
+The alignment values are pretty low in both species. maybe just run with only one species? ie Acerv run with only acerv samples and index, Pacuta run with only pacuta samples and index
+
+Make directories, make symbolic link to samples, put samples in proper directories 
+
+```
+cd /data/putnamlab/jillashey/BIO594_FinalProject/Kallisto
+mkdir Align_acerv/acerv_only Align_pacuta/pacuta_only
+
+ln -s /data/putnamlab/jillashey/BIO594_FinalProject/data/trimmed/*trim.fastp.fq .
+
+# Acerv - move first 
+mv *Ac* Align_acerv/acerv_only
+
+# Pacuta
+mv *.trim.fastp.fq Align_pacuta/pacuta_only
+```
+
+Run Kallisto for only Acerv samples 
+
+```
+cd /data/putnamlab/jillashey/BIO594_FinalProject/Kallisto/Align_acerv
+mkdir output_acerv_only
+cd acerv_only
+
+nano kallisto_quant_acerv_only.sh
+
+#!/bin/bash
+#SBATCH --job-name="Kallisto-quant"
+#SBATCH -t 336:00:00
+#SBATCH --export=NONE
+#SBATCH --nodes=1 --ntasks-per-node=20
+#SBATCH --exclusive
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=jillashey@uri.edu
+#SBATCH --error="kallisto_quant_acerv_only_out_error"
+#SBATCH --output="kallisto_quant_acerv_only_out"
+#SBATCH --mem=500GB
+
+echo "START"; date
+
+module load kallisto/0.46.2-foss-2020b
+
+F=/data/putnamlab/jillashey/BIO594_FinalProject/Kallisto
+
+# align reads 
+array1=($(ls $F/Align_acerv/acerv_only/*.trim.fastp.fq ))
+for i in ${array1[@]}
+do
+kallisto quant -i $F/index/acerv_index.idx -o $F/Align_acerv/output_acerv_only --single -l 85 -s 40 -b 30 ${i}
+done
+
+echo "STOP"; date
+
+sbatch kallisto_quant_acerv_only.sh 
+```
+
+Going back to the weird 85 fragment length bc the fragments are either 120 or 50 bp. Submitted batch job 131620
+
+Run Kallisto for only Pacuta samples 
+
+```
+cd /data/putnamlab/jillashey/BIO594_FinalProject/Kallisto/Align_pacuta
+mkdir output_pacuta_only
+cd pacuta_only
+
+nano kallisto_quant_pacuta_only.sh
+
+#!/bin/bash
+#SBATCH --job-name="Kallisto-quant"
+#SBATCH -t 336:00:00
+#SBATCH --export=NONE
+#SBATCH --nodes=1 --ntasks-per-node=20
+#SBATCH --exclusive
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=jillashey@uri.edu
+#SBATCH --error="kallisto_quant_pacuta_only_out_error"
+#SBATCH --output="kallisto_quant_pacuta_only_out"
+#SBATCH --mem=500GB
+
+echo "START"; date
+
+module load kallisto/0.46.2-foss-2020b
+
+F=/data/putnamlab/jillashey/BIO594_FinalProject/Kallisto
+
+# align reads 
+array1=($(ls $F/Align_pacuta/pacuta_only/*.trim.fastp.fq ))
+for i in ${array1[@]}
+do
+kallisto quant -i $F/index/pacuta_index.idx -o $F/Align_pacuta/output_pacuta_only --single -l 85 -s 40 -b 30 ${i}
+done
+
+echo "STOP"; date
+
+sbatch kallisto_quant_pacuta_only.sh 
+```
+
+Going back to the weird 85 fragment length bc the fragments are either 120 or 50 bp. Submitted batch job 131621
+
+hmm interesting. When running species separately, there are less reads that are pseudoaligned in both species. I'm going to stick with my 50bp and 120bp analysis because Kallisto is relying on fragment length
 
 ### Compare 
 
 Keep in mind, none of these can be DIRECTLY compared
+
+comparing kallisto and star github [post](https://github.com/crazyhottommy/RNA-seq-analysis/blob/master/salmon_kalliso_STAR_compare.md)
