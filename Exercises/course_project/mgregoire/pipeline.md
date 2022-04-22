@@ -141,7 +141,7 @@ Align the reads
 ## Manipulating the files with Samtools and removing duplicate reads
 For further analysis, the SAM files from the alignments must be converted to BAM files. 
 - `samtools view -S -b aln-R163.sam > aln-R163.bam`
-- `samtools view -S -b aln-R160.sam > aln-R160.bam`
+- `samtools view -S -b aln-R160.sam > aln-R160.bam` #this ran for about 4 hours and I needed to go home and off wifi so i stopped it prematurely...
 - `samtools view -S -b aln-R170.sam > aln-R170.sam`
 
 The alignments produced are in random order with respect to their position in the reference genome. We want to be able to call for variants so we must manipulate these BAM files so that the alignments occur in an order positionally based upon their alignment coordinates on each chromosome.
@@ -178,6 +178,7 @@ The vcf or variant call format files list all the differences between Pumpkin's 
 
 compare with the vcf file provided by Basepaws
 
+## make manhattan plot
 
 ## References
 1. Basepaws: https://basepaws.com/
