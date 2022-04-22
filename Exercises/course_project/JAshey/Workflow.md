@@ -270,7 +270,8 @@ module load STAR/2.7.2b-GCC-8.3.0
 STAR --runThreadN 6 \
 --runMode genomeGenerate \
 --genomeDir /data/putnamlab/jillashey/BIO594_FinalProject/STAR/GenomeIndex_Acerv \
---genomeFastaFiles /data/putnamlab/jillashey/genome/Acerv/Acerv_assembly_v1.0_171209.fasta
+--genomeFastaFiles /data/putnamlab/jillashey/genome/Acerv/Acerv_assembly_v1.0_171209.fasta \
+--genomeSAindexNbases 13
 
 echo "STOP"; date
 
@@ -311,7 +312,7 @@ echo "STOP"; date
 sbatch GenomeIndex_Pacuta.sh 
 ```
 
-Submitted batch job 130432
+Submitted batch job 131712
 
 `STAR` parameters: 
 
@@ -363,7 +364,6 @@ STAR --runMode alignReads \
 --outTmpDir ${i}_TMP \
 --outSAMtype BAM Unsorted SortedByCoordinate \
 --outStd Log \
---quantMode TranscriptomeSAM \
 --twopassMode Basic \
 --twopass1readsN -1 \
 --outReadsUnmapped Fastx 
@@ -374,7 +374,7 @@ echo "STOP"; date
 sbatch AlignReads_Acerv.sh 
 ```
 
-Submitted batch job 131653
+Submitted batch job 131682
 
 rerunning star 4/21/22
 
@@ -445,14 +445,13 @@ array1=($(ls $F/*.trim.fastp.fq ))
 for i in ${array1[@]}
 do
 STAR --runMode alignReads \
---genomeDir /data/putnamlab/jillashey/BIO594_FinalProject/STAR/GenomeIndex_Pacuta/ \
+--genomeDir /data/putnamlab/jillashey/BIO594_FinalProject/STAR/GenomeIndex_Pacuta \
 --runThreadN 6 \
 --readFilesIn ${i} \
 --outFileNamePrefix ${i}. \
 --outTmpDir ${i}_TMP \
 --outSAMtype BAM Unsorted SortedByCoordinate \
 --outStd Log \
---quantMode TranscriptomeSAM \
 --twopassMode Basic \
 --twopass1readsN -1 \
 --outReadsUnmapped Fastx 
@@ -463,7 +462,10 @@ echo "STOP"; date
 sbatch AlignReads_Pacuta.sh 
 ```
 
-Submitted batch job 131679 -- rerunning star
+Submitted batch job 131717 -- rerunning star
+
+tried: rerunning genome index, now taking out --outSAMtype
+
 
 `STAR` parameters: 
 
@@ -473,9 +475,8 @@ Submitted batch job 131679 -- rerunning star
 - `--readFilesIn` - reading fastq files in 
 - `--outFileNamePrefix` - naming the output files
 - `--outTmpDir` - name of temporary directory that STAR creates (will be removed by STAR after its finished)
-- `--outSAMtype` - type of SAM/BAM output (requesting unsorted and sorted BAM files)
+- `--outSAMtype` - type of SAM/BAM output (requesting unsorted and sorted BAM files). STAR is nice because it will just convert SAM to BAM files itself 
 - `--outStd` - file type where output information will be stored
-- `--quantMode` - type of quantification requested (TranscriptomeSAM means put SAM/BAM alignments in separate file)
 - `--twopassMode` - 2-pass mapping mode (Basic means all 1st pass junctions will be inserted into genome indices for 2nd pass)
 - `--twopass1readsN` - number of reads to process for 1st pass (-1 means map all reads in 1st pass)
 - `--outReadsUnmapped` - output of unmapped and partially mapped reads (Fastx indicates file type is a fasta/fastq file)
