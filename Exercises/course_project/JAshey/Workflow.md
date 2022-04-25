@@ -238,7 +238,7 @@ Obtain genomic/transcriptomic information for both species.
 
 #### Align against genome - STAR
 
-[STAR](https://github.com/alexdobin/STAR)
+[STAR](https://github.com/alexdobin/STAR) (Spliced Transcripts Alignment to a Reference) is an aligner for RNA-seq data. It uses suffix arrays, seed clustering, and stitching. It can detect non-canonical splice sites, chimeric sequences, and also map full-length RNA sequences. It is fast, but memory intensive.
 
 ```
 cd STAR 
@@ -376,42 +376,6 @@ sbatch AlignReads_Acerv.sh
 
 Submitted batch job 131682
 
-rerunning star 4/21/22
-
-
-Didn't make bam files???? so going to convert SAM to BAM files using [samtools](https://www.htslib.org/doc/samtools-sort.html)
-```
-nano samtools.sh
-
-#!/bin/bash
-#SBATCH -t 24:00:00
-#SBATCH --nodes=1 --ntasks-per-node=20
-#SBATCH --export=NONE
-#SBATCH --mem=100GB
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=jillashey@uri.edu
-#SBATCH --error="samtools_out_error"
-#SBATCH --output="samtools_out"
-
-echo "START"; date
-
-module load SAMtools/1.9-foss-2018b
-
-F=/data/putnamlab/jillashey/BIO594_FinalProject/STAR/AlignReads_acerv
-
-array1=($(ls $F/*Aligned.out.sam))
-for i in ${array1[@]}
-do
-samtools sort -@ 8 -o ${i}.bam ${i}
-done
-
-echo "STOP"; date
-
-sbatch samtools.sh
-```
-
-Submitted batch job 131037
-
 ###### Pacuta alignment 
 
 ```
@@ -462,10 +426,7 @@ echo "STOP"; date
 sbatch AlignReads_Pacuta.sh 
 ```
 
-Submitted batch job 131717 -- rerunning star
-
-tried: rerunning genome index, now taking out --outSAMtype
-
+Submitted batch job 131717
 
 `STAR` parameters: 
 
@@ -480,46 +441,6 @@ tried: rerunning genome index, now taking out --outSAMtype
 - `--twopassMode` - 2-pass mapping mode (Basic means all 1st pass junctions will be inserted into genome indices for 2nd pass)
 - `--twopass1readsN` - number of reads to process for 1st pass (-1 means map all reads in 1st pass)
 - `--outReadsUnmapped` - output of unmapped and partially mapped reads (Fastx indicates file type is a fasta/fastq file)
-
-convert SAM to BAM files using [samtools](https://www.htslib.org/doc/samtools-sort.html)
-
-```
-nano samtools.sh
-
-#!/bin/bash
-#SBATCH -t 24:00:00
-#SBATCH --nodes=1 --ntasks-per-node=20
-#SBATCH --export=NONE
-#SBATCH --mem=100GB
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=jillashey@uri.edu
-#SBATCH --error="samtools_out_error"
-#SBATCH --output="samtools_out"
-
-echo "START"; date
-
-module load SAMtools/1.9-foss-2018b
-
-F=/data/putnamlab/jillashey/BIO594_FinalProject/STAR/AlignReads_pacuta
-
-array1=($(ls $F/*Aligned.out.sam))
-for i in ${array1[@]}
-do
-samtools sort -@ 8 -o ${i}.bam ${i}
-done
-
-echo "STOP"; date
-
-sbatch samtools.sh
-```
-
-Submitted batch job 131285
-
-`samtools` parameters: 
-
-- `sort` - sort alignment by coordinate and create bam file
-- `-@` - number of sorting and compression threads 
-- `-o` - name of output file
 
 
 #### Align against transcriptome - Trinity & Bowtie2
@@ -613,7 +534,7 @@ Submitted batch job 131000
 
 #### Pseudoalignment - Kallisto
 
-[Kallisto](https://pachterlab.github.io/kallisto/manual)
+[Kallisto](https://pachterlab.github.io/kallisto/manual) is another tool to quantify RNA-seq data. Kallisto uses pseudoalignment to speed up the alignment process, meaning it can quantify reads without making actual alignments. It does this by identifying transcripts that a read is compatible with in order to quantify the transcript.
 
 Build a kallisto index for both species 
 
@@ -660,50 +581,9 @@ Use the index to pseudoalign the reads
 cd /data/putnamlab/jillashey/BIO594_FinalProject/Kallisto
 mkdir Align_acerv
 cd Align_acerv
-mkdir quant_acerv
-
-nano kallisto_quant_acerv.sh
-
-#!/bin/bash
-#SBATCH --job-name="Kallisto-quant"
-#SBATCH -t 336:00:00
-#SBATCH --export=NONE
-#SBATCH --nodes=1 --ntasks-per-node=20
-#SBATCH --exclusive
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=jillashey@uri.edu
-#SBATCH --error="kallisto_quant_acerv_out_error"
-#SBATCH --output="kallisto_quant_acerv_out"
-#SBATCH --mem=500GB
-
-echo "START"; date
-
-module load kallisto/0.46.2-foss-2020b
-
-F=/data/putnamlab/jillashey/BIO594_FinalProject/Kallisto
-
-# make symbolic link to trimmed acerv data
-ln -s /data/putnamlab/jillashey/BIO594_FinalProject/data/trimmed/*Ac*trim.fastp.fq .
-
-# align reads 
-array1=($(ls $F/Align_acerv/*.trim.fastp.fq ))
-for i in ${array1[@]}
-do
-kallisto quant -i $F/index/acerv_index.idx -o $F/Align_acerv/quant_acerv --single -l 85 -s 40 ${i}
-done
-
-echo "STOP"; date
-
-sbatch kallisto_quant_acerv.sh 
 ```
 
-Submitted batch job 131288. 
-
-Some reads are 50 bp, some are ~120. That is why the length is 85 and the std deviation is 40
-
-hmm i got a Kallisto output, but the .hd5 file is not there. The alignment rate also appears to be pretty low and there are a lot of contigs, k-mers, and equivalence classes. 
-
-Split samples up so that the samples that are 50 bp long are processed separately and the samples that are 120 bp long are also processed separately. 
+Split samples up so that the samples that are 50 bp long are processed separately and the samples that are 120 bp long are also processed separately. This is important because Kallisto relies on fragment length to do its pseudoalignments.
 
 | Sample Name         | Length | Species       |
 | ------------------- | ------ | ------------- |
@@ -756,7 +636,7 @@ mv 28_2.fastq.trim.fastp.fq 38_2.fastq.trim.fastp.fq 1_2.fastq.trim.fastp.fq 31_
 mv 11_2.fastq.trim.fastp.fq 45_T41_Ac_SC_2.fastq.trim.fastp.fq 39_2.fastq.trim.fastp.fq 41_2.fastq.trim.fastp.fq 41_ctl3_Ac_RN_2.fastq.trim.fastp.fq 25_ctl1_Ac_GF_2.fastq.trim.fastp.fq 27_ctl2_Ac_YG_2.fastq.trim.fastp.fq 4_2.fastq.trim.fastp.fq 120_bp
 ```
 
-now can run kallisto quant step. 
+Run kallisto quant step. 
 
 For reads that are 50 bp: 
 
@@ -798,13 +678,7 @@ sbatch kallisto_quant_50bp_acerv.sh
 
 Submitted batch job 131610
 
-still not producing the .h5 file in output folder ?? Going to try with just one sample 
-
-```
-kallisto quant -i /data/putnamlab/jillashey/BIO594_FinalProject/Kallisto/index/acerv_index.idx -o /data/putnamlab/jillashey/BIO594_FinalProject/Kallisto/Align_acerv/test --single -l 50 -s 5 --plaintext 19_T33_Ac_WK.fastq.trim.fastp.fq
-```
-
-still no...do i need this file anyway? just going to continue on. ah it seems that they may be phasing hdf5 out. see post [here](https://github.com/pachterlab/kallisto/releases)
+still not producing the .h5 file in output folder ?? Going to try with just one sample. still no...do i need this file anyway? just going to continue on. ah it seems that they may be phasing hdf5 out. see post [here](https://github.com/pachterlab/kallisto/releases)
 
 For reads that are 120 bp: 
 
@@ -951,116 +825,22 @@ sbatch kallisto_quant_120bp_pacuta.sh
 
 Submitted batch job 131613
 
-Pseudoalignment by species:
+Pseudoalignment information by species:
 
 | Species Alignment | k-mer length | # of targets       | # of k-mers       | # of equivalence classes |
 | --------------| ------ | -------- | ------ | -------- | -------- |
 | A.cervicornis | 31 | 33,322 | 34,006,771 | 84,017 |
 | P.acuta | 31 | 38,913 | 38,267,300 | 88,498 |
 
-The alignment values are pretty low in both species. maybe just run with only one species? ie Acerv run with only acerv samples and index, Pacuta run with only pacuta samples and index
-
-Make directories, make symbolic link to samples, put samples in proper directories 
-
-```
-cd /data/putnamlab/jillashey/BIO594_FinalProject/Kallisto
-mkdir Align_acerv/acerv_only Align_pacuta/pacuta_only
-
-ln -s /data/putnamlab/jillashey/BIO594_FinalProject/data/trimmed/*trim.fastp.fq .
-
-# Acerv - move first 
-mv *Ac* Align_acerv/acerv_only
-
-# Pacuta
-mv *.trim.fastp.fq Align_pacuta/pacuta_only
-```
-
-Run Kallisto for only Acerv samples 
-
-```
-cd /data/putnamlab/jillashey/BIO594_FinalProject/Kallisto/Align_acerv
-mkdir output_acerv_only
-cd acerv_only
-
-nano kallisto_quant_acerv_only.sh
-
-#!/bin/bash
-#SBATCH --job-name="Kallisto-quant"
-#SBATCH -t 336:00:00
-#SBATCH --export=NONE
-#SBATCH --nodes=1 --ntasks-per-node=20
-#SBATCH --exclusive
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=jillashey@uri.edu
-#SBATCH --error="kallisto_quant_acerv_only_out_error"
-#SBATCH --output="kallisto_quant_acerv_only_out"
-#SBATCH --mem=500GB
-
-echo "START"; date
-
-module load kallisto/0.46.2-foss-2020b
-
-F=/data/putnamlab/jillashey/BIO594_FinalProject/Kallisto
-
-# align reads 
-array1=($(ls $F/Align_acerv/acerv_only/*.trim.fastp.fq ))
-for i in ${array1[@]}
-do
-kallisto quant -i $F/index/acerv_index.idx -o $F/Align_acerv/output_acerv_only --single -l 85 -s 40 -b 30 ${i}
-done
-
-echo "STOP"; date
-
-sbatch kallisto_quant_acerv_only.sh 
-```
-
-Going back to the weird 85 fragment length bc the fragments are either 120 or 50 bp. Submitted batch job 131620
-
-Run Kallisto for only Pacuta samples 
-
-```
-cd /data/putnamlab/jillashey/BIO594_FinalProject/Kallisto/Align_pacuta
-mkdir output_pacuta_only
-cd pacuta_only
-
-nano kallisto_quant_pacuta_only.sh
-
-#!/bin/bash
-#SBATCH --job-name="Kallisto-quant"
-#SBATCH -t 336:00:00
-#SBATCH --export=NONE
-#SBATCH --nodes=1 --ntasks-per-node=20
-#SBATCH --exclusive
-#SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --mail-user=jillashey@uri.edu
-#SBATCH --error="kallisto_quant_pacuta_only_out_error"
-#SBATCH --output="kallisto_quant_pacuta_only_out"
-#SBATCH --mem=500GB
-
-echo "START"; date
-
-module load kallisto/0.46.2-foss-2020b
-
-F=/data/putnamlab/jillashey/BIO594_FinalProject/Kallisto
-
-# align reads 
-array1=($(ls $F/Align_pacuta/pacuta_only/*.trim.fastp.fq ))
-for i in ${array1[@]}
-do
-kallisto quant -i $F/index/pacuta_index.idx -o $F/Align_pacuta/output_pacuta_only --single -l 85 -s 40 -b 30 ${i}
-done
-
-echo "STOP"; date
-
-sbatch kallisto_quant_pacuta_only.sh 
-```
-
-Going back to the weird 85 fragment length bc the fragments are either 120 or 50 bp. Submitted batch job 131621
-
-hmm interesting. When running species separately, there are less reads that are pseudoaligned in both species. I'm going to stick with my 50bp and 120bp analysis because Kallisto is relying on fragment length
-
 ### Compare 
 
 Keep in mind, none of these can be DIRECTLY compared
 
 comparing kallisto and star github [post](https://github.com/crazyhottommy/RNA-seq-analysis/blob/master/salmon_kalliso_STAR_compare.md)
+
+### References 
+
+- [Bray et al. 2016](https://www.nature.com/articles/nbt.3519) - Near-optimal probabilistic RNA-seq quantification
+- [Dobin et al. 2013](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3530905/) - STAR: ultrafast universal RNA-seq aligner
+- [Haas et al. 2013](https://www.nature.com/articles/nprot.2013.084) - De novo transcript sequence reconstruction from RNA-seq using the Trinity platform for reference generation and analysis
+- [Langmead et al. 2009](https://genomebiology.biomedcentral.com/articles/10.1186/gb-2009-10-3-r25) - Ultrafast and memory-efficient alignment of short DNA sequences to the human genome
