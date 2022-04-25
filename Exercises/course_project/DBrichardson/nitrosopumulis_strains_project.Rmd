@@ -1,0 +1,259 @@
+---
+title: "Final Project"
+author: "DB Richardson"
+date: "4/25/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+This project uses data from 68 metagenomes collected between September 2017 and March 2020. Many of the scripts used to filter the reads, assemble them into contigs, and bin the contigs into Metagenome Assembled Genomes (MAGs) are not included here. 
+
+The main focus of this work is the exploration of strain-level diversity in Nitrosopumulis sp. in Narragansett Bay. To achieve this goal, we:
+  1. Selected a representative Nitrosopumulis MAG from the metagenomic time series
+  2. Identified varaints and strains
+  3. Employed Empirical Dynamic Modeling (EDM) to identify environmental factors     influencing strain diversity
+  
+
+Part 1: Selecting a representative Nitrosopumulis MAG  
+
+
+This creates a csv file with each MAGs score. This score incorporates estimated genome completeness and contamination as well as genome length. 
+```{python}
+from collections import defaultdict
+import collections
+
+#This function stores the information about genome completeness, contamination, and length annotated on each genome's name into separate lists.  
+def get_genome_stats(column):
+    list = []
+    mag_id = column.strip().split('_')[2:4]
+    completeness = float(column.strip().split('_')[5])
+    contamination = float(column.strip().split('_')[7])
+    length = int(column.strip().split('_')[9])
+    list.extend((completeness, contamination, length, mag_id))
+    return list
+
+
+MAG_list_file = "/data2/dbrichardson/projects/NB/04_binning/HQ_MAGs/HQ_MAGs.list"
+
+#Initializing the dictionary that will store genome name and genome score
+genome_scores = defaultdict(list)
+
+#Looping through the genome list, calculating the genome score, and storing the genome name and score in the genome_scores dictionary
+with open(MAG_list_file) as file:
+    for row in file:
+        row = row.strip()
+        genome1 = row
+        genome1_completeness = get_genome_stats(genome1)[0]
+        genome1_completeness
+        genome1_contamination = get_genome_stats(genome1)[1]
+        genome1_length = get_genome_stats(genome1)[2]
+        genome1_score = genome1_completeness - 5*genome1_contamination + (genome1_length/100000)
+        genome_scores[genome1] = genome1_score
+        genome_scores
+#Writing the output into a csv file
+import csv
+with open('/data2/dbrichardson/projects/NB/04_binning/MAG_Scores.csv', 'w') as f:
+    for key in genome_scores.keys():
+        f.write("%s,%s\n"%(key,genome_scores[key]))
+```
+
+Creating data tables with MAG ID, path, taxonomy, and score 
+```{bash}
+#combining the GTDB-tk taxonomic annotations for the bacteria and archaea into a single list
+cat /data2/dbrichardson/projects/NB/04_binning/bacterial_taxa.list /data2/dbrichardson/projects/NB/04_binning/archaeal_taxa.list > /data2/dbrichardson/projects/NB/04_binning/all_taxa.list
+
+#Creating separate files containing all of the bacterial genomes with a specific taxonomic  identification
+cat /data2/dbrichardson/projects/NB/04_binning/bacterial_taxa.list | while read i
+do
+  reformatted_taxonomies=$(echo ${i} | sed 's/ /_/g')
+  title=$(echo ${reformatted_taxonomies} | sed 's/;/_/g')
+  count=$(grep -c "${i}" /data2/dbrichardson/projects/NB/04_binning/HQ_MAGs_gtdbtk/classify/gtdbtk.bac120.summary.tsv)
+  grep -w "${i}" /data2/dbrichardson/projects/NB/04_binning/HQ_MAGs_gtdbtk/classify/gtdbtk.bac120.summary.tsv | cut -f1,2 > /data2/dbrichardson/projects/NB/04_binning/clust_by_taxonomy/all_taxa/${title}_count_${count}.list
+done
+
+
+#Creating separate files containing all of the archaeal genomes with a specific taxonomic  identification
+cat /data2/dbrichardson/projects/NB/04_binning/archaeal_taxa.list | while read i
+do
+  reformatted_taxonomies=$(echo ${i} | sed 's/ /_/g')
+  title=$(echo ${reformatted_taxonomies} | sed 's/;/_/g')
+  count=$(grep -c "${i}" /data2/dbrichardson/projects/NB/04_binning/HQ_MAGs_gtdbtk/classify/gtdbtk.ar122.summary.tsv)
+  grep -w "${i}" /data2/dbrichardson/projects/NB/04_binning/HQ_MAGs_gtdbtk/classify/gtdbtk.ar122.summary.tsv | cut -f1,2 > /data2/dbrichardson/projects/NB/04_binning/clust_by_taxonomy/all_taxa/${title}_count_${count}.list
+done
+
+#This script creates a table with the bin-id, taxonomy, bin-score, and path to bin fasta file
+#It corrects a mistake with grep involving spaces in taxa names that caused grep to miss a few hundred species level clusters
+SCORES="/data2/dbrichardson/projects/NB/04_binning/clust_by_taxonomy/MAG_Scores_gtdbtk.list"
+All_DIR="/data2/dbrichardson/projects/NB/04_binning/clust_by_taxonomy/all_taxa"
+HQ_MAG_PATHS="/data2/dbrichardson/projects/NB/04_binning/HQ_MAGs/HQ_MAGs.list"
+for i in `ls /data2/dbrichardson/projects/NB/04_binning/clust_by_taxonomy/all_taxa`
+do
+  echo "MAG_ID Taxonomy Score Path_to_MAG" > ${All_DIR}/${i}_scores_taxonomy.list
+  taxonomy=$(echo ${i} | cut -d'.' -f1)
+  cat ${All_DIR}/${i} | while read j
+  do
+    bin_id=$(echo ${j} | cut -d' ' -f1)
+    score=$(grep -w "${bin_id}" ${SCORES} | cut -f2)
+    sample=$(echo ${j} | cut -d'_' -f1,2)
+    bin_num=$(echo ${j} | cut -d'_' -f3 | cut -d' ' -f1)
+    MAG_PATH=$(cat ${HQ_MAG_PATHS} | grep "${sample}" | grep  "_${bin_num}.fa")
+    echo ${bin_id} ${taxonomy} ${score} ${MAG_PATH} >> ${All_DIR}/${i}_scores_taxonomy.list
+  done
+done
+
+ls ${All_DIR}/*_scores_taxonomy.list | wc -l
+#534
+
+rm ${clust_by_taxonomy_DIR}/sp_level_rep_MAGS.list
+
+#This script selects the best MAG in each species level cluster.
+#Additional ANI-based clustering might be necessary
+clust_by_taxonomy_DIR="/data2/dbrichardson/projects/NB/04_binning/clust_by_taxonomy"
+echo "MAG_ID Taxonomy Score Path_to_MAG" > ${clust_by_taxonomy_DIR}/sp_level_rep_MAGS.list
+for i in `ls ${All_DIR}/*_scores_taxonomy.list`
+do
+  cat ${i} | sort -k3 -h -r | head -1 >> ${clust_by_taxonomy_DIR}/sp_level_rep_MAGS.list
+done
+```
+
+This is the highest scoring Nitrosopumulis MAG
+```{bash}
+grep "Nitrosopumulis" ${clust_by_taxonomy_DIR}/sp_level_rep_MAGS.list
+```
+
+/data2/dbrichardson/projects/NB/04_binning/HQ_MAGs/ZTP33_S7_completeness_76.27_contamination_0.970_length_900089_bin.42.fa
+
+This script creates a bowtie2 index using the representative MAG
+```{bash}
+#!/bin/bash
+#SBATCH -t 100:00:00
+#SBATCH --mem=120GB
+#SBATCH --exclusive
+
+#/data/zhanglab/dbrichardson/projects/NB/scripts/04_Taxonomy_scripts/drafts/Nitro_mag_index_test.sh
+
+REP_MAG="/data2/dbrichardson/projects/NB/04_binning/HQ_MAGs/ZTP33_S7_completeness_76.27_contamination_0.970_length_900089_bin.42.fa"
+BT2_INDICIES="/data2/dbrichardson/projects/NB/05_Pop_Evo_Genomics/Nitro/bt2_indices"
+
+echo "Starting"
+date
+#Loading  Python3
+module load Python/3.8.6-GCCcore-10.2.0
+# Loading Bowtie2
+module load Bowtie2/2.4.4-GCC-10.2.0
+
+#Building bowtie2 databases
+bowtie2-build --threads ${SLURM_CPUS_ON_NODE} -f ${REP_MAG} ${BT2_INDICIES}/Nitro_MAG
+
+echo "Ending"
+date
+```
+
+This pipeline maps quality filtered reads to the representative Nitrosopumilus genome, uses GATK HaplotypeCaller to find variants, and then uses GATK's GenotypeGVCFs.
+```{bash}
+#!/bin/bash
+#SBATCH -t 100:00:00
+#SBATCH --array=1-68%15
+#SBATCH --mem=120GB
+#SBATCH --exclusive
+ANALYSIS_ROOT="/data/zhanglab/dbrichardson/projects/NB/analyses"
+FILTERED_READS="/data2/dbrichardson/projects/NB/01_QC/filtered_reads"
+BT2_INDICIES="/data2/dbrichardson/projects/NB/05_Pop_Evo_Genomics/Nitro/bt2_indices"
+FILE=($(cat ${ANALYSIS_ROOT}/collapsed_sample.list | head -n $SLURM_ARRAY_TASK_ID | tail -1))
+ALN_DIR="/data2/dbrichardson/projects/NB/05_Pop_Evo_Genomics/Nitro/read_mappings"
+VAR_OUTDIR="/data2/dbrichardson/projects/NB/05_Pop_Evo_Genomics/Nitro/variants"
+REP_MAG="/data2/dbrichardson/projects/NB/04_binning/HQ_MAGs/ZTP33_S7_completeness_76.27_contamination_0.970_length_900089_bin.42.fa"
+
+#/data/zhanglab/dbrichardson/projects/NB/scripts/04_Taxonomy_scripts/drafts/nitrosopumilus_mag_read_mapping_var_finding.sh
+
+echo "Beginning Read Recruitment"
+
+#Loading  Python3
+module load Python/3.8.6-GCCcore-10.2.0
+
+# Loading Bowtie2
+module load Bowtie2/2.4.4-GCC-10.2.0
+
+#Using Conda module
+module load Anaconda3/4.2.0
+
+#Using the version of samtools that has the -N option (1.15)
+source activate vamb
+
+#looks for reads that map to each contig in the merged, R1, and R2 files.
+bowtie2 --sensitive --no-unal -p ${SLURM_CPUS_ON_NODE} -x ${BT2_INDICIES}/Nitro_MAG \
+-1 ${FILTERED_READS}/${FILE}_R1.fq.gz  \
+-2 ${FILTERED_READS}/${FILE}_R2.fq.gz \
+-U ${FILTERED_READS}/${FILE}_merged.fq.gz \
+--rg-id ${FILE} \
+--rg SM:${FILE} \
+--rg LB:${SLURM_ARRAY_TASK_ID} \
+--rg PU:${FILE}_${SLURM_ARRAY_TASK_ID} \
+--rg PL:ILLUMINA \
+| samtools view -bS - | samtools sort -o ${ALN_DIR}/${FILE}_sorted.bam
+
+#Index the BAM files
+samtools index -b ${ALN_DIR}/${FILE}_sorted.bam ${ALN_DIR}/${FILE}_sorted.bai
+
+module purge
+
+#loading picard
+module load picard/2.18.17-Java-1.8
+
+# marking the duplicate reads in the alignment. There shouldn't be any, but I'm doing this to be consistent with Andreu-Sanchez et al. 2021
+java -jar $EBROOTPICARD/picard.jar MarkDuplicates \
+      I=${ALN_DIR}/${FILE}_sorted.bam \
+      O=${ALN_DIR}/${FILE}_sorted_marked_duplicates.bam \
+      M=${ALN_DIR}/${FILE}_marked_dup_metrics.txt
+
+#Using CleanSam to clean the alignment file
+java -jar $EBROOTPICARD/picard.jar CleanSam \
+      I=${ALN_DIR}/${FILE}_sorted_marked_duplicates.bam \
+      O=${ALN_DIR}/${FILE}_sorted_cleaned.bam
+
+module purge
+
+#Loading  Python3
+module load Python/3.8.6-GCCcore-10.2.0
+
+# Loading Bowtie2
+module load Bowtie2/2.4.4-GCC-10.2.0
+
+#Using Conda module
+module load Anaconda3/4.2.0
+
+#Using the version of samtools that has the -N option (1.15)
+source activate vamb
+
+#Re-sorting the cleaned BAM files
+samtools sort -o ${ALN_DIR}/${FILE}_sorted2_cleaned.bam ${ALN_DIR}/${FILE}_sorted_cleaned.bam
+
+#Index the BAM files
+samtools index -b ${ALN_DIR}/${FILE}_sorted2_cleaned.bam ${ALN_DIR}/${FILE}_sorted2_cleaned.bai
+
+module purge
+
+#this will load the GATK module for variant calling
+module load GATK/4.2.0.0-GCCcore-10.2.0-Java-11
+
+#Using GATK to find variants
+gatk --java-options "-Xmx120g" HaplotypeCaller  \
+   -R ${REP_MAG} \
+   -I ${ALN_DIR}/${FILE}_sorted2_cleaned.bam \
+   -O ${VAR_OUTDIR}/${FILE}.g.vcf.gz \
+   -ploidy 1 \
+   -ERC GVCF
+
+#Using GATK to call genotypes
+gatk --java-options "-Xmx120g" GenotypeGVCFs \
+   -R ${REP_MAG} \
+   -V ${VAR_OUTDIR}/${FILE}.g.vcf.gz \
+   -O ${VAR_OUTDIR}/${FILE}_genotyped.g.vcf.gz
+
+echo "Ending"
+date
+
+```
+
