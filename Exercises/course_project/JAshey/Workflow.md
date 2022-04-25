@@ -493,6 +493,35 @@ cd Trinity
 
 ###### Acerv Trinity 
 
+```
+nano trinity_acerv.sh
+
+#!/bin/bash
+#SBATCH --job-name="Trinity"
+#SBATCH -t 336:00:00
+#SBATCH --export=NONE
+#SBATCH --nodes=1 --ntasks-per-node=20
+#SBATCH --exclusive
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=jillashey@uri.edu
+#SBATCH --error="trinity_acerv_out_error"
+#SBATCH --output="trinity_acerv_out"
+#SBATCH -D /data/putnamlab/jillashey/BIO594_FinalProject/Trinity
+#SBATCH --mem=500GB
+
+echo "START"; date
+
+module load Trinity/2.9.1-foss-2019b-Python-3.7.4 
+
+Trinity --seqType fq --single Acerv_samples_all.fq --SS_lib_type F --max_memory 125G --CPU 10 --output trinity_acerv
+
+echo "STOP"; date
+
+sbatch trinity_acerv.sh
+```
+
+Submitted batch job 132117 -- this failed, need to rerun
+
 ###### Pacuta Trinity 
 
 ```
@@ -531,6 +560,105 @@ Submitted batch job 131000
 - `max_memory` - 
 - `CPU` - 
 - `output` - name for output directory
+
+Nice, finished in about 4 days. Check out the `Trinity.fasta` file
+
+```
+cd trinity_pacuta
+
+zgrep -c ">" Trinity.fasta
+368329 # number of transcripts generated
+
+head Trinity.fasta
+>TRINITY_DN100155_c0_g1_i1 len=507 path=[0:0-506]
+CTATACACAAACACCAATGATGAGGGATGGAGAATGATTCGTGTTGGAGATGACCCCCTAGGATTTGGTCAGTTTTGTCTTTTTTTTATTCTGATTTGAAATGAGCAAGCGAAAATTTGGTGAATAAGATGTTAGCTTAAGACTAGTGCATACAAACAGACACTCAACAGGCTGACACTGTTATGCATGTGGCTCAACCAGACATCAGACATTGTATAAGAAACGAGAAAATTGCTGATTTAGGTGACTGCCTAACTGATAACAGATAGGTGGATATAGTGGTGCACTGATTCACTGACTCAGACTGGCAGACTGACGGACTGATTGACTCAGACTGGCTGACTGACACACTGACCATCTGACCTACAGAATGACTGTCTGCATGACAAATTGATTGACTCACTGACTGATTCGCTCACCTATTCAGTCACTTGTTTTGCAAAGGTTATTAGAAAGGTGTGAACATTTGATACAAATCAGTCATAATAGAGGTGTGGTCTGCAAACC
+>TRINITY_DN100130_c0_g1_i1 len=363 path=[0:0-362]
+TTGTAGAACATGCTAGCCACCTCCATCATTTGCCCCATTACGTATCGCTGGAATCCTCGACGTTTAGATTTGTAGTGTAGCAGTAATCCCGTGCTTGCCTCTTCTGAACAGTAGAATGACGGTGACATGAGCTTTGGGTAAGCAAATCGCATGTGTTCGTGTAAATTGTCGATTCCTCGTAGGAAGTCACTGAAATGCCTGCCGCTTATTTGTATAAACCTATCGTAGCCGTAGTTGCTGAAAAATTTCACAAAGCACGTCCCAAAAAATTGAATGAAGTCTTCCGAGGTCATTTTTGTCTCATTTCCGAGTACTTCTGCCGCTGCAGACGCGATTTCCAACAACAGATTATCTGAGTACCGT
+>TRINITY_DN100138_c0_g1_i1 len=259 path=[0:0-258]
+CTCGGTGAAGTGCTCCGGATTCGGACCCTGGTCCCGGCAGTGCGGCTCTTGATGATTTCCGAAGAGGCGGCTTTGGGCCTGTCGCGAGTCGTGGGTGGTCTCCCATGTCATATTCGCACACGGCGTAAAGACATCCCACCCATGGGAGTGCAAACGGACGTTCTCGCAGGTGACTTGGCCGTGAAAATGCAAGGAATTCATGCAAGGGTCTGCTGGCACCTCTATCAAGATGTCAGAGGTGGAAAACGCACTGTGCGGA
+>TRINITY_DN100156_c0_g1_i1 len=203 path=[0:0-202]
+CAAATTGGTACCTCAATTTTGTTTCGAGCGTCGAAACGAGTTCTCCGGACCTCTCTCCGGATCATGTCTCCAATTTTCAGCCATGATCCCAATGTTGAGCCATGATCATTTTGAACATTTTCTTTCAAACATCTTTTTGCTCCCAATTGCCTGCGTAGCATGCTTTCAATTCGGAGAGCTATGTGCAAGAGCACATACCGTGG
+>TRINITY_DN100195_c0_g1_i1 len=409 path=[0:0-408]
+TTTTTTTTCCTCCACTTTTCTTTCCTTTTTTGCCTTTCTTTCCCTTTTTCTTTTTGTTGAGCTGTTTTCTGGCTCTATGCGCTCGCCATAGAGATTGTATTAATCTCGCCGCTCGTATTTTCAAATTCAGCTCTCTTTCAGCAGCTTCGGCCTTCTCTTTTGCAATTCTTCTCGCTTCCACGATTTCCAAGTACTCCTTCTCCAGGGTCTTGAAACGCTCCTCGAGTTCATTTAGCTGCCTTTTCTCCTCCGTGTAGATCGTGTCTAGGGCATCAAATTCATCTTGTCTTTCTCCCATATCTGTATCATACTTCTGTATCCAATTCTCAACTTCAGTTTCAATCTTGTACTTTCGCTTTCTCAAAGCCAGCTCACTCTCTCTATGAGTGAGTGTGTCGCTTTCAAGTTT
+```
+
+Now run Bowtie w/ the `Trinity.fasta` as the Pacuta 'reference' transcriptome. First, build the bowtie index in the Bowtie2 directory
+
+```
+cd /data/putnamlab/jillashey/BIO594_FinalProject/Bowtie2
+mkdir pacuta_index 
+
+nano bowtie_index_pacuta.sh
+
+#!/bin/bash
+#SBATCH --job-name="Bowtie-index"
+#SBATCH -t 336:00:00
+#SBATCH --export=NONE
+#SBATCH --nodes=1 --ntasks-per-node=20
+#SBATCH --exclusive
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=jillashey@uri.edu
+#SBATCH --error="bowtie_index_pacuta_out_error"
+#SBATCH --output="bowtie_index_pacuta_out"
+#SBATCH --mem=500GB
+
+echo "START"; date
+
+module load Bowtie2/2.4.4-GCC-11.2.0
+
+bowtie2-build /data/putnamlab/jillashey/BIO594_FinalProject/Trinity/trinity_pacuta/Trinity.fasta pacuta_index/pacuta_idx
+
+echo "STOP"; date
+
+sbatch bowtie_index_pacuta.sh
+```
+
+Submitted batch job 132126
+
+Once the index is made, use it to align reads to de novo transcriptome
+
+```
+mkdir pacuta_align
+
+nano bowtie_align_pacuta.sh
+
+#!/bin/bash
+#SBATCH --job-name="Bowtie-align"
+#SBATCH -t 336:00:00
+#SBATCH --export=NONE
+#SBATCH --nodes=1 --ntasks-per-node=20
+#SBATCH --exclusive
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=jillashey@uri.edu
+#SBATCH --error="bowtie_align_pacuta_out_error"
+#SBATCH --output="bowtie_align_pacuta_out"
+#SBATCH --mem=500GB
+
+echo "START"; date
+
+module load Bowtie2/2.4.4-GCC-11.2.0
+
+F=/data/putnamlab/jillashey/BIO594_FinalProject/Bowtie2/pacuta_align
+
+# make symbolic link to trimmed data
+ln -s /data/putnamlab/jillashey/BIO594_FinalProject/data/trimmed/*trim.fastp.fq .
+
+# align reads 
+array1=($(ls $F/*.trim.fastp.fq ))
+for i in ${array1[@]}
+do
+bowtie2 -q -x /data/putnamlab/jillashey/BIO594_FinalProject/Bowtie2/pacuta_index/pacuta_idx -U ${i} -S ${i}.sam
+done
+
+echo "STOP"; date
+
+sbatch bowtie_align_pacuta.sh
+```
+
+Submitted batch job 132138
+
+
+
 
 #### Pseudoalignment - Kallisto
 
