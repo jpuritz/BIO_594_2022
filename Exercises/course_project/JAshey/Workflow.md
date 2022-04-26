@@ -6,9 +6,17 @@ idk who said this but wise words: "the computer is never wrong, it is you who is
 
 ## Table of Contents 
 
+I. [Set-up](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#set-up-directories-and-data)
 
+II. [Quality check of raw reads](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#quality-check)
 
-### Set up directories and data 
+III) [Trim raw reads](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#trim)
+
+IV) [Quality check of trimmed reads](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#quality-check-trimmed-reads)
+
+V) [Align reads](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#align-reads-using-different-read-aligners)
+
+### I) Set up directories and data 
 
 Make directory for project
 
@@ -65,7 +73,7 @@ zgrep -c "@HISEQ" *.fastq > HISEQ_raw_length.txt
 zgrep -c "HWI" *.fastq > HWI_raw_length.txt
 ```
 
-### Quality check
+### II) Quality check
 
 Quality checking will be done using [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) and [MultiQC](https://multiqc.info). 
 
@@ -125,7 +133,7 @@ Copy MultiQC files onto computer and look at plots
 
 I didn't add all the plots, just the ones that I thought were most important. Sequences were either 50 or 125 bp long. Quality scores are all above 30 and the per sequence GC content follows a normal distribution. Some of the sequences still have a high proportion of adapter content. 
 
-### Trim 
+### III) Trim 
 
 Trim w/ [fastp](https://github.com/OpenGene/fastp)
 
@@ -162,7 +170,7 @@ sbatch fastp.sh
 
 Submitted batch job 129676
 
-### Quality check trimmed reads 
+### IV) Quality check trimmed reads 
 
 Check number of files
 
@@ -228,7 +236,7 @@ Submitted batch job 129499
 Like the raw QC, quality scores are all above 30 and the per sequence GC content still follows a normal distribution. But the adapters are gone!
 
 
-### Align reads using different read aligners 
+### V) Align reads using different read aligners 
 
 Obtain genomic/transcriptomic information for both species. 
 
@@ -240,7 +248,7 @@ Obtain genomic/transcriptomic information for both species.
 - Download genomic information [here](http://cyanophora.rutgers.edu/Pocillopora_acuta/)
 - Path to genomic info: `/data/putnamlab/jillashey/genome/Pacuta`
 
-#### Align against genome - STAR
+#### A) Align against genome - STAR
 
 [STAR](https://github.com/alexdobin/STAR) (Spliced Transcripts Alignment to a Reference) is an aligner for RNA-seq data. It uses suffix arrays, seed clustering, and stitching. It can detect non-canonical splice sites, chimeric sequences, and also map full-length RNA sequences. It is fast, but memory intensive.
 
@@ -248,9 +256,9 @@ Obtain genomic/transcriptomic information for both species.
 cd STAR 
 ```
 
-##### Use the genome to make an index
+First, use the genome to make an index
 
-###### Acerv genome index
+###### i) Acerv genome index
 
 ```
 mkdir GenomeIndex_Acerv
@@ -284,7 +292,7 @@ sbatch GenomeIndex_Acerv.sh
 
 Submitted batch job 130259
 
-###### Pacuta genome index
+###### ii) Pacuta genome index
 
 ```
 mkdir GenomeIndex_Pacuta
@@ -327,9 +335,9 @@ Submitted batch job 131712
 
 
 
-##### Align reads to genome 
+Now align reads to genome 
 
-###### Acerv alignment 
+###### iii) Acerv alignment 
 
 ```
 mkdir AlignReads_acerv
@@ -380,7 +388,7 @@ sbatch AlignReads_Acerv.sh
 
 Submitted batch job 131682
 
-###### Pacuta alignment 
+###### iv) Pacuta alignment 
 
 ```
 cd /data/putnamlab/jillashey/BIO594_FinalProject/STAR
@@ -447,7 +455,7 @@ Submitted batch job 131717
 - `--outReadsUnmapped` - output of unmapped and partially mapped reads (Fastx indicates file type is a fasta/fastq file)
 
 
-#### Align against transcriptome - Trinity & Bowtie2
+#### B) Align against transcriptome - Trinity & Bowtie2
 
 [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml)
 
@@ -495,7 +503,7 @@ Run Trinity for both species
 cd Trinity
 ```
 
-###### Acerv Trinity 
+###### i) Acerv Trinity 
 
 ```
 nano trinity_acerv.sh
@@ -526,7 +534,7 @@ sbatch trinity_acerv.sh
 
 Submitted batch job 132511
 
-###### Pacuta Trinity 
+###### ii) Pacuta Trinity 
 
 ```
 nano trinity_pacuta.sh
@@ -586,8 +594,9 @@ CAAATTGGTACCTCAATTTTGTTTCGAGCGTCGAAACGAGTTCTCCGGACCTCTCTCCGGATCATGTCTCCAATTTTCAG
 >TRINITY_DN100195_c0_g1_i1 len=409 path=[0:0-408]
 TTTTTTTTCCTCCACTTTTCTTTCCTTTTTTGCCTTTCTTTCCCTTTTTCTTTTTGTTGAGCTGTTTTCTGGCTCTATGCGCTCGCCATAGAGATTGTATTAATCTCGCCGCTCGTATTTTCAAATTCAGCTCTCTTTCAGCAGCTTCGGCCTTCTCTTTTGCAATTCTTCTCGCTTCCACGATTTCCAAGTACTCCTTCTCCAGGGTCTTGAAACGCTCCTCGAGTTCATTTAGCTGCCTTTTCTCCTCCGTGTAGATCGTGTCTAGGGCATCAAATTCATCTTGTCTTTCTCCCATATCTGTATCATACTTCTGTATCCAATTCTCAACTTCAGTTTCAATCTTGTACTTTCGCTTTCTCAAAGCCAGCTCACTCTCTCTATGAGTGAGTGTGTCGCTTTCAAGTTT
 ```
+###### iii) Acerv Bowtie 
 
-###### Pacuta Bowtie 
+###### iv) Pacuta Bowtie 
 
 Now run Bowtie w/ the `Trinity.fasta` as the Pacuta 'reference' transcriptome. First, build the bowtie index in the Bowtie2 directory
 
@@ -667,7 +676,7 @@ Submitted batch job 132138
 
 
 
-#### Pseudoalignment - Kallisto
+#### C) Pseudoalignment - Kallisto
 
 [Kallisto](https://pachterlab.github.io/kallisto/manual) is another tool to quantify RNA-seq data. Kallisto uses pseudoalignment to speed up the alignment process, meaning it can quantify reads without making actual alignments. It does this by identifying transcripts that a read is compatible with in order to quantify the transcript.
 
@@ -710,7 +719,7 @@ Submitted batch job 131043
 
 Use the index to pseudoalign the reads 
 
-###### Acerv pseudoalignment 
+###### i) Acerv pseudoalignment 
 
 ```
 cd /data/putnamlab/jillashey/BIO594_FinalProject/Kallisto
@@ -855,7 +864,7 @@ sbatch kallisto_quant_120bp_acerv.sh
 
 Submitted batch job 131611
 
-###### Pacuta pseudoalignment 
+###### ii) Pacuta pseudoalignment 
 
 Make directories and create symbolic links to samples 
 
@@ -967,13 +976,13 @@ Pseudoalignment information by species:
 | A.cervicornis | 31 | 33,322 | 34,006,771 | 84,017 |
 | P.acuta | 31 | 38,913 | 38,267,300 | 88,498 |
 
-### Compare 
+### VI) Compare 
 
 Keep in mind, none of these can be DIRECTLY compared
 
 comparing kallisto and star github [post](https://github.com/crazyhottommy/RNA-seq-analysis/blob/master/salmon_kalliso_STAR_compare.md)
 
-### References 
+### VII) References 
 
 - [Bray et al. 2016](https://www.nature.com/articles/nbt.3519) - Near-optimal probabilistic RNA-seq quantification
 - [Dobin et al. 2013](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3530905/) - STAR: ultrafast universal RNA-seq aligner
