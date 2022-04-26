@@ -56,7 +56,7 @@ ls | wc -l
 Count number of reads per file. Some reads have @HISEQ as header, some reads have @HWI
 
 ```
-zgrep -c "HISEQ" *.fastq > HISEQ_raw_length.txt
+zgrep -c "@HISEQ" *.fastq > HISEQ_raw_length.txt
 
 zgrep -c "HWI" *.fastq > HWI_raw_length.txt
 ```
