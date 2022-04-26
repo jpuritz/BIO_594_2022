@@ -15,6 +15,24 @@ III) [Trim raw reads](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercise
 IV) [Quality check of trimmed reads](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#quality-check-trimmed-reads)
 
 V) [Align reads](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#align-reads-using-different-read-aligners)
+	- A) [Align against genome - STAR](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#a-align-against-genome---star)
+		- i) [A.cervicornis genome index](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#i-acerv-genome-index)
+		- ii) [P.acuta genome index](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#ii-pacuta-genome-index)
+		- iii) [A.cervicornis alignment](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#iii-acerv-alignment)
+		- iv) [Pacuta alignment](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#iv-pacuta-alignment)
+	- B) [Align against de novo transcriptome - Trinity & Bowtie](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#b-align-against-transcriptome---trinity--bowtie2)
+		- i) [A.cervicornis de novo transcriptome Trinity](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#i-acerv-trinity)
+		- ii) [P.acuta de novo transcriptome Trinity](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#ii-pacuta-trinity)
+		- iii) [A.cervicornis Bowtie alignment](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#iii-acerv-bowtie)
+		- iv) [P.acuta Bowtie alignment](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#iv-pacuta-bowtie)
+	- C) [Pseudoalignment - Kallisto](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#c-pseudoalignment---kallisto)
+		- i) [A.cervicornis pseudoalignment](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#i-acerv-pseudoalignment)
+		- ii) [P.acuta pseudoalignment](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#ii-pacuta-pseudoalignment)
+
+VI) [Alignment comparisons](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#vi-compare)
+
+VII) [References](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/Workflow.md#vii-references)
+
 
 ### I) Set up directories and data 
 
