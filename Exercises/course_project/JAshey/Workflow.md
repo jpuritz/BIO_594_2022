@@ -4,6 +4,10 @@ Proposal [here](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/cour
 
 idk who said this but wise words: "the computer is never wrong, it is you who is wrong"
 
+## Table of Contents 
+
+
+
 ### Set up directories and data 
 
 Make directory for project
@@ -316,10 +320,10 @@ Submitted batch job 131712
 
 `STAR` parameters: 
 
-- `runThreadN` - number of threads to run STAR
-- `runMode genomeGenerate` - runs a genome index generation job 
-- `genomeDir` - path to directory where genome indices are stored 
-- `genomeFastaFiles` - path to file with genome reference sequences 
+- `--runThreadN` - number of threads to run STAR
+- `--runMode genomeGenerate` - runs a genome index generation job 
+- `--genomeDir` - path to directory where genome indices are stored 
+- `--genomeFastaFiles` - path to file with genome reference sequences 
 
 
 
@@ -513,14 +517,14 @@ echo "START"; date
 
 module load Trinity/2.9.1-foss-2019b-Python-3.7.4 
 
-Trinity --seqType fq --single Acerv_samples_all.fq --SS_lib_type F --max_memory 125G --CPU 10 --output trinity_acerv
+Trinity --seqType fq --single Acerv_samples_all.fq --SS_lib_type F --max_memory 125G --CPU 10 --output trinity_acerv --NO_SEQTK
 
 echo "STOP"; date
 
 sbatch trinity_acerv.sh
 ```
 
-Submitted batch job 132117 -- this failed, need to rerun
+Submitted batch job 132511
 
 ###### Pacuta Trinity 
 
@@ -544,7 +548,7 @@ echo "START"; date
 
 module load Trinity/2.9.1-foss-2019b-Python-3.7.4 
 
-Trinity --seqType fq --single Pacuta_samples_all.fq --SS_lib_type F --max_memory 125G --CPU 10 --output trinity_pacuta
+Trinity --seqType fq --single Pacuta_samples_all.fq --SS_lib_type F --max_memory 125G --CPU 10 --output trinity_pacuta --NO_SEQTK
 
 echo "STOP"; date
 
@@ -554,12 +558,13 @@ sbatch trinity_pacuta.sh
 Submitted batch job 131000
 
 `Trinity` parameters: 
-- `seqType` - fastq file type
-- `single` - single-end reads 
-- `SS_lib_type` - 
-- `max_memory` - 
-- `CPU` - 
-- `output` - name for output directory
+- `--seqType` - fastq file type
+- `--single` - single-end reads 
+- `--SS_lib_type` - 
+- `--max_memory` - 
+- `--CPU` - 
+- `--output` - name for output directory
+- `--NO_SEQTK` - 
 
 Nice, finished in about 4 days. Check out the `Trinity.fasta` file
 
@@ -581,6 +586,8 @@ CAAATTGGTACCTCAATTTTGTTTCGAGCGTCGAAACGAGTTCTCCGGACCTCTCTCCGGATCATGTCTCCAATTTTCAG
 >TRINITY_DN100195_c0_g1_i1 len=409 path=[0:0-408]
 TTTTTTTTCCTCCACTTTTCTTTCCTTTTTTGCCTTTCTTTCCCTTTTTCTTTTTGTTGAGCTGTTTTCTGGCTCTATGCGCTCGCCATAGAGATTGTATTAATCTCGCCGCTCGTATTTTCAAATTCAGCTCTCTTTCAGCAGCTTCGGCCTTCTCTTTTGCAATTCTTCTCGCTTCCACGATTTCCAAGTACTCCTTCTCCAGGGTCTTGAAACGCTCCTCGAGTTCATTTAGCTGCCTTTTCTCCTCCGTGTAGATCGTGTCTAGGGCATCAAATTCATCTTGTCTTTCTCCCATATCTGTATCATACTTCTGTATCCAATTCTCAACTTCAGTTTCAATCTTGTACTTTCGCTTTCTCAAAGCCAGCTCACTCTCTCTATGAGTGAGTGTGTCGCTTTCAAGTTT
 ```
+
+###### Pacuta Bowtie 
 
 Now run Bowtie w/ the `Trinity.fasta` as the Pacuta 'reference' transcriptome. First, build the bowtie index in the Bowtie2 directory
 
