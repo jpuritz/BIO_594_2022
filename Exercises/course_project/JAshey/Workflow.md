@@ -404,7 +404,7 @@ echo "STOP"; date
 sbatch AlignReads_Acerv.sh 
 ```
 
-Submitted batch job 131682
+Submitted batch job 131717
 
 ###### iv) Pacuta alignment 
 
@@ -456,7 +456,7 @@ echo "STOP"; date
 sbatch AlignReads_Pacuta.sh 
 ```
 
-Submitted batch job 131717
+Submitted batch job 131716 
 
 `STAR` parameters: 
 
@@ -690,9 +690,6 @@ sbatch bowtie_align_pacuta.sh
 ```
 
 Submitted batch job 132138
-
-
-
 
 #### C) Pseudoalignment - Kallisto
 
@@ -996,9 +993,55 @@ Pseudoalignment information by species:
 
 ### VI) Compare 
 
-Keep in mind, none of these can be DIRECTLY compared
+Keep in mind, none of these can be DIRECTLY compared, as they are all using different algorithms to calculate alignments. But it is still interesting to qualatitvely compare across aligner types. 
 
-comparing kallisto and star github [post](https://github.com/crazyhottommy/RNA-seq-analysis/blob/master/salmon_kalliso_STAR_compare.md)
+Sample 31_2 (P.acuta) had a very low # of read counts (~6000 raw reads), so it will be excluded from comparisons. Additionally, sample 24_T12_Ac_FM (A.cervicornis) will be excluded because it had strangely low alignment for an Acerv sample. I'm thinking that it was mislabeled, as these samples were processed with several other species. Both 31_2 and 24_T12_Ac_FM are highlighted in yellow on the alignment csv files. 
+
+#### Average alignment rates for each tool 
+
+| Species | STAR | Bowtie | Kallisto |
+| --------------| ------ | -------- | ------ | -------- | 
+| A.cervicornis | 70.72 | xx | 34.67 | 
+| P.acuta | 69.40 | 94.93 | 33.54 | 
+
+These are interesting results. I was not expecting the Bowtie alignment to be so high, especially when I used a de novo transcriptome. Because I used a de novo transcriptome, that does give me a little less confidence in the alignment quality. 
+
+See STAR alignment csv, Bowtie alignment csv and Kallisto alignment csv for more detail. 
+
+#### Time, memory used, and CPU efficiency for each tool
+
+I am also interested in how much time it take for each tool to process my samples, as well as how much memory and CPU each tool requires. For these calculations, I am factoring in how long it took to build the indices, as well as align. I had 28 total samples that were between 1.5G to 5.5G in size. 
+
+##### STAR
+
+Total Acerv time: 2:33:05
+Total Acerv memory utilized: 15.91 GB
+Total Acerv CPU utilized: 13:16:04
+
+Total Pacuta time: 4:04:38
+Total Pacuta memory utilized: 15.6 GB
+Total Pacuta CPU utilized: 22:27:01
+
+##### Bowtie + Trinity 
+
+Total Acerv time: xx
+Total Acerv memory utilized: xx
+Total Acerv CPU utilized: xx
+
+Total Pacuta time: 4-13:30:17
+Total Pacuta memory utilized: 124:45 GB
+Total Pacuta CPU utilized: 10-08:51:54
+
+##### Kallisto
+
+Total Acerv time: 0:47:42
+Total Acerv memory utilized: 4.85 GB
+Total Acerv CPU utilized: 0:44:22
+
+Total Pacuta time: 00:47:18
+Total Pacuta memory utilized: 4.89 GB
+Total Pacuta CPU utilized: 0:45:18
+
 
 ### VII) References 
 
