@@ -167,14 +167,49 @@ Next I will use FreeBays, a Bayesian genetic variant detector, to find small pol
 The vcf or variant call format files list all the differences between Pumpkin's DNA and the reference genome. To learn more about these variants other than their genetic coordinates (such as if they are in a gene, an exon, cause a protein coding change) we need to annotate the vcf file. SnpEff is a program that can do this for us.
 
 - `conda install -c bioconda snpeff`
-- `snpEff GCA_000181335.5_Felis_catus_9.0_genomic.fna aln-R163var.vcf > EFF.R163.vcf`
-- `snpEff GCA_000181335.5_Felis_catus_9.0_genomic.fna path/to/YOURFILE.vcf > EFF.BP.vcf`
-
-I will compare the output of snpeff with the vcf file I made from the previous steps and with the vcf file provided by Basepaws to see if they are similar!
+- `snpEff Felis_catus_9.0.99 aln-R163var.vcf > EFF.R163.vcf`
 
 ## Visualize VCF data with vcfR
-We will use vcfR to visualize the vcf files of Pumpkin's SNPs. VcfR is an R package intended to help visualize, manipulate and quality filter data in VCF files
+We will use vcfR to visualize the vcf files of Pumpkin's SNPs. VcfR is an R package intended to help visualize, manipulate, and quality filter data in VCF files.
 
+`
+library(vcfR)
+my_vcf <- read.vcfR( vcf_file, verbose = FALSE )
+BP_vcf <- read.vcfR( vcf_file, verbose = FALSE )
+
+my_chrom <- create.chromR(name='pickchromo', vcf=my_vcf)
+BP_chrom <- create.chromR(name='pickchromo', vcf=BP_vcf)
+head(my_chrom)
+head(BP_chrom)
+
+plot(my_chrom)
+plot(BP_chrom)
+
+my_chrom <- masker(my_chrom, min_QUAL = , min_DP = , max_DP = , min_MQ = ,  max_MQ = )
+plot(my_chrom)
+BP_chrom <- masker(BP_chrom, min_QUAL = , min_DP = , max_DP = , min_MQ = ,  max_MQ = )
+plot(BP_chrom)
+
+my_chrom <- proc.chromR(my_chrom, verbose=TRUE)
+BP_chrom <- proc.chromR(BP_chrom, verbose=TRUE)
+plot(my_chrom)
+plot(BP_chrom)
+
+chromoqc(my_chrom, dp.alpha=20)
+chromoqc(BP_chrom, dp.alpha=20)
+
+dp <- extract.gt(chrom, element="DP", as.numeric=TRUE)
+rownames(dp) <- 1:nrow(dp)
+head(dp)
+heatmap.bp(dp[1001:1500,])
+is.na(dp[na.omit(dp == 0)]) <- TRUE
+heatmap.bp(dp[1001:1500,])
+
+
+
+prep.data <- radiator::tidy_vcf(data = "populations.snps.vcf")
+`
+https://github.com/pwwang/vcfstats <----use this this will be cool
 ## Compare with the conclusions sent in Pumpkin's report!
 
 ## References
