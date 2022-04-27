@@ -12,6 +12,8 @@ Since the files were supplied to me on a flashdrive from Basepaws, I sftp'd the 
 - `lcd D: | lls`
 - `put AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS.fastq.gz | put AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq.gz | put AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS.fastq.gz | put pumpkin_102.hard-filtered.gvcf | put pumpkin_102.hard-filtered.gvcf.gz.tbi`
 
+I wish I knew what the information in these file names mean! Since I don't know, we'll go ahead and analyze all 3 files.
+
 Unzip the files
 - `gunzip AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS.fastq.gz`
 - `gunzip AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS.fastq.gz`
@@ -138,47 +140,42 @@ Align the reads
 - `bwa mem GCA_000181335.5_Felis_catus_9.0_genomic.fna ../R160.fq > aln-R160.sam`
 - `bwa mem GCA_000181335.5_Felis_catus_9.0_genomic.fna ../R170.fq > aln-R170.sam`
 
+This took a really long time, I'm not sure if the commands actually finished running for R160 or R170, I needed to go off WiFi while running both and so the terminal got halted. I will go with what was aligned just for the sake of time! --I could increase the threads to make these commands run faster but since the files are very large, I will not bother with it --we still have one file to work with!
+
 ## Manipulating the files with Samtools and removing duplicate reads
 For further analysis, the SAM files from the alignments must be converted to BAM files. 
 - `samtools view -S -b aln-R163.sam > aln-R163.bam`
-- `samtools view -S -b aln-R160.sam > aln-R160.bam` #this ran for about 4 hours and I needed to go home and off wifi so i stopped it prematurely...
-- `samtools view -S -b aln-R170.sam > aln-R170.sam`
+- `samtools view -S -b aln-R160.sam > aln-R160.bam` --> Parse error at line ___  error reading file "aln-R160.sam": No such file or directory --must be due to the alignment not completing
+- `samtools view -S -b aln-R170.sam > aln-R170.bam` --> Parse error at line ___ error reading file "aln-R170.sam": No such file or directory --must be due to the alignment not completing
+
+Since the parse errors have occured in the files that did not finish aligning to the reference genome, we will just continue analyzing the one file that did finish (R163).
 
 The alignments produced are in random order with respect to their position in the reference genome. We want to be able to call for variants so we must manipulate these BAM files so that the alignments occur in an order positionally based upon their alignment coordinates on each chromosome.
 - `samtools sort aln-R163.bam -o aln-R163.sorted.bam`
-- `samtools sort aln-R160.bam -o aln-R160.sorted.bam`
-- `samtools sort aln-R170.bam -o aln-R170.sorted.bam`
 
 Now we can index the genome sorted BAM files to allows us to extract alignments overlapping particular genomic regions. This allows us to quickly display alignments in each genomic region and is required by some genome viewers.
 - `samtools index aln-R163.sorted.bam`
-- `samtools index aln-R160.sorted.bam`
-- `samtools index aln-R170.sorted.bam`
 
-When we checked the quality of the reads with Fastqc we saw that sequence duplication levels were flagged with "!" for two of the files "R170" and "R160." About 15% of the reads were duplicated around 10 times. This is an okay number because it is a low level of duplication and may indicate a very high level of coverage of the target sequence. If this number was higher it could signify enrichment bias (like PCR duplication). However, the duplication could be due to PCR so we will filter out the duplicates. Filtering the duplicates out will also provide a computational benefit of reducing the number of reads to be processed in downstream steps. 
-- `samtools view -h samp.bam | samblaster --ignoreUnmated [-e] --maxReadLength 100000 [-s samp.split.sam] [-u samp.umc.fasta] | samtools view -Sb - > samp.out.bam`
-- `samtools view -h samp.bam | samblaster --ignoreUnmated -a [-e] [-s samp.split.sam] [-u samp.umc.fasta] -o /dev/null`
+When we checked the quality of the reads with Fastqc we saw that the sequence duplication levels were low for the files (and were not even flagged for file R163), so we will not filter for any duplicates (which could be done with Samblaster). 
 
 ## SNPs and small indels can be investigated with Samtools 1.2, Platypus, or FreeBayes, filtering out anything with a low quality of less than 20
-Next I will use FreeBays, a Bayesian genetic variant detector, to find small polymorphisms (such as SNPs and indels) in Pumpkin's DNA.
+Next I will use FreeBays, a Bayesian genetic variant detector, to find small polymorphisms (such as SNPs and indels) in Pumpkin's DNA. This program will use the cat reference genome and the sorted bam file and output a variant call format (vcf) file.
 
 - `freebayes -f GCA_000181335.5_Felis_catus_9.0_genomic.fna aln-R163.sorted.bam > aln-R163var.vcf`
-- `freebayes -f GCA_000181335.5_Felis_catus_9.0_genomic.fna aln-R160.sorted.bam > aln-R160var.vcf`
-- `freebayes -f GCA_000181335.5_Felis_catus_9.0_genomic.fna aln-R170.sorted.bam > aln-R170var.vcf`
-
-
-- `env/bin/platypus callVariants --bamFiles=input.bam --refFile=reference.fa --output=variant_calls.vcf`
-
-compare with the vcf file provided by Basepaws
 
 ## SnpEff can then be used to detect variant effects. 
 The vcf or variant call format files list all the differences between Pumpkin's DNA and the reference genome. To learn more about these variants other than their genetic coordinates (such as if they are in a gene, an exon, cause a protein coding change) we need to annotate the vcf file. SnpEff is a program that can do this for us.
 
 - `conda install -c bioconda snpeff`
-- `snpEff GCA_000181335.5_Felis_catus_9.0_genomic.fna path/to/YOURFILE.vcf > OUTPUT.EFF.vcf`
+- `snpEff GCA_000181335.5_Felis_catus_9.0_genomic.fna aln-R163var.vcf > EFF.R163.vcf`
+- `snpEff GCA_000181335.5_Felis_catus_9.0_genomic.fna path/to/YOURFILE.vcf > EFF.BP.vcf`
 
-compare with the vcf file provided by Basepaws
+I will compare the output of snpeff with the vcf file I made from the previous steps and with the vcf file provided by Basepaws to see if they are similar!
 
-## make manhattan plot
+## Visualize VCF data with vcfR
+We will use vcfR to visualize the vcf files of Pumpkin's SNPs. VcfR is an R package intended to help visualize, manipulate and quality filter data in VCF files
+
+## Compare with the conclusions sent in Pumpkin's report!
 
 ## References
 1. Basepaws: https://basepaws.com/
