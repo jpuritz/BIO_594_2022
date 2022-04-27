@@ -266,6 +266,8 @@ Obtain genomic/transcriptomic information for both species.
 - Download genomic information [here](http://cyanophora.rutgers.edu/Pocillopora_acuta/)
 - Path to genomic info: `/data/putnamlab/jillashey/genome/Pacuta`
 
+I chose these species because they have differing genome sizes and assembly quality. 
+
 #### A) Align against genome - STAR
 
 [STAR](https://github.com/alexdobin/STAR) (Spliced Transcripts Alignment to a Reference) is an aligner for RNA-seq data. It uses suffix arrays, seed clustering, and stitching. It can detect non-canonical splice sites, chimeric sequences, and also map full-length RNA sequences. It is fast, but memory intensive.
@@ -1006,42 +1008,31 @@ Sample 31_2 (P.acuta) had a very low # of read counts (~6000 raw reads), so it w
 
 These are interesting results. I was not expecting the Bowtie alignment to be so high, especially when I used a de novo transcriptome. Because I used a de novo transcriptome, that does give me a little less confidence in the alignment quality. 
 
-See STAR alignment csv, Bowtie alignment csv and Kallisto alignment csv for more detail. 
+See STAR alignment [csv](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/output/STAR_Alignment.csv), Bowtie alignment [csv](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/output/Bowtie_Alignment.csv) and Kallisto alignment [csv](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/output/Kallisto_Alignment.csv) for more detail. 
 
 #### Time, memory used, and CPU efficiency for each tool
 
 I am also interested in how much time it take for each tool to process my samples, as well as how much memory and CPU each tool requires. For these calculations, I am factoring in how long it took to build the indices, as well as align. I had 28 total samples that were between 1.5G to 5.5G in size. 
 
-##### STAR
 
-Total Acerv time: 2:33:05
-Total Acerv memory utilized: 15.91 GB
-Total Acerv CPU utilized: 13:16:04
 
-Total Pacuta time: 4:04:38
-Total Pacuta memory utilized: 15.6 GB
-Total Pacuta CPU utilized: 22:27:01
 
-##### Bowtie + Trinity 
 
-Total Acerv time: xx
-Total Acerv memory utilized: xx
-Total Acerv CPU utilized: xx
 
-Total Pacuta time: 4-13:30:17
-Total Pacuta memory utilized: 124:45 GB
-Total Pacuta CPU utilized: 10-08:51:54
 
-##### Kallisto
+| Stats | Acerv | Pacuta | TOTAL |
+| ----- | ----- | ------ | ----- | 
+| STAR time | 2:33:05 | 4:04:38 | 6:37:43 |
+| STAR memory utilized (GB)	| 15.91 | 15.6 | 12:14:24 |
+| STAR CPU utilized | 13:16:04 | 22:27:01 | 1-11:43:05 |
+| Bowtie + Trinity time | xx | 4-13:30:17 | xx |
+| Bowtie + Trinity memory utilized (GB)	| xx | 10:48:00 | xx |
+| Bowtie + Trinity CPU utilized | xx | 10-08:51:54 | xx |
+| Kallisto time 	| 0:47:42	| 0:47:18	| 1:35:00 |
+| Kallisto memory utilized (GB) | 4.85 | 4.89 | 9.74 |
+| Kallisto CPU utilized | 0:44:22	 | 0:45:19 | 1:29:41 |
 
-Total Acerv time: 0:47:42
-Total Acerv memory utilized: 4.85 GB
-Total Acerv CPU utilized: 0:44:22
-
-Total Pacuta time: 00:47:18
-Total Pacuta memory utilized: 4.89 GB
-Total Pacuta CPU utilized: 0:45:18
-
+Collectively, Bowtie and Trinity definitely took the longest to run, though the time was mostly taken up by Trinity. Kallisto took less than an hour to run in both species (and had lowest memory and CPU utilized), but had the lowest alignment out of the tools examined here. 
 
 ### VII) References 
 
