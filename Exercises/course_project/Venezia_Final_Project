@@ -75,18 +75,52 @@ WC4_451.F.fq.gz WC4_451.R.fq.gz WC4_452.F.fq.gz WC4_452.R.fq.gz WC4_453.F.fq.gz 
 WC4_459.F.fq.gz WC4_459.R.fq.gz WC4_460.F.fq.gz WC4_460.R.fq.gz WC4_461.F.fq.gz WC4_461.R.fq.gz WC4_462.F.fq.gz WC4_462.R.fq.gz WC4_463.F.fq.gz WC4_463.R.fq.gz WC4_464.F.fq.gz WC4_464.R.fq.gz WC4_465.F.fq.gz WC4_465.R.fq.gz
 
 
-# 2)  Run dDocent on all of the data to produce snps. This will be done with a refernce file, soo it takes less time. The steps are as below 
-Settings for dDocent  
-30 processors
-trimming yes
-assembly no
-assembly type PE
-clustering similarity 0.8
-mapping reads 
-1, 
-4,
+# Step 2:Run dDocent pipeline on all of the fq.gz files to produce Snps
+#This will be done with a refernce file, so it takes less time
+# The process will fitler the data uing trimmomatic with the following qualificaitons
+# low base quality(20) at begning and end of reads, 5pb sliding window with average below 10, and adaptors from Illumina are removed
+#The Assembly will not be used and a refernce.fasta file will be used for the assembly portion of the analysis. 
+#Read mapping wil be used to align sequnces with the program BWA and SAMtools
+#SNP calling and filtering will be done by the program FreeBayes and VCFtools to have 90% of individuals
+#Outputs: 
+#TotalRaw.SNP.vcf: raw SNP, INDEL, NMP and copmlex variant for each indiviiidual, This will be used in further filtering with VCFtools
+#Final.recode.vcf: final vcf file, used to compare runs
+#x.bam: binary alignment maps(BAM) that map reads to the reference contigs
+#uniqseq.data: tab file to show coverage and unique sequences
+#log files: dDocent_main.LOG (all terminal outpt during run), dDocent.runs(paramaters of each run), logfiles directory to hold all log files(as reffernce for issues)
+#The code for this step is below
+
+conda create -n ddocent_env ddocent
+yes
+source conda activate ddocent_env 
+dDocent
+Number of Processors
+10
+Trimming 
+yes
+Assembly?
+no
+Type_of_Assembly?
+
+Clusstering_Similarity%
+
+Minimum withing individual coverage level to include a read for assembly(K1)
+CUTOFF1_NOTSET
+Minimum withing individual coverage level to include a read for assembly(K2)
+CUTOFF2_NOTSET
+Mapping_Reads?
+yes
+Mapping_Match_Value
+1
+Mapping_Mismatch_Value
+4
+Mapping_GapOpen_Penalty
 6
-calling SNPS wiht FreeBays 
+Calling__SNPs?
+yes
+Email
+rebecca_venezia@uri.edu
+
 
 3) Furtehr fitlering of the SNP found with dDocent using vcf tools
 I ended up using ____ filtrations to do this  
