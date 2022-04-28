@@ -27,7 +27,7 @@ Run fastqc and download the .html output files
 - `sftp -P {port number here} {username}@kitt.uri.edu`
 - `cd FinalProject`
 - `lcd Documents\Pumpkin`
--  `get AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS_fastqc.html` | get AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS_fastqc.html | get AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS_fastqc.html`
+-  `get AA.WQ.58.31210251600500.LP.713.F3.L2.R163.WGS_fastqc.html | get AA.WQ.58.31210251600500.SP.299.B2.L2.R160.WGS_fastqc.html | get AA.WQ.58.31210251600500.SP.307.D1.L1.R170.WGS_fastqc.html`
 
 The fastqc files from Pumpkin's DNA reveal the following:
 - **Per base sequence quality**: The quality scores across all bases look good for all 3 fastq files! The reads start to drop off towards the tail ends (this is expected as the reads get longer), but the scores stay in the green zone the entire time hovering around 36-34 and only with error bars dropping to about 25 from 100-150bp. This means that the average of the reads had >99.9% accuracy.
@@ -174,7 +174,7 @@ The vcf or variant call format files list all the differences between Pumpkin's 
 ## Visualize VCF data with vcfR
 We will use vcfR to visualize the vcf files of Pumpkin's SNPs. VcfR is an R package intended to help visualize, manipulate, and quality filter data in VCF files.
 
-`
+```
 library(vcfR)
 my_vcf <- read.vcfR( vcf_file, verbose = FALSE )
 BP_vcf <- read.vcfR( vcf_file, verbose = FALSE )
@@ -210,7 +210,7 @@ heatmap.bp(dp[1001:1500,])
 
 
 prep.data <- radiator::tidy_vcf(data = "populations.snps.vcf")
-`
+```
 https://github.com/pwwang/vcfstats <----use this this will be cool
 
 ## Compare with the conclusions sent in Pumpkin's report!
@@ -223,6 +223,8 @@ The report also included a dental report which scored Pumpkin's risk of periodon
 From his genetic report, he was found to be a carrier of one trait marker (dilute coat color, del(T) in gene MLPH), he was cleared of 31 genetic markers for disease, but was found to be at risk for one genetic marker involved in hypertrophic cardiomyopathy (HCM), where in the gene MYBPC3 he has one copy of a C>G mutation. HCM is the most common feline heart disease and is characterized by thickening of the heart's muscular walls and tachycardia (fast heart beat). The severity of the disease varies and if it is diagnosed early treatment is easier. It is good to know this and inform Pumpkin's vet that he is a carrier for this condition! 
 
 At the end of the report they characterized what Pumpkin is eating based on random DNA they found, and they said they found duck DNA. Pumpkin is mainly a seafood guy and he's only an indoor cat, so we think this is probably due to a filler in his dry food!
+
+My analysis of Pumpkin's DNA showed..... --issues with not knowing what the file names meant, issues with the size of the files/speed of analysis...
 
 I never knew that the analysis behind all of Pumpkin's DNA would take so much work. I spent a couple weeks analyzing his DNA for this project and did not get anywhere near the extent of analysis that Basepaws did. It is truly amazing what can be done with the right equipment and when you have an established pipeline and know what to look for. Kudos to all the wonderful people at Basepaws who made both analyzing Pumpkin's DNA for this project possible, and also knowing all about his health :)
 
