@@ -1,3 +1,3 @@
-For this final project I decided to analyze my cat Pumpkin's DNA. 
-pipeline.md shows all the relevant code with comments on the analysis.
-Attached are the fastqc files pre and post trimming as well as a photo of Pumpkin :)
+- For this final project I decided to analyze my cat Pumpkin's DNA. 
+- pipeline.md shows all the relevant code with comments on the analysis.
+- Attached are the fastqc files pre and post trimming as well as a photo of Pumpkin :)
