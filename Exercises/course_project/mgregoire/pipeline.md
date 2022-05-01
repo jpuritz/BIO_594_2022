@@ -171,8 +171,17 @@ The vcf or variant call format files list all the differences between Pumpkin's 
 - `conda install -c bioconda snpeff`
 - `snpEff Felis_catus_9.0.99 aln-R163var.vcf > EFF.R163.vcf`
 
-## Visualize VCF data with vcfR
-We will use vcfR to visualize the vcf files of Pumpkin's SNPs. VcfR is an R package intended to help visualize, manipulate, and quality filter data in VCF files.
+## Visualize VCF data in R 
+Next to visualize Pumpkin's SNPs we need to move to R Studio. The kitt R Studio was taking a long time to load the vcf files. So I sftp'd them directly onto my computer to use with my own R Studio. We will use vcfR and CMplot to visualize the vcf files of Pumpkin's SNPs. VcfR is an R package intended to help visualize, manipulate, and quality filter data in VCF files. CMplot is a high-quality drawing tool which makes Manhattan plots of genomic analysis. 
+
+- `sftp -P {port number here} {username}@kitt.uri.edu`
+- `cd FinalProject`
+- `lcd Documents\Pumpkin`
+- `get pumpkin_102.hard-filtered.gvf`
+- `cd ncbi-genomes-2022-04-21`
+- `get aln-R163var.vcf | get EFF.R163.vcf`
+
+Now open R Studio:
 
 ```
 library(vcfR)
@@ -207,11 +216,7 @@ heatmap.bp(dp[1001:1500,])
 is.na(dp[na.omit(dp == 0)]) <- TRUE
 heatmap.bp(dp[1001:1500,])
 
-
-
-prep.data <- radiator::tidy_vcf(data = "populations.snps.vcf")
 ```
-https://github.com/pwwang/vcfstats <----use this this will be cool
 
 ## Compare with the conclusions sent in Pumpkin's report!
 Pumpkin's report from Basepaws was broken down into three main parts: a breed profile, a dental report, and his genetic report.
