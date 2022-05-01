@@ -11,12 +11,476 @@ knitr::opts_chunk$set(echo = TRUE)
 This project uses data from 68 metagenomes collected between September 2017 and March 2020. Many of the scripts used to filter the reads, assemble them into contigs, and bin the contigs into Metagenome Assembled Genomes (MAGs) are not included here. 
 
 The main focus of this work is the exploration of strain-level diversity in Nitrosopumulis sp. in Narragansett Bay. To achieve this goal, we:
-  1. Selected a representative Nitrosopumulis MAG from the metagenomic time series
-  2. Identified varaints and strains
-  3. Employed Empirical Dynamic Modeling (EDM) to identify environmental factors     influencing strain diversity
-  
+  1. Read quality filtering
+  2. NGS read assembly 
+  3. Identification of high-quality Metagenome Assembled Geneomes (MAGs)
+  4. Selected a representative Nitrosopumulis MAG from the metagenomic time series
+  5. Identify variants 
+  6. Cluster samples by conspecfic varaint composition 
 
-Part 1: Selecting a representative Nitrosopumulis MAG  
+Part 1: NGS read quality filtering 
+
+This slurm array job begins with combining the reads from the separate lanes into forward and reverse read files for each sample. Next, PCR duplicates are removed using the clumpify.sh module in the BBtools (v.38.87) software package. The overlapping deduplicated reads were then merged together using bbmerge.sh from the BBtools package. Next the adapters are removed from the reads, low-quality bases are trimmed from the reads, and the quality-trimmed reads that are shorter 251 bp long are dropped using Trimmomatic (v. 0.39). The unmerged reads can suffer from an abundance of erroneous homopolymer repeats. To remove these reads, AfterQC (v. 0.9.7) was used. In preparation for metagenomic read assembly, the quality filtered reads were normalized  to 100 - i.e. reads containing k-mers observed more than 100 times in the sample were removed - using the bbnorm.sh script from BBtools. 
+
+```{bash}
+#!/bin/bash
+#SBATCH -t 100:00:00
+#SBATCH --nodes=1
+#SBATCH --exclusive
+#SBATCH --mem=120GB
+#SBATCH --array=1-68%10
+
+
+Raw_MGs="/data4/zpimentel/Projects/NB_Metagenomes/raw_data_NB"
+READ_FILT_OUTDIRS="/data/zhanglab/dbrichardson/projects/NB/analyses/01_QC/read_filtering"
+ANALYSIS_DIR_UDIR="/data/zhanglab/dbrichardson/projects/NB/analyses"
+FILE=($(cat ${ANALYSIS_DIR_UDIR}/collapsed_sample.list | head -n $SLURM_ARRAY_TASK_ID | tail -1))
+
+
+echo "Starting Run"
+date
+
+### Combine L1 and L2 -> Clumpify -> Merge -> QC -> Normalize (target=100 min=1)  ###
+
+#Combining raw reads into single
+cat ${Raw_MGs}/${FILE}_L00[1-2]_R1_001.fastq.gz > ${READ_FILT_OUTDIRS}/A_Combine/${FILE}_R1.fastq.gz
+cat ${Raw_MGs}/${FILE}_L00[1-2]_R2_001.fastq.gz > ${READ_FILT_OUTDIRS}/A_Combine/${FILE}_R2.fastq.gz
+
+#Loading BBMap 38.87
+module load BBMap/38.87-foss-2020b
+#PCR deduplication
+clumpify.sh -Xmx50g in=${READ_FILT_OUTDIRS}/A_Combine/${FILE}_R1.fastq.gz in2=${READ_FILT_OUTDIRS}/A_Combine/${FILE}_R2.fastq.gz \
+ out=${READ_FILT_OUTDIRS}/B_Clumpify/${FILE}_R1_clumpified.fastq.gz out2=${READ_FILT_OUTDIRS}/B_Clumpify/${FILE}_R2_clumpified.fastq.gz \
+  groups=64 dedupe=t subs=0
+
+#Merge the reads
+bbmerge.sh in1=${READ_FILT_OUTDIRS}/B_Clumpify/${FILE}_R1_clumpified.fastq.gz in2=${READ_FILT_OUTDIRS}/B_Clumpify/${FILE}_R2_clumpified.fastq.gz \
+   out=${READ_FILT_OUTDIRS}/C_Merge/${FILE}_merged.fastq.gz outu1=${READ_FILT_OUTDIRS}/C_Merge/${FILE}_R1.fastq.gz outu2=${READ_FILT_OUTDIRS}/C_Merge/${FILE}_
+R2.fastq.gz \
+#Removing module
+module purge
+
+#Loading Trimmomatic 0.39
+module load Trimmomatic/0.39-Java-11
+
+# quality trim, remove adapters, and remove the merged pairs smaller than 251bp
+java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar SE -threads 20 ${READ_FILT_OUTDIRS}/C_Merge/${FILE}_merged.fastq.gz ${READ_FILT_OUTDIRS}/D_Trimmomatic/merge
+d/${FILE}_merged.fastq.gz MINLEN:251 LEADING:3 TRAILING:3 \
+  ILLUMINACLIP:${READ_FILT_OUTDIRS}/adapters.fa:2:30:10 SLIDINGWINDOW:4:15
+
+# quality trim the unmerged reads
+java -jar $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 20 ${READ_FILT_OUTDIRS}/C_Merge/${FILE}_R1.fastq.gz ${READ_FILT_OUTDIRS}/C_Merge/${FILE}_R2.fastq.gz \
+${READ_FILT_OUTDIRS}/D_Trimmomatic/unmerged/${FILE}_R1_paired.fastq.gz \
+${READ_FILT_OUTDIRS}/D_Trimmomatic/unmerged/${FILE}_R1_unpaired.fastq.gz \
+${READ_FILT_OUTDIRS}/D_Trimmomatic/unmerged/${FILE}_R2_paired.fastq.gz \
+${READ_FILT_OUTDIRS}/D_Trimmomatic/unmerged/${FILE}_R2_unpaired.fastq.gz \
+ILLUMINACLIP:${READ_FILT_OUTDIRS}/adapters.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:90
+
+#Removing module
+module purge
+
+#Loading AfterQC 0.9.7
+module load AfterQC/0.9.7-GCCcore-10.2.0-Python-2.7.18
+
+# AfterQC on the paired R1 and R2
+after.py -1 ${READ_FILT_OUTDIRS}/D_Trimmomatic/unmerged/${FILE}_R1_paired.fastq.gz \
+  -2 ${READ_FILT_OUTDIRS}/D_Trimmomatic/unmerged/${FILE}_R2_paired.fastq.gz -g ${READ_FILT_OUTDIRS}/E_AfterQC -p 20 -a 5 -s 90
+
+#Removing module
+module purge
+
+#Loading BBMap 38.87
+module load BBMap/38.87-foss-2020b
+#Normalize the forward and reverse reads
+bbnorm.sh in=${READ_FILT_OUTDIRS}/E_AfterQC/${FILE}_R1_paired.good.fq.gz in2=${READ_FILT_OUTDIRS}/E_AfterQC/${FILE}_R2_paired.good.fq.gz \
+  out=${READ_FILT_OUTDIRS}/G_BBnorm/${FILE}_R1_001_normed.good.fastq.gz out2=${READ_FILT_OUTDIRS}/G_BBnorm/${FILE}_R2_001_normed.fastq.gz \
+  target=100 min=1
+#Normalize the merged reads
+bbnorm.sh in=${READ_FILT_OUTDIRS}/D_Trimmomatic/merged/${FILE}_merged.fastq.gz \
+  out=${READ_FILT_OUTDIRS}/G_BBnorm/${FILE}_merged.normed.fastq.gz \
+  target=100 min=1
+#Removing module
+module purge
+
+echo "Ending Run"
+date
+```
+
+Part 2: NGS read assembly
+
+To study Nitrosopumilis population structure, the  short NGS reads were assembled into contigs using metaSPAdes (v. 3.15.2). This program can be very memory intensive, so it was run using the High Performance Computing Clusters Andromeda and Bluewaves. When Bluewaves was used, it was necessary to move the files from the data directory to the data4 directory. 
+```{bash}
+#!/bin/bash
+#SBATCH -t 100:00:00
+#SBATCH --nodes=1
+#SBATCH --exclusive
+#SBATCH --array=1-68%10
+#SBATCH --mem=256GB
+##SBATCH --mem=500GB
+
+
+FILEPATH="/data/zhanglab/dbrichardson/projects/NB/analyses/01_QC/L_BBnorm"
+OUTDIR="/data/zhanglab/dbrichardson/projects/NB/analyses/02_Assembly/metaSpades_assemblies"
+
+#Some samples were run on bluewaves and were stored in this directory
+DATA4_DIR="/data4/zpimentel/dbrichardson"
+
+FILE=($(cat ${ANALYSIS_DIR_UDIR}/collapsed_sample.list | head -n $SLURM_ARRAY_TASK_ID | tail -1))
+
+
+echo "Starting Run"
+date
+
+#moving samples run on bluewaves to the data4 directory
+cp /data/zhanglab/dbrichardson/projects/NB/analyses/01_QC/read_filtering/G_BBnorm/${FILE}_R1_001_normed.fastq.gz ${DATA4_DIR}/. 
+cp /data/zhanglab/dbrichardson/projects/NB/analyses/01_QC/read_filtering/G_BBnorm/${FILE}_R2_001_normed.fastq.gz ${DATA4_DIR}/. 
+cp /data/zhanglab/dbrichardson/projects/NB/analyses/01_QC/read_filtering/G_BBnorm/${FILE}_merged.normed.fastq.gz /data4/zpimentel/dbrichardson/. 
+
+module load SPAdes/3.15.2-GCC-10.2.0
+
+cd /data/zhanglab/dbrichardson/projects/NB/analyses/02_Assembly/tests/
+
+#using metaSPAdes
+spades.py --meta --only-assembler -m 1000 -t 20 -1 ${FILEPATH}/${FILE}_R1_001_normed.good.fastq.gz -2 ${FILEPATH}/${FILE}_R2_001_normed.fastq.gz \
+--merged ${FILEPATH}/${FILE}_merged.normed.fastq.gz -o ${OUTDIR}${FILE}_OUTDIR
+
+module purge
+
+#removing files from data4 (if applicable)
+rm ${DATA4_DIR}/${FILE}_R1_001_normed.fastq.gz
+rm ${DATA4_DIR}/${FILE}_R2_001_normed.fastq.gz
+rm ${DATA4_DIR}/${FILE}_merged.normed.fastq.gz
+
+echo "Ending Run"
+date
+
+```
+
+Part 3: Identifying MAGs
+
+This array job builds a bowtie2 index for each contig in every  metagenome assembly using Bowtie2 (v. 2.4.1). It then calls the script below to map the quality filtered reads to the contigs. 
+```{bash}
+#!/bin/bash
+#SBATCH -t 100:00:00
+#SBATCH --array=1-68%2
+#SBATCH --mem=120GB
+
+ANALYSIS_ROOT="/data/zhanglab/dbrichardson/projects/NB/analyses"
+FILE=($(cat ${ANALYSIS_ROOT}/collapsed_sample.list | head -n $SLURM_ARRAY_TASK_ID | tail -1))
+CONTIGS_FILEPATH="/data/zhanglab/dbrichardson/projects/NB/analyses/02_Assembly/metaSpades_assemblies/${FILE}_OUTDIR/contigs.fasta"
+BT2_INDICIES="/data2/dbrichardson/projects/NB/04_binning/bt2_indices/${FILE}_contigs"
+DATA2_CONTIGS="/data2/dbrichardson/projects/NB/04_binning/contigs"
+SCRIPTS="/data/zhanglab/dbrichardson/projects/NB/scripts/04_Taxonomy_scripts/drafts"
+RR_REPORTS_DIR="/data2/dbrichardson/projects/NB/04_binning/read_recruitment_reports"
+
+echo "Starting Run"
+date
+
+
+#Load bowtie2 v 2.4.1 module
+module load Bowtie2/2.4.1-GCC-8.3.0
+
+#Making a directory for the sample's bowtie2 index
+mkdir ${BT2_INDICIES}
+
+#loading python3 module
+module load Python/3.7.4-GCCcore-8.3.0
+
+#Create a bowtie2 index
+bowtie2-build -f ${CONTIGS_FILEPATH} ${BT2_INDICIES}/${FILE}_contigs
+
+#Use the read recruitment script to map reads in the metagenome back to the assembled contigs
+sbatch ${SCRIPTS}/recruit_reads_10022021.sh ${FILE}
+
+#Remove module
+module purge
+
+#This spaces out the array, so that it doesn't monopolize bluewaves completely.
+sleep 10h
+
+echo "Ending Run"
+date
+```
+
+This array job uses Bowtie2 to align the quality filtered reads from each sample to all of the contigs produced by metaSPAdes. Then, it uses samtools (v. 1.10) to convert the sam files to bam files, to sort the bam files, and then index the bam files. 
+
+```{bash}
+#!/bin/bash
+#SBATCH -t 100:00:00
+#SBATCH --array=1-68%15
+#SBATCH --mem=120GB
+#SBATCH --exclusive
+FILE=${1}
+CONTIGS_FILEPATH="/data/zhanglab/dbrichardson/projects/NB/analyses/02_Assembly/metaSpades_assemblies/${FILE}_OUTDIR/contigs.fasta"
+ANALYSIS_ROOT="/data/zhanglab/dbrichardson/projects/NB/analyses"
+R_FILTERED_READS="/data/zhanglab/dbrichardson/projects/NB/analyses/01_QC/read_filtering/E_AfterQC"
+M_FILTERED_READS="/data/zhanglab/dbrichardson/projects/NB/analyses/01_QC/read_filtering/D_Trimmomatic/merged"
+BT2_INDICIES="/data2/dbrichardson/projects/NB/04_binning/bt2_indices/${FILE}_contigs"
+OUTDIR_0="/data2/dbrichardson/projects/NB/04_binning/read_mappings"
+
+FILE2=($(cat ${ANALYSIS_ROOT}/collapsed_sample.list | head -n $SLURM_ARRAY_TASK_ID | tail -1))
+
+cd /data2/dbrichardson/projects/NB/04_binning/read_recruitment_reports
+
+echo "Beginning Read Recruitment"
+date
+
+mkdir ${OUTDIR_0}/${FILE}_read_mappings_nt_normed
+OUTDIR="${OUTDIR_0}/${FILE}_read_mappings_nt_normed"
+
+#Load bowtie2 v 2.4.1
+module load Bowtie2/2.4.1-GCC-8.3.0
+
+#Load python 3
+module load Python/3.7.4-GCCcore-8.3.0
+
+#Load SAMtools
+module load SAMtools/1.10-GCC-8.3.0
+#looks for reads that map to each contig in the merged, R1, and R2 files.
+bowtie2 --sensitive-local --no-unal -p $SLURM_CPUS_ON_NODE -x ${BT2_INDICIES}/${FILE}_contigs \
+-1 ${R_FILTERED_READS}/${FILE2}_R1_paired.good.fq.gz  \
+-2 ${R_FILTERED_READS}/${FILE2}_R2_paired.good.fq.gz \
+-U ${M_FILTERED_READS}/${FILE2}_merged.fastq.gz \
+| samtools view -bS - | samtools sort -o ${OUTDIR}/${FILE2}_sorted.bam
+
+#Index the BAM files
+samtools index -b ${OUTDIR}/${FILE2}_sorted.bam ${OUTDIR}/${FILE2}_sorted.bai
+
+module purge
+
+echo "Ending Read Recruitment"
+date
+
+```
+
+Binning the contigs, clustering the contigs together based on their k-mer composition and abundance, using metabat2 (v. 2.12.1)
+
+```{bash}
+#!/bin/bash
+#SBATCH -t 100:00:00
+#SBATCH --nodes=1
+#SBATCH --exclusive
+#SBATCH --mem=120GB
+#SBATCH --array=1-68%15
+
+
+FILE=($(cat /data/zhanglab/dbrichardson/projects/NB/analyses/collapsed_sample.list | head -n $SLURM_ARRAY_TASK_ID | tail -1))
+CONTIGS_FILEPATH="/data/zhanglab/dbrichardson/projects/NB/analyses/02_Assembly/metaSpades_assemblies/${FILE}_OUTDIR/contigs.fasta"
+BAM_FILES="/data2/dbrichardson/projects/NB/04_binning/read_mappings/${FILE}_read_mappings_nt_normed"
+BINNING_RESULTS="/data/zhanglab/dbrichardson/projects/NB/analyses/04_Taxonomy/cellular_orgs/binning/mb2/${FILE}_bins"
+
+
+echo "Starting Run"
+date
+
+#Load metabat2
+module load MetaBAT/2.12.1-foss-2018b-Python-2.7.15
+
+mkdir ${BINNING_RESULTS}
+
+cd ${BINNING_RESULTS}
+
+#build a depth file
+jgi_summarize_bam_contig_depths --outputDepth ${BINNING_RESULTS}/${FILE}_contig_depth.txt ${BAM_FILES}/*_sorted.bam
+
+#Move to results directory
+cd ${BINNING_RESULTS}
+
+#bin the contigs
+metabat2 -i ${CONTIGS_FILEPATH} -a ${BINNING_RESULTS}/${FILE}_contig_depth.txt -o ${BINNING_RESULTS}/bins
+#bin the contigs
+metabat2 -i ${CONTIGS_FILEPATH} -a ${BINNING_RESULTS}/${FILE}_contig_depth.txt -o ${BINNING_RESULTS}/bins
+
+module purge
+
+echo "Ending Run"
+date
+```
+
+Binning the contigs using CONCOCT (v. 1.1.0)
+```{bash}
+#!/bin/bash
+#SBATCH -t 100:00:00
+#SBATCH --nodes=1
+#SBATCH --exclusive
+#SBATCH --mem=120GB
+#SBATCH --array=1-68%15
+
+
+FILE=($(cat /data/zhanglab/dbrichardson/projects/NB/analyses/collapsed_sample.list | head -n $SLURM_ARRAY_TASK_ID | tail -1))
+CONTIGS_FILEPATH="/data/zhanglab/dbrichardson/projects/NB/analyses/02_Assembly/metaSpades_assemblies/${FILE}_OUTDIR/contigs.fasta"
+BINNING_RESULTS="/data/zhanglab/dbrichardson/projects/NB/analyses/04_Taxonomy/cellular_orgs/binning/cct/${FILE}_bins"
+BAM_FILES="/data2/dbrichardson/projects/NB/04_binning/read_mappings/${FILE}_read_mappings_nt_normed"
+BAM_FILES_SUBSET="${BINNING_RESULTS}/mappings"
+
+echo "Starting Run"
+date
+
+#Load Anaconda3 4.2.0
+module load Anaconda3/4.2.0
+
+
+#Activate binning environment
+source activate binning
+
+#Setting up directory for binning
+mkdir ${BINNING_RESULTS}
+
+#Setting up directory for BAM files on /Data
+mkdir ${BINNING_RESULTS}/mappings
+
+#Copying read mappings to binning directory
+cp ${BAM_FILES}/*  /${BAM_FILES_SUBSET}
+
+#Breaking contigs file into smaller parts
+cut_up_fasta.py ${CONTIGS_FILEPATH} -c 10000 -o 0 --merge_last -b ${BINNING_RESULTS}/${FILE}_contigs_10K.bed > ${BINNING_RESULTS}/${FILE}_contigs_10K.fna
+
+#Making a coverage depth table
+concoct_coverage_table.py ${BINNING_RESULTS}/${FILE}_contigs_10K.bed ${BAM_FILES_SUBSET}/*_sorted.bam > ${BINNING_RESULTS}/${FILE}_coverage_table.tsv
+
+#Using CONCOCT to bin the contigs
+concoct -t 36 --composition_file ${BINNING_RESULTS}/${FILE}_contigs_10K.fna -l 2500 --coverage_file ${BINNING_RESULTS}/${FILE}_coverage_table.tsv -b ${BINNING
+_RESULTS}
+
+#Combining contig chunk clustering results to get the original contig clustering results
+merge_cutup_clustering.py ${BINNING_RESULTS}/clustering_gt2500.csv > ${BINNING_RESULTS}/${FILE}_clustering_merged.csv
+
+#Setting up a directory for the binned contigs
+mkdir ${BINNING_RESULTS}/${FILE}_fasta_bins
+
+#Extracting the bins as individual FASTA files
+extract_fasta_bins.py ${CONTIGS_FILEPATH} ${BINNING_RESULTS}/${FILE}_clustering_merged.csv --output_path ${BINNING_RESULTS}/${FILE}_fasta_bins
+
+#Removing read mappings from binning directory
+rm ${BAM_FILES_SUBSET}/*
+
+echo "Ending Run"
+date
+```
+
+Binning the contigs using MaxBin2 (v. 2.2.7)
+```{bash}
+#!/bin/bash
+#SBATCH -t 100:00:00
+#SBATCH --nodes=1
+#SBATCH --exclusive
+#SBATCH --mem=120GB
+##SBATCH --array=2
+#SBATCH --array=3-68%10
+
+
+FILE=($(cat /data/zhanglab/dbrichardson/projects/NB/analyses/collapsed_sample.list | head -n $SLURM_ARRAY_TASK_ID | tail -1))
+CONTIGS_FILEPATH="/data/zhanglab/dbrichardson/projects/NB/analyses/02_Assembly/metaSpades_assemblies/${FILE}_OUTDIR/contigs.fasta"
+DATA2_BAM_FILES="/data2/dbrichardson/projects/NB/04_binning/read_mappings/${FILE}_read_mappings_nt_normed"
+BINNING_RESULTS="/data/zhanglab/dbrichardson/projects/NB/analyses/04_Taxonomy/cellular_orgs/binning/mxb2/${FILE}_bins"
+BAM_FILES="${BINNING_RESULTS}/mappings"
+
+echo "Starting Run"
+date
+
+#Making directory for the MaxBin2 picked bins
+mkdir ${BINNING_RESULTS}
+
+#Making a directory for the mapping files on /Data
+mkdir ${BAM_FILES}
+
+#Copying mapping files to /data
+cp ${DATA2_BAM_FILES}/* /${BAM_FILES}
+
+#Load the MetaBat2 modle to make the contig depth files
+module load MetaBAT/2.12.1-foss-2018b-Python-2.7.15
+
+#Move to results directory
+cd ${BINNING_RESULTS}
+
+#Creating a contig depth file
+jgi_summarize_bam_contig_depths --noIntraDepthVariance --outputDepth ${BINNING_RESULTS}/${FILE}_contig_depth.txt ${BAM_FILES}/*_sorted.bam
+#Removing the module
+module purge
+
+#Using metaWRAP pipline guidence
+
+#calculate total numper of columns
+A=($(head -n 1 ${BINNING_RESULTS}/${FILE}_contig_depth.txt))
+N=${#A[*]}
+  # split the contig depth file into multiple files
+echo "split master contig depth file into individual files for maxbin2 input"
+for i in $(seq 4 $N); do
+        sample=$(head -n 1 ${BINNING_RESULTS}/${FILE}_contig_depth.txt | cut -f $i)
+        echo "processing $sample depth file..."
+        grep -v totalAvgDepth ${BINNING_RESULTS}/${FILE}_contig_depth.txt | cut -f 1,$i > ${BINNING_RESULTS}/${FILE}_mb2_${sample%.*}.txt
+        if [[ ${BINNING_RESULTS} == /* ]]; then
+                echo ${BINNING_RESULTS}/${FILE}_mb2_${sample%.*}.txt >> ${BINNING_RESULTS}/${FILE}_mb2_abund_list.txt
+        else
+                echo $(pwd)/${BINNING_RESULTS}/${FILE}_mb2_${sample%.*}.txt >> ${BINNING_RESULTS}/${FILE}_mb2_abund_list.txt
+        fi
+done
+
+#Load maxbin2
+module load MaxBin/2.2.7-gompi-2020b
+
+#Making a directory for the bins
+mkdir ${BINNING_RESULTS}/bins
+
+#Running MaxBin2
+run_MaxBin.pl -contig ${CONTIGS_FILEPATH} \
+-out ${BINNING_RESULTS}/bins/${FILE}_mxb2_bins \
+-thread 36 \
+-markerset 40 \
+-min_contig_length 2500 \
+-abund_list ${BINNING_RESULTS}/${FILE}_mb2_abund_list.txt
+
+#removing the mapping files from /Data to save space
+rm ${BAM_FILES}/*
+#removing some extra files from /Data to save space
+rm ${BINNING_RESULTS}/*_sorted.txt
+
+echo "Ending Run"
+date
+
+```
+
+Finding high-quality MAGs using metaWRAP (v. 1.13)
+
+Some samples needed to run with 250GB or 510GB  of RAM, but this is how the vast majority were run. All samples were analyzed using the same metaWRAP parameters. 
+```{bash}
+#!/bin/bash
+#SBATCH -t 100:00:00
+#SBATCH --nodes=1
+#SBATCH --exclusive
+#SBATCH --mem=120GB
+##SBATCH --array=64
+#SBATCH --array=1-68%7
+
+
+FILE=($(cat /data/zhanglab/dbrichardson/projects/NB/analyses/collapsed_sample.list | head -n $SLURM_ARRAY_TASK_ID | tail -1))
+OUTDIR="/data/zhanglab/dbrichardson/projects/NB/analyses/04_Taxonomy/cellular_orgs/binning/mWRAP_refined_bins"
+MB2_BINS="/data/zhanglab/dbrichardson/projects/NB/analyses/04_Taxonomy/cellular_orgs/binning/mb2"
+CCT_BINS="/data/zhanglab/dbrichardson/projects/NB/analyses/04_Taxonomy/cellular_orgs/binning/cct"
+MXB2_BINNING_RESULTS="/data/zhanglab/dbrichardson/projects/NB/analyses/04_Taxonomy/cellular_orgs/binning/mxb2/${FILE}_bins"
+
+echo "Starting Run"
+date
+
+#Loading the metaWRAP module
+module load metaWRAP/1.3-foss-2020b-Python-2.7.18
+
+#Using the bin refinement module to find the best bins
+metawrap bin_refinement -o ${OUTDIR}/${FILE}_BIN_REFINEMENT -t 96 -A ${MB2_BINS}/${FILE}_bins/ -B ${MXB2_BINNING_RESULTS}/fasta_bins -C ${CCT_BINS}/${FILE}_bins/${FILE}_fasta_bins/ -c 50 -x 10
+
+#remove the copies of the bins after metWRAP finished binning
+rm -r ${OUTDIR}/${FILE}_BIN_REFINEMENT/${FILE}_bins
+rm -r ${OUTDIR}/${FILE}_BIN_REFINEMENT/${FILE}_fasta_bins
+rm -r ${OUTDIR}/${FILE}_BIN_REFINEMENT/fasta_bins
+
+#remove the intermediate files
+rm -rf ${OUTDIR}/${FILE}_BIN_REFINEMENT/work_files
+
+echo "Ending Run"
+date
+```
+
+Part 4: Selecting a representative Nitrosopumulis MAG 
 
 
 This creates a csv file with each MAGs score. This score incorporates estimated genome completeness and contamination as well as genome length. 
@@ -120,7 +584,7 @@ done
 
 This is the highest scoring Nitrosopumulis MAG
 ```{bash}
-grep "Nitrosopumulis" ${clust_by_taxonomy_DIR}/sp_level_rep_MAGS.list
+cat ${clust_by_taxonomy_DIR}/sp_level_rep_MAGS.list | grep "Nitrosopumulis" 
 ```
 
 /data2/dbrichardson/projects/NB/04_binning/HQ_MAGs/ZTP33_S7_completeness_76.27_contamination_0.970_length_900089_bin.42.fa
@@ -150,6 +614,8 @@ bowtie2-build --threads ${SLURM_CPUS_ON_NODE} -f ${REP_MAG} ${BT2_INDICIES}/Nitr
 echo "Ending"
 date
 ```
+
+Part 5: Identify variants 
 
 This pipeline maps quality filtered reads to the representative Nitrosopumilus genome, uses GATK HaplotypeCaller to find variants, and then uses GATK's GenotypeGVCFs.
 ```{bash}
@@ -256,4 +722,105 @@ echo "Ending"
 date
 
 ```
+
+Selecting the SNPs
+```{bash}
+DATA_DIR="/data2/dbrichardson/projects/NB/05_Pop_Evo_Genomics/Nitro"
+
+#This creates a SNPs variant file
+gatk SelectVariants \
+    -V ${DATA_DIR}/NB_Nitrosopumilus_all_jc.g.vcf.gz \
+    -select-type SNP \
+    -O ${DATA_DIR}/NB_Nitrosopumilus_all_jc.snps.vcf.gz
+```
+
+Part 6: Cluster 
+
+This filters the variants
+```{r}
+library(vcfR)
+library(ape)
+
+#reading in the VCF
+my_vcf <- read.vcfR("~/research_data/NB_Nitrosopumilus_all_jc.g.vcf.gz")
+#Reading in the representative MAG
+dna <- ape::read.dna("~/research_data/ZTP33_S7_bin_42_completeness_76_27_contamination_0_970_length_900089.fa", format="fasta")
+#Reading in the called genes 
+gff <- read.table("~/research_data/nitrosopumilus_genes.gff", sep="\t", quote="")
+
+chrom <- create.chromR(name="Nitro Genome", vcf=my_vcf, seq=dna, ann=gff)
+
+plot(chrom)
+chromqc(chrom)
+```
+
+Filtering the variants based on the GATK recommendations, the depth distribution from the ChromR plots, and some recommendations from Olm et al., 2021.
+```{bash}
+#This hard filters SNP variant file
+gatk VariantFiltration \
+    -V ${DATA_DIR}/NB_Nitrosopumilus_all_jc.snps.vcf.gz \
+    -filter "QD < 2.0" --filter-name "QD2" \
+    -filter "QUAL < 30.0" --filter-name "QUAL30" \
+    -filter "SOR > 3.0" --filter-name "SOR3" \
+    -filter "FS > 60.0" --filter-name "FS60" \
+    -filter "MQ < 40.0" --filter-name "MQ40" \
+    -filter "DP < 300" --filter-name "MinDP" \
+    -filter "DP > 600" --filter-name "MaxDP" \
+    -filter "MQRankSum < -12.5" --filter-name "MQRankSum-12.5" \
+    -filter "ReadPosRankSum < -8.0" --filter-name "ReadPosRankSum-8" \
+    -G-filter "GQ < 20" -G-filter-name "GQ20" \
+    -filter "AC < 5" --filter-name "AC5" \
+    -filter "AF < 0.05" --filter-name "AF5pct" \
+    -O ${DATA_DIR}/NB_Nitrosopumilus_all_jc.snps_filtered.vcf.gz
+
+#Pruning out all unwanted variants
+gatk SelectVariants \
+    -V NB_Nitrosopumilus_all_jc.snps_filtered.vcf.gz \
+    --exclude-filtered \
+    -O NB_Nitrosopumilus_all_jc.snps_hq_filtered.vcf.gz
+```
+Uploading filtered VCF into R and inspecting it
+```{r}
+#reading in the filtered VCF file.
+my_vcf2 <- read.vcfR("~/research_data/NB_Nitrosopumilus_all_jc.snps_hq_filtered.vcf.gz")
+
+#Creating a chromR object that concatenates all of the contigs into a single chromosome 
+chrom2 <- create.chromR(name="Nitro Genome", vcf=my_vcf2, seq=dna, ann=gff)
+
+#Inspecting the new ChromR object 
+plot(chrom2)
+chromoqc(chrom2)
+```
+
+Performing the clustering of the samples
+```{r}
+library(adegenet)
+
+#converting the ChromR object into a vcfR object
+edited_vcf <- chromR2vcfR(chrom2)
+#creating a genind object for 
+my_genind2 <- vcfR2genind(edited_vcf)
+#Indicating that the samples contain haploid organisms
+ploidy(my_genind2) <- 1
+
+X <- tab(my_genind2, freq = T, NA.method = "mean")
+pca1 <- dudi.pca(X, scale = FALSE, scannf = FALSE, nf = 3)
+barplot(pca1$eig[1:50], main = "PCA eigenvalues", col = heat.colors(50))
+s.label(pca1$li, clabel=0.3) + title("PCA of Nitrosopumilus dataset\naxes 1-2") + add.scatter.eig(pca1$eig[1:20], 3,1,2)
+colorplot(pca1$li, pca1$li, transp=TRUE, cex=0.5, xlab="PC 1", ylab="PC 2" )
+
+grp <- find.clusters(my_genind2, max.n.clust=48)#PCs 20, clusters 5
+names(grp)
+
+head(grp$grp, 10)
+grp$size
+dapc1 <- dapc(my_genind2, grp$grp)# PCs to retain 3, disc functions 2
+scatter(dapc1)
+
+scatter(dapc1, scree.da=FALSE,
+cell=1.5, cex=2, bg="white",cstar=0)
+
+```
+
+
 
