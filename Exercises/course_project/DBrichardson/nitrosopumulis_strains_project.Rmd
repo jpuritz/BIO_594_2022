@@ -16,7 +16,7 @@ This project uses data from 68 metagenomes collected between September 2017 and 
   5. Identified variants 
   6. Filtered variants and clustered samples by Nitrosopumilus sp. variant composition 
 
-Most of these analyses were performed using the Andromeda and Bluewaves high performance computing clusters. 
+Most of these analyses were performed using the Andromeda and Bluewaves high performance computing clusters. Given the size of the dataset and the fact that much of this work has not yet been published, the data used in steps 1-4 will not be uploaded onto the class GitHub. However, the unfiltered VCF containing the SNPs resulting from the analyses performed in step 5, the representative Nitrosopumilus MAG, and the filtered VCF produced in the middle of step 6 will be uploaded onto the site. 
 
 Part 1: NGS read quality filtering 
 
@@ -859,7 +859,7 @@ gatk SelectVariants \
     -O ${DATA_DIR}/NB_Nitrosopumilus_all_jc.snps.vcf.gz
 ```
 
-Part 6: Variant filtering and clustering  samples by variant compositon.
+Part 6: Variant filtering and clustering  samples by variant composition.
 
 This allowed us to look at variant depth, mapping quality, and other statistics that allowed us filter the called variants. 
 ```{r}
@@ -867,16 +867,14 @@ library(vcfR)
 library(ape)
 
 #reading in the VCF
-my_vcf <- read.vcfR("~/research_data/NB_Nitrosopumilus_all_jc.g.vcf.gz")
+load("./Rdata/my_vcf.Rdata")
 #Reading in the representative MAG
-dna <- ape::read.dna("~/research_data/ZTP33_S7_bin_42_completeness_76_27_contamination_0_970_length_900089.fa", format="fasta")
-#Reading in the called genes 
-gff <- read.table("~/research_data/nitrosopumilus_genes.gff", sep="\t", quote="")
+load("./Rdata/dna.Rdata")
 
-chrom <- create.chromR(name="Nitro Genome", vcf=my_vcf, seq=dna, ann=gff)
+chrom <- create.chromR(name="Nitro Genome", vcf=my_vcf, seq=dna)
 
 plot(chrom)
-chromqc(chrom)
+chromoqc(chrom)
 ```
 
 Filtering the variants based on the GATK recommendations, the depth distribution from the ChromR plots, and some recommendations from Olm et al., 2021.
@@ -904,13 +902,13 @@ gatk SelectVariants \
     --exclude-filtered \
     -O NB_Nitrosopumilus_all_jc.snps_hq_filtered.vcf.gz
 ```
-Uploading filtered VCF into R and inspecting it
+Uploading filtered VCF into R and inspecting it. Rdata is included in the GitHub
 ```{r}
 #reading in the filtered VCF file.
-my_vcf2 <- read.vcfR("~/research_data/NB_Nitrosopumilus_all_jc.snps_hq_filtered.vcf.gz")
+load("./Rdata/my_vcf2.Rdata")
 
 #Creating a chromR object that concatenates all of the contigs into a single chromosome 
-chrom2 <- create.chromR(name="Nitro Genome", vcf=my_vcf2, seq=dna, ann=gff)
+chrom2 <- create.chromR(name="Nitro Genome", vcf=my_vcf2, seq=dna)
 
 #Inspecting the new ChromR object 
 plot(chrom2)
@@ -934,23 +932,12 @@ pca1 <- dudi.pca(X, scale = FALSE, scannf = FALSE, nf = 3)
 barplot(pca1$eig[1:50], main = "PCA eigenvalues", col = heat.colors(50))
 
 #Plotting the results of the PCA
-s.label(pca1$li, clabel=0.3)
-title("PCA of Nitrosopumilus dataset\naxes 1-2")
+s.label(pca1$li, clabel=0.3) +title("PCA of Nitrosopumilus sp. dataset\naxes 1-2")
 
 #Producing a more colorful version of this plot
 colorplot(pca1$li, pca1$li, transp=TRUE, cex=0.5, xlab="PC 1", ylab="PC 2" )
-
-#Performing DAPC analysis
-grp <- find.clusters(my_genind2, max.n.clust=48)#PCs 20, clusters 5
-names(grp)
-
-dapc1 <- dapc(my_genind2, grp$grp)# PCs to retain 3, disc functions 2
-scatter(dapc1)
-
-#Plotting the results 
-scatter(dapc1, scree.da=FALSE,
-cell=1.5, cex=2, bg="white",cstar=0)
 ```
 
+It looks like some of the samples collected around the same time have similar Nitrosopumilus sp. compositions. Future work will look into environmental factors that might account for this pattern and a more rigorous examination of Nitrosopumilus sp. population-level diversity and evolution. 
 
 
