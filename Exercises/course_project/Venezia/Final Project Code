@@ -155,6 +155,10 @@ java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWEmaf05.re
 #Bayscan 
 BayeScan2.1_linux64bits SNP.TRSdp5p05FHWEBS -nbp 30 -thin 20 
 
+R
+source("plot_R.r")
+plot_bayescan("SNP.TRSdp5p05FH_fst.txt")
+
 #outlier detection with ony 2 alleles
 vcftools --vcf SNP.TRSdp5p05FHWEmaf05.recode.vcf --max-alleles 2 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWE2A
 
