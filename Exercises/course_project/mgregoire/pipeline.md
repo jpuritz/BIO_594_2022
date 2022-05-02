@@ -215,7 +215,7 @@ snps
 
 ```
 ![pchrom](https://github.com/jpuritz/BIO_594_2022/tree/main/Exercises/course_project/mgregoire/pchrom.png)
-![qcchrom](https://github.com/jpuritz/BIO_594_2022/tree/main/Exercises/course_project/mgregoire/qqchrom.png)
+![qcchrom](https://github.com/jpuritz/BIO_594_2022/tree/main/Exercises/course_project/mgregoire/qcrhom.png)
 
 ## Compare with the conclusions sent in Pumpkin's report!
 Pumpkin's report from Basepaws was broken down into three main parts: a breed profile, a dental report, and his genetic report.
