@@ -139,7 +139,7 @@ pop_missing_filter.sh TRSdp5.recode.vcf ../popmap 0.05 1 TRSdp5p05
 dDocent_filters TRSdp5p05.recode.vcf TRSdp5p05 
 vcfallelicprimitives -k -g TRSdp5p05.FIL.recode.vcf |sed 's:\.|\.:\.\/\.:g' > TRSdp5p05F.prim
 vcftools --vcf TRSdp5p05F.prim --recode --recode-INFO-all --remove-indels --out SNP.TRSdp5p05F
-filter_hwe_by_pop.pl -v SNP.TRSdp5p05F.recode.vcf -p ../popmap -c 0.5 -out SNP.TRSdp5p05FHWE
+filter_hwe_by_pop.pl -v SNP.TRSdp5p05F.recode.vcf -p popmap -o SNP.DP3g95p5maf05.HWE -h 0.01
 vcftools --vcf SNP.TRSdp5p05FHWE.recode.vcf --maf 0.05 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWEmaf05
 
 #Convert from vcf to other outputs 
