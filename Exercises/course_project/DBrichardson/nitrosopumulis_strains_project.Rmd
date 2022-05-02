@@ -1,26 +1,26 @@
 ---
 title: "Final Project"
 author: "DB Richardson"
-date: "4/25/2022"
+date: "5/2/2022"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-This project uses data from 68 metagenomes collected between September 2017 and March 2020. Many of the scripts used to filter the reads, assemble them into contigs, and bin the contigs into Metagenome Assembled Genomes (MAGs) are not included here. 
-
-The main focus of this work is the exploration of strain-level diversity in Nitrosopumulis sp. in Narragansett Bay. To achieve this goal, we:
-  1. Read quality filtering
+This project uses data from 68 metagenomes collected between September 2017 and March 2020. The main focus of this work is the exploration of witihin species diversity in the Nitrosopumilus sp. of Narragansett Bay. To achieve this goal, we performed:
+  1. Illumina read quality filtering
   2. NGS read assembly 
   3. Identification of high-quality Metagenome Assembled Geneomes (MAGs)
-  4. Selected a representative Nitrosopumulis MAG from the metagenomic time series
-  5. Identify variants 
-  6. Cluster samples by conspecfic varaint composition 
+  4. Selected a representative Nitrosopumilus MAG from the metagenomic time series
+  5. Identified variants 
+  6. Filtered variants and clustered samples by Nitrosopumilus sp. variant composition 
+
+Most of these analyses were performed using the Andromeda and Bluewaves high performance computing clusters. 
 
 Part 1: NGS read quality filtering 
 
-This slurm array job begins with combining the reads from the separate lanes into forward and reverse read files for each sample. Next, PCR duplicates are removed using the clumpify.sh module in the BBtools (v.38.87) software package. The overlapping deduplicated reads were then merged together using bbmerge.sh from the BBtools package. Next the adapters are removed from the reads, low-quality bases are trimmed from the reads, and the quality-trimmed reads that are shorter 251 bp long are dropped using Trimmomatic (v. 0.39). The unmerged reads can suffer from an abundance of erroneous homopolymer repeats. To remove these reads, AfterQC (v. 0.9.7) was used. In preparation for metagenomic read assembly, the quality filtered reads were normalized  to 100 - i.e. reads containing k-mers observed more than 100 times in the sample were removed - using the bbnorm.sh script from BBtools. 
+This slurm array job begins with combining the reads from the separate lanes into forward and reverse read files for each sample. Next, PCR duplicates were removed using the clumpify.sh module in the BBtools (v.38.87) software package. The overlapping de-duplicated reads were then merged together using bbmerge.sh, another module from the BBtools package. Then, adapters were removed from the reads, low-quality bases were trimmed from the reads, and the quality-trimmed reads that are shorter 251 bp long are dropped using Trimmomatic (v. 0.39). Unmerged reads can suffer from an abundance of erroneous homopolymer repeats. To remove these reads, AfterQC (v. 0.9.7) was used. In preparation for metagenomic read assembly, the quality-filtered reads were normalized  to 100 - i.e. reads containing k-mers observed more than 100 times in the sample were removed - using the bbnorm.sh script from BBtools. 
 
 ```{bash}
 #!/bin/bash
@@ -108,7 +108,7 @@ date
 
 Part 2: NGS read assembly
 
-To study Nitrosopumilis population structure, the  short NGS reads were assembled into contigs using metaSPAdes (v. 3.15.2). This program can be very memory intensive, so it was run using the High Performance Computing Clusters Andromeda and Bluewaves. When Bluewaves was used, it was necessary to move the files from the data directory to the data4 directory. 
+To study Nitrosopumilis population structure, the  short NGS reads were assembled into contigs using metaSPAdes (v. 3.15.2). This program can be very memory intensive, so it was necessary to run these jobs in parallel using the High Performance Computing Clusters Andromeda and Bluewaves. When Bluewaves was used, it was necessary to move the files from the data directory to the data4 directory. A few of the samples required up to 500GB of RAM and so the higher memory requirement is shown in the code below
 ```{bash}
 #!/bin/bash
 #SBATCH -t 100:00:00
@@ -136,9 +136,10 @@ cp /data/zhanglab/dbrichardson/projects/NB/analyses/01_QC/read_filtering/G_BBnor
 cp /data/zhanglab/dbrichardson/projects/NB/analyses/01_QC/read_filtering/G_BBnorm/${FILE}_R2_001_normed.fastq.gz ${DATA4_DIR}/. 
 cp /data/zhanglab/dbrichardson/projects/NB/analyses/01_QC/read_filtering/G_BBnorm/${FILE}_merged.normed.fastq.gz /data4/zpimentel/dbrichardson/. 
 
+#Loading the metaSPAdes module
 module load SPAdes/3.15.2-GCC-10.2.0
 
-cd /data/zhanglab/dbrichardson/projects/NB/analyses/02_Assembly/tests/
+cd /data/zhanglab/dbrichardson/projects/NB/analyses/02_Assembly
 
 #using metaSPAdes
 spades.py --meta --only-assembler -m 1000 -t 20 -1 ${FILEPATH}/${FILE}_R1_001_normed.good.fastq.gz -2 ${FILEPATH}/${FILE}_R2_001_normed.fastq.gz \
@@ -158,7 +159,7 @@ date
 
 Part 3: Identifying MAGs
 
-This array job builds a bowtie2 index for each contig in every  metagenome assembly using Bowtie2 (v. 2.4.1). It then calls the script below to map the quality filtered reads to the contigs. 
+This array job builds a bowtie2 index for each contig in every  metagenome assembly using Bowtie2 (v. 2.4.1). It then calls another script, recruit_reads_10022021.sh, to map the quality filtered reads to the contigs. 
 ```{bash}
 #!/bin/bash
 #SBATCH -t 100:00:00
@@ -195,14 +196,14 @@ sbatch ${SCRIPTS}/recruit_reads_10022021.sh ${FILE}
 #Remove module
 module purge
 
-#This spaces out the array, so that it doesn't monopolize bluewaves completely.
+#This spaces out the jobs, so that it doesn't monopolize bluewaves completely.
 sleep 10h
 
 echo "Ending Run"
 date
 ```
 
-This array job uses Bowtie2 to align the quality filtered reads from each sample to all of the contigs produced by metaSPAdes. Then, it uses samtools (v. 1.10) to convert the sam files to bam files, to sort the bam files, and then index the bam files. 
+This array job, recruit_reads_10022021.sh, uses Bowtie2 to align the quality filtered reads from each sample to all of the contigs produced by metaSPAdes. Then, it uses samtools (v. 1.10) to convert the sam files to bam files, sort the resulting bam files, and then index those bam files. 
 
 ```{bash}
 #!/bin/bash
@@ -236,6 +237,7 @@ module load Python/3.7.4-GCCcore-8.3.0
 
 #Load SAMtools
 module load SAMtools/1.10-GCC-8.3.0
+
 #looks for reads that map to each contig in the merged, R1, and R2 files.
 bowtie2 --sensitive-local --no-unal -p $SLURM_CPUS_ON_NODE -x ${BT2_INDICIES}/${FILE}_contigs \
 -1 ${R_FILTERED_READS}/${FILE2}_R1_paired.good.fq.gz  \
@@ -276,18 +278,14 @@ date
 #Load metabat2
 module load MetaBAT/2.12.1-foss-2018b-Python-2.7.15
 
+#Making a directory for the bins
 mkdir ${BINNING_RESULTS}
-
+#Moving into that directory
 cd ${BINNING_RESULTS}
 
-#build a depth file
+#building a depth file
 jgi_summarize_bam_contig_depths --outputDepth ${BINNING_RESULTS}/${FILE}_contig_depth.txt ${BAM_FILES}/*_sorted.bam
 
-#Move to results directory
-cd ${BINNING_RESULTS}
-
-#bin the contigs
-metabat2 -i ${CONTIGS_FILEPATH} -a ${BINNING_RESULTS}/${FILE}_contig_depth.txt -o ${BINNING_RESULTS}/bins
 #bin the contigs
 metabat2 -i ${CONTIGS_FILEPATH} -a ${BINNING_RESULTS}/${FILE}_contig_depth.txt -o ${BINNING_RESULTS}/bins
 
@@ -329,7 +327,7 @@ mkdir ${BINNING_RESULTS}
 #Setting up directory for BAM files on /Data
 mkdir ${BINNING_RESULTS}/mappings
 
-#Copying read mappings to binning directory
+#Copying read mappings to binning directory in the /data/ directory for Andromeda
 cp ${BAM_FILES}/*  /${BAM_FILES_SUBSET}
 
 #Breaking contigs file into smaller parts
@@ -351,7 +349,7 @@ mkdir ${BINNING_RESULTS}/${FILE}_fasta_bins
 #Extracting the bins as individual FASTA files
 extract_fasta_bins.py ${CONTIGS_FILEPATH} ${BINNING_RESULTS}/${FILE}_clustering_merged.csv --output_path ${BINNING_RESULTS}/${FILE}_fasta_bins
 
-#Removing read mappings from binning directory
+#Removing read mappings from binning directory on /data/
 rm ${BAM_FILES_SUBSET}/*
 
 echo "Ending Run"
@@ -387,7 +385,7 @@ mkdir ${BAM_FILES}
 #Copying mapping files to /data
 cp ${DATA2_BAM_FILES}/* /${BAM_FILES}
 
-#Load the MetaBat2 modle to make the contig depth files
+#Load the MetaBat2 moudle to make the contig depth files
 module load MetaBAT/2.12.1-foss-2018b-Python-2.7.15
 
 #Move to results directory
@@ -398,9 +396,9 @@ jgi_summarize_bam_contig_depths --noIntraDepthVariance --outputDepth ${BINNING_R
 #Removing the module
 module purge
 
-#Using metaWRAP pipline guidence
+#Using metaWRAP pipeline guidance
 
-#calculate total numper of columns
+#calculate total number of columns
 A=($(head -n 1 ${BINNING_RESULTS}/${FILE}_contig_depth.txt))
 N=${#A[*]}
   # split the contig depth file into multiple files
@@ -430,9 +428,9 @@ run_MaxBin.pl -contig ${CONTIGS_FILEPATH} \
 -min_contig_length 2500 \
 -abund_list ${BINNING_RESULTS}/${FILE}_mb2_abund_list.txt
 
-#removing the mapping files from /Data to save space
+#removing the mapping files from /data/ to save space
 rm ${BAM_FILES}/*
-#removing some extra files from /Data to save space
+#removing some extra files from /data/ to save space
 rm ${BINNING_RESULTS}/*_sorted.txt
 
 echo "Ending Run"
@@ -442,14 +440,14 @@ date
 
 Finding high-quality MAGs using metaWRAP (v. 1.13)
 
-Some samples needed to run with 250GB or 510GB  of RAM, but this is how the vast majority were run. All samples were analyzed using the same metaWRAP parameters. 
+Some samples needed to run with 250GB or 510GB of RAM, but this is how the vast majority were run. All samples were analyzed using the same metaWRAP parameters. 
 ```{bash}
 #!/bin/bash
 #SBATCH -t 100:00:00
 #SBATCH --nodes=1
 #SBATCH --exclusive
 #SBATCH --mem=120GB
-##SBATCH --array=64
+##SBATCH --mem=510GB
 #SBATCH --array=1-68%7
 
 
@@ -528,7 +526,7 @@ Creating data tables with MAG ID, path, taxonomy, and score
 #combining the GTDB-tk taxonomic annotations for the bacteria and archaea into a single list
 cat /data2/dbrichardson/projects/NB/04_binning/bacterial_taxa.list /data2/dbrichardson/projects/NB/04_binning/archaeal_taxa.list > /data2/dbrichardson/projects/NB/04_binning/all_taxa.list
 
-#Creating separate files containing all of the bacterial genomes with a specific taxonomic  identification
+#Creating separate files containing all of the bacterial genomes with the same species-level taxonomic identification
 cat /data2/dbrichardson/projects/NB/04_binning/bacterial_taxa.list | while read i
 do
   reformatted_taxonomies=$(echo ${i} | sed 's/ /_/g')
@@ -538,7 +536,7 @@ do
 done
 
 
-#Creating separate files containing all of the archaeal genomes with a specific taxonomic  identification
+#Creating separate files containing all of the archaeal genomes with the same species-level taxonomic identification
 cat /data2/dbrichardson/projects/NB/04_binning/archaeal_taxa.list | while read i
 do
   reformatted_taxonomies=$(echo ${i} | sed 's/ /_/g')
@@ -548,7 +546,7 @@ do
 done
 
 #This script creates a table with the bin-id, taxonomy, bin-score, and path to bin fasta file
-#It corrects a mistake with grep involving spaces in taxa names that caused grep to miss a few hundred species level clusters
+
 SCORES="/data2/dbrichardson/projects/NB/04_binning/clust_by_taxonomy/MAG_Scores_gtdbtk.list"
 All_DIR="/data2/dbrichardson/projects/NB/04_binning/clust_by_taxonomy/all_taxa"
 HQ_MAG_PATHS="/data2/dbrichardson/projects/NB/04_binning/HQ_MAGs/HQ_MAGs.list"
@@ -567,10 +565,9 @@ do
   done
 done
 
+#A quick sanity check
 ls ${All_DIR}/*_scores_taxonomy.list | wc -l
 #534
-
-rm ${clust_by_taxonomy_DIR}/sp_level_rep_MAGS.list
 
 #This script selects the best MAG in each species level cluster.
 #Additional ANI-based clustering might be necessary
@@ -582,12 +579,13 @@ do
 done
 ```
 
-This is the highest scoring Nitrosopumulis MAG
+This is the highest scoring Nitrosopumilus MAG
 ```{bash}
-cat ${clust_by_taxonomy_DIR}/sp_level_rep_MAGS.list | grep "Nitrosopumulis" 
+clust_by_taxonomy_DIR="/data2/dbrichardson/projects/NB/04_binning/clust_by_taxonomy"
+cat ${clust_by_taxonomy_DIR}/sp_level_rep_MAGS.list | grep "Nitrosopumilus" | sort -k3 -r -h | head -1
 ```
 
-/data2/dbrichardson/projects/NB/04_binning/HQ_MAGs/ZTP33_S7_completeness_76.27_contamination_0.970_length_900089_bin.42.fa
+ZTP33_S7_bin.42 d__Archaea_p__Thermoproteota_c__Nitrososphaeria_o__Nitrososphaerales_f__Nitrosopumilaceae_g__Nitrosopumilus_s___count_23 80.42 /data2/dbrichardson/projects/NB/04_binning/HQ_MAGs/ZTP33_S7_completeness_76.27_contamination_0.970_length_900089_bin.42.fa
 
 This script creates a bowtie2 index using the representative MAG
 ```{bash}
@@ -608,7 +606,7 @@ module load Python/3.8.6-GCCcore-10.2.0
 # Loading Bowtie2
 module load Bowtie2/2.4.4-GCC-10.2.0
 
-#Building bowtie2 databases
+#Building a bowtie2 index
 bowtie2-build --threads ${SLURM_CPUS_ON_NODE} -f ${REP_MAG} ${BT2_INDICIES}/Nitro_MAG
 
 echo "Ending"
@@ -617,7 +615,7 @@ date
 
 Part 5: Identify variants 
 
-This pipeline maps quality filtered reads to the representative Nitrosopumilus genome, uses GATK HaplotypeCaller to find variants, and then uses GATK's GenotypeGVCFs.
+This pipeline maps quality filtered reads to the representative Nitrosopumilus genome, removed duplicates from the alignment using MarkDuplicates and CleanSam modules from Picard tools (v. 2.18.17), re-sorts and indexes the cleaned bam files using samtools (v. 1.15),  and uses GATK HaplotypeCaller (v.4.2.0) to find variants.
 ```{bash}
 #!/bin/bash
 #SBATCH -t 100:00:00
@@ -717,9 +715,136 @@ gatk --java-options "-Xmx120g" GenotypeGVCFs \
    -R ${REP_MAG} \
    -V ${VAR_OUTDIR}/${FILE}.g.vcf.gz \
    -O ${VAR_OUTDIR}/${FILE}_genotyped.g.vcf.gz
+```
 
-echo "Ending"
+Combining all of the gVCF files from HaplotypeCaller
+```{bash}
+#!/bin/bash
+#SBATCH -t 100:00:00
+#SBATCH --mem=120GB
+#SBATCH --exclusive
+
+#/data/zhanglab/dbrichardson/projects/NB/scripts/05_Pop_Evo_Genomics_scripts/drafts/nitrosopumilus_variant_consolidation.sh
+
+
+DATA_DIR="/data2/dbrichardson/projects/NB/05_Pop_Evo_Genomics/Nitro"
+REP_MAG="/data2/dbrichardson/projects/NB/04_binning/HQ_MAGs/ZTP33_S7_completeness_76.27_contamination_0.970_length_900089_bin.42.fa"
+
+echo "Starting Consolidation"
 date
+
+#this will load the GATK module for variant calling
+module load GATK/4.2.0.0-GCCcore-10.2.0-Java-11
+
+#This combines the 1st set of 17 GVCF files.
+gatk CombineGVCFs \
+   -R ${REP_MAG} \
+   --variant ${DATA_DIR}/variants/ZTP15_S1.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP16_S2.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP17_S3.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP18_S4.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP19_S5.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP20_S6.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP21_S7.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP22_S8.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP23_S9.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP24_S10.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP25_S11.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP26_S12.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP27_S1.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP28_S2.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP29_S3.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP30_S4.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP31_S5.g.vcf.gz \
+   -O ${DATA_DIR}/NB_Nitro_1.g.vcf.gz
+
+#This combines the 2nd set of 17 GVCF files.
+gatk CombineGVCFs \
+   -R ${REP_MAG} \
+   --variant ${DATA_DIR}/variants/ZTP32_S6.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP33_S7.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP34_S8.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP35_S9.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP36_S10.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP37_S11.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP38_S12.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP39_S13.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP40_S14.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP41_S1.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP42_S2.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP43_S3.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP44_S4.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP45_S5.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP46_S6.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP47_S7.g.vcf.gz \
+   --variant ${DATA_DIR}/variants/ZTP48_S8.g.vcf.gz \
+   -O ${DATA_DIR}/NB_Nitro_2.g.vcf.gz
+
+#This combines the 3rd set of 17 GVCF files.
+gatk CombineGVCFs \
+      -R ${REP_MAG} \
+      --variant ${DATA_DIR}/variants/ZTP49_S9.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP50_S10.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP51_S11.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP52_S12.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP53_S13.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP54_S14.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP55_S1.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP56_S2.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP57_S3.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP58_S4.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP59_S5.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP60_S6.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP61_S7.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP62_S8.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP63_S9.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP64_S10.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP65_S11.g.vcf.gz \
+       -O ${DATA_DIR}/NB_Nitro_3.g.vcf.gz
+
+#This combines the 4th set of 17 GVCF files.
+gatk CombineGVCFs \
+      -R ${REP_MAG} \
+      --variant ${DATA_DIR}/variants/ZTP66_S12.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP67_S13.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP68_S14.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP69_S1.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP70_S2.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP71_S3.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP72_S4.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP73_S5.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP74_S6.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP75_S7.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP76_S8.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP77_S9.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP78_S10.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP79_S11.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP80_S12.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP81_S13.g.vcf.gz \
+      --variant ${DATA_DIR}/variants/ZTP82_S14.g.vcf.gz \
+      -O ${DATA_DIR}/NB_Nitro_4.g.vcf.gz
+
+#This combines all 4 sets into a single GVCF
+gatk CombineGVCFs \
+      -R ${REP_MAG} \
+      --variant ${DATA_DIR}/NB_Nitro_1.g.vcf.gz \
+      --variant ${DATA_DIR}/NB_Nitro_2.g.vcf.gz \
+      --variant ${DATA_DIR}/NB_Nitro_3.g.vcf.gz \
+      --variant ${DATA_DIR}/NB_Nitro_4.g.vcf.gz \
+      -O ${DATA_DIR}/NB_Nitrosopumilus_all.g.vcf.gz
+#Marking the completion time
+echo "Ending Consolidation"
+date
+```
+
+Performing joint genotyping using the GenotypeGVCFs module from GATK. Previous authors have found that this could reduce the precision of the variant calling, so additional variant filtering will be performed later.
+```{bash}
+#This genotypes the all_sample gVCF. Although, it's not recommended it might improve our analyses
+gatk --java-options "-Xmx4g" GenotypeGVCFs \
+   -R ${REP_MAG} \
+   -V NB_Nitrosopumilus_all.g.vcf.gz \
+   -O NB_Nitrosopumilus_all_jc.g.vcf.gz
+
 
 ```
 
@@ -734,9 +859,9 @@ gatk SelectVariants \
     -O ${DATA_DIR}/NB_Nitrosopumilus_all_jc.snps.vcf.gz
 ```
 
-Part 6: Cluster 
+Part 6: Variant filtering and clustering  samples by variant compositon.
 
-This filters the variants
+This allowed us to look at variant depth, mapping quality, and other statistics that allowed us filter the called variants. 
 ```{r}
 library(vcfR)
 library(ape)
@@ -803,23 +928,28 @@ my_genind2 <- vcfR2genind(edited_vcf)
 #Indicating that the samples contain haploid organisms
 ploidy(my_genind2) <- 1
 
+#Performing Principle Component Analysis on the samples
 X <- tab(my_genind2, freq = T, NA.method = "mean")
 pca1 <- dudi.pca(X, scale = FALSE, scannf = FALSE, nf = 3)
 barplot(pca1$eig[1:50], main = "PCA eigenvalues", col = heat.colors(50))
-s.label(pca1$li, clabel=0.3) + title("PCA of Nitrosopumilus dataset\naxes 1-2") + add.scatter.eig(pca1$eig[1:20], 3,1,2)
+
+#Plotting the results of the PCA
+s.label(pca1$li, clabel=0.3)
+title("PCA of Nitrosopumilus dataset\naxes 1-2")
+
+#Producing a more colorful version of this plot
 colorplot(pca1$li, pca1$li, transp=TRUE, cex=0.5, xlab="PC 1", ylab="PC 2" )
 
+#Performing DAPC analysis
 grp <- find.clusters(my_genind2, max.n.clust=48)#PCs 20, clusters 5
 names(grp)
 
-head(grp$grp, 10)
-grp$size
 dapc1 <- dapc(my_genind2, grp$grp)# PCs to retain 3, disc functions 2
 scatter(dapc1)
 
+#Plotting the results 
 scatter(dapc1, scree.da=FALSE,
 cell=1.5, cex=2, bg="white",cstar=0)
-
 ```
 
 
