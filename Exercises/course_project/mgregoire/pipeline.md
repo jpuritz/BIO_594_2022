@@ -202,20 +202,27 @@ pchrom <- plot(chrom)
 qcchrom <- chromoqc(chrom, dp.alpha = 22)
 
 #these graphs have shown us the quality of the vcf file, I probably could have filtered it more with vcftools but I wans't really sure what parameters to include
-
-#we know that the position on the chromosome is column V2
-#and that the SNP is idntified on column V5 
-#and if the SNP passed the quality filter it is tabulated in V6
-#so we will plot column V6 vs column V2 and color by V5
-
-#make plots using the table file
-snps <- ggplot(data = BPvcfT, aes(x = V2, y = V6)) +
-  geom_point(alpha = 0.1, aes(color = V5))
-snps
-
 ```
 ![pchrom](https://github.com/jpuritz/BIO_594_2022/tree/main/Exercises/course_project/mgregoire/pchrom.png)
 ![qcchrom](https://github.com/jpuritz/BIO_594_2022/tree/main/Exercises/course_project/mgregoire/qccrhom.png)
+
+## Analyze data further in python
+I am not a fan of R, so I decided to further analyze the data in a language I am more comfortable with --python. Below is the Python script I ran to analyze the vcf file further. I will also link to the Jupyter notebook here.
+I have Anaconda Navigator installed on my computer and I used the python terminal to download a vcf viewer to my computer to use in Jupyter
+-`conda install -c conda-forge scikit-allel`
+Then I moved to Jupyter
+```
+#load modules
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import io
+import os
+# import scikit-allel
+import allel
+```
+
+
 
 ## Compare with the conclusions sent in Pumpkin's report!
 Pumpkin's report from Basepaws was broken down into three main parts: a breed profile, a dental report, and his genetic report.
