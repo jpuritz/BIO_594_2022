@@ -1,6 +1,7 @@
 # Analyzing Pumpkin's DNA
 ## WGS Data Analysis Pipeline
-![Pumpkin](https://github.com/jpuritz/BIO_594_2022/tree/main/Exercises/course_project/mgregoire/pumpkin_resize.jpg)
+![Pumpkin](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/mgregoire/pumpkin_resize.jpg)
+
 Pumpkin got his DNA sequenced through Basepaws! Basepaws delivered a breed profile, dental report, and genetic report of Pumpkin's SNPs. Below is a pipeline I have established for some analyses that can be performed on the resulting fastq and vcf files provided by Basepaws.
 
 ## Set up directories, softwares, and files 
