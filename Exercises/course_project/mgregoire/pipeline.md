@@ -207,10 +207,10 @@ qcchrom <- chromoqc(chrom, dp.alpha = 22)
 ![qcchrom](https://github.com/jpuritz/BIO_594_2022/tree/main/Exercises/course_project/mgregoire/qccrhom.png)
 
 ## Analyze data further in python
-I am not a fan of R, so I decided to further analyze the data in a language I am more comfortable with --python. Below is the Python script I ran to analyze the vcf file further. I will also link to the Jupyter notebook here.
+I am not a fan of R, so I decided to further analyze the data in a language I am more comfortable with --python. Below is the Python script I ran to analyze the vcf file further. I will also link to the Jupyter notebook [here](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/mgregoire/VCFanalysis.ipynb).
 I have Anaconda Navigator installed on my computer and I used the python terminal to download a vcf viewer to my computer to use in Jupyter
 -`conda install -c conda-forge scikit-allel`
-Then I moved to Jupyter
+Then I moved to Jupyter:
 ```
 #load modules
 import numpy as np
