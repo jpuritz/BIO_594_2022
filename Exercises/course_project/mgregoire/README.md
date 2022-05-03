@@ -3,4 +3,5 @@
 - Also attached are:
 - an outline proposing this project
 - the fastqc files pre and post trimming 
+- images and graphs from the analysis
 - as well as a photo of Pumpkin :)
