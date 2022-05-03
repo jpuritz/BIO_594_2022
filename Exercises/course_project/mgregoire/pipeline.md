@@ -221,6 +221,18 @@ import os
 # import scikit-allel
 import allel
 
+#load the vcf file as a df with allel
+df = allel.vcf_to_dataframe(r'C:\Users\mjgregoire\Documents\Pumpkin\filtVCF.recode.vcf', fields='*', alt_number=2)
+df.head(5)
+df.tail(5)
+
+#count the number of SNPs in the dataframe
+df.is_snp.value_counts() 
+#this means Pumpkin has no snps on this chromosome!!! So maybe I was wrong in thinking the cat chromosome D1 is chromosome 10... that's okay! 
+#if only I knew more about cat genetics! 
+
+#we can still use this vcf of chromosome 10 to look at things like hetrozygosity and variants across position on the chromosome
+
 #read in the vcf as a python dict
 callset = allel.read_vcf(r'C:\Users\mjgregoire\Documents\Pumpkin\filtVCF.recode.vcf', fields='*')
 #check what the attributes of the vcf dict are
@@ -244,12 +256,38 @@ sorted(callset.keys())
 callset['variants/DP']
 callset['calldata/DP']
 
+#get the positions
+pos = allel.SortedIndex(callset['variants/POS'])
+pos
+#define a function to plot the density of the variants based on position
+def plot_windowed_variant_density(pos, window_size, title=None):
+    # setup windows 
+    bins = np.arange(0, pos.max(), window_size)
+    # use window midpoints as x coordinate
+    x = (bins[1:] + bins[:-1])/2
+    # compute variant density in each window
+    h, _ = np.histogram(pos, bins=bins)
+    y = h / window_size
+    # plot
+    fig, ax = plt.subplots(figsize=(12, 3))
+    sns.despine(ax=ax, offset=10)
+    ax.plot(x, y)
+    ax.set_xlabel('Chromosome position (bp)')
+    ax.set_ylabel('Variant density (bp$^{-1}$)')
+    if title:
+        ax.set_title(title)
+#look at the graph
+plot_windowed_variant_density(pos, window_size=100000, title='Variant density')
+#save the graph as a figure
+plt.savefig(r'C:\Users\mjgregoire\Documents\Pumpkin\variantDensity.png')
 
 ```
-
+![Variant Density](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/mgregoire/variantDensity.png)
 
 
 ## Compare with the conclusions sent in Pumpkin's report!
+From my data analysis, I learned that I don't know that much about cat genetics and that the process of analzying data from mammalian whole genome sequencing requires a LOT of storage and computer processing. I was able to make a workflow to process raw sequencing files from the fasta files to make filtered variant call format files that can be further analyzed in R or python. I wish that I could spend more time learning about what the files I obtained mean and parse through a bunch of different analyses. But I realize people spend lifetimes studying these fields and I've only spent a few weeks on this project! I can't wait to show Pumpkin what I was able to do with his DNA, but below let me just explain how detailed the analysis from Basepaws was.
+
 Pumpkin's report from Basepaws was broken down into three main parts: a breed profile, a dental report, and his genetic report.
 
 His breed profile indicated that he is mostly a western breed cat (68.82%). A large portion of his genome (17.7%) was found to be similar to Maine Coon cats (which explains why he's SO big!), Norwegian forest cats (7.88%), he also shares some DNA with Abyssinian cats (5.01%), persian cats (9.59%), and British shorthair (8%) among many others. Based on this Basepaws assumes that his blood type is likely type A based on his European and American descent.
