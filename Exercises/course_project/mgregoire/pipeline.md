@@ -212,7 +212,7 @@ qcchrom <- chromoqc(chrom, dp.alpha = 22)
 ## Analyze data further in python
 I am not a fan of R, so I decided to further analyze the data in a language I am more comfortable with --python. Below is the Python script I ran to analyze the vcf file further. I will also link to the Jupyter notebook [here](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/mgregoire/VCFanalysis.ipynb).
 I have Anaconda Navigator installed on my computer and I used the python terminal to download a vcf viewer to my computer to use in Jupyter
--`conda install -c conda-forge scikit-allel`
+`conda install -c conda-forge scikit-allel`. I then downloaded the filtered vcf file with sftp `sftp -P {port number here} {username}@kitt.uri.edu | cd FinalProject | lcd Documents\Pumpkin | get filtVCF.recode.vcf`
 Then I moved to Jupyter:
 ```
 #load modules
