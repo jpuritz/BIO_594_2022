@@ -270,3 +270,6 @@ I never knew that the analysis behind all of Pumpkin's DNA would take so much wo
 5. Samtools: http://www.htslib.org/
 6. FreeBayes: https://github.com/freebayes/freebayes
 7. SnpEff: https://pcingola.github.io/SnpEff/
+8. VCF tools: http://vcftools.sourceforge.net/
+9. vcfR: https://cran.r-project.org/web/packages/vcfR/index.html
+10. Scikit-allel: https://scikit-allel.readthedocs.io/en/stable/
