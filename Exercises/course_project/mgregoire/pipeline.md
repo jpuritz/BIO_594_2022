@@ -176,8 +176,8 @@ The vcf file can be looked at by using `cat EFF.R163.vcf`. When this is typed, t
 ## Filter the vcf data
 Since the gvcf file provided by Basepaws is so large, it will not load into R and we can't make a manhattan plot of all the SNPs on all of Pumpkin's chromosomes. We need to filter the gvcf for what we need. I will filter for the cat chromosome D1 (10) because Basepaws indicated that Pumpkin had a SNP on this chromosome related to his health!
 
--`vcftools --vcf pumpkin_102.hard-filtered.gvcf --chr 10 --out filtVCF --recode`
--`vcftools --vcf pumpkin_102.hard-filtered.gvcf --counts --chr 10 --out countsVCF --recode-INFO-all`
+- `vcftools --vcf pumpkin_102.hard-filtered.gvcf --chr 10 --out filtVCF --recode`
+- `vcftools --vcf pumpkin_102.hard-filtered.gvcf --counts --chr 10 --out countsVCF --recode-INFO-all`
 
 ## Visualize VCF data in R 
 Next to visualize Pumpkin's SNPs we need to move to R Studio. this was really a nightmare because R kept freezing and I had to restart it each time it froze. When it did this, I had to reload the variables which took a long time. 
@@ -220,6 +220,31 @@ import io
 import os
 # import scikit-allel
 import allel
+
+#read in the vcf as a python dict
+callset = allel.read_vcf(r'C:\Users\mjgregoire\Documents\Pumpkin\filtVCF.recode.vcf', fields='*')
+#check what the attributes of the vcf dict are
+sorted(callset.keys()) 
+#‘samples’ array contains sample identifiers extracted from the header line in the VCF file
+#arrays with keys beginning ‘variants/’ come from the fixed fields in the VCF file
+#arrays with keys beginning ‘calldata/’ come from the sample fields in the VCF file
+
+#make a genotype array based on the vcf file
+gt = allel.GenotypeArray(callset['calldata/GT'])
+gt
+#count the number of heterozygous calls per variant
+gt.count_het(axis=1)
+#count the number times each allele (0=reference, 1=first alternate, 2=second alternate, etc.) is observed for each variant
+ac = gt.count_alleles()
+ac
+
+#check the number of filtered reads that support each of the reported alleles
+callset = allel.read_vcf(r'C:\Users\mjgregoire\Documents\Pumpkin\filtVCF.recode.vcf', fields=['variants/DP', 'calldata/DP'])
+sorted(callset.keys())
+callset['variants/DP']
+callset['calldata/DP']
+
+
 ```
 
 
