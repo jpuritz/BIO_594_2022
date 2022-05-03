@@ -3,5 +3,6 @@
 - Also attached are:
 - an outline proposing this project
 - the fastqc files pre and post trimming 
-- images and graphs from the analysis
+- a jupyter notebook file from the python analysis
+- images and graphs from the analysis in R and python
 - as well as a photo of Pumpkin :)
