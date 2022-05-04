@@ -161,8 +161,8 @@ Now we can index the genome sorted BAM files to allows us to extract alignments 
 
 When we checked the quality of the reads with Fastqc we saw that the sequence duplication levels were low for the files (and were not even flagged for file R163), so we will not filter for any duplicates (which could be done with Samblaster). 
 
-## SNPs and small indels can be investigated with Samtools 1.2, Platypus, or FreeBayes, filtering out anything with a low quality of less than 20
-Next I will use FreeBays, a Bayesian genetic variant detector, to find small polymorphisms (such as SNPs and indels) in Pumpkin's DNA. This program will use the cat reference genome and the sorted bam file and output a variant call format (vcf) file.
+## SNPs and small indel investigation
+Next I will use FreeBayes, a Bayesian genetic variant detector, to find small polymorphisms (such as SNPs and indels) in Pumpkin's DNA. This program will use the cat reference genome and the sorted bam file and output a variant call format (vcf) file.
 
 - `freebayes -f GCA_000181335.5_Felis_catus_9.0_genomic.fna aln-R163.sorted.bam > aln-R163var.vcf`
 
