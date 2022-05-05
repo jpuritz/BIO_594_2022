@@ -1088,10 +1088,10 @@ Submitted batch job 131613
 
 Pseudoalignment information by species:
 
-| Species Alignment | k-mer length | # of targets       | # of k-mers       | # of equivalence classes |
-| --------------| ------ | -------- | ------ | -------- | -------- |
-| A.cervicornis | 31 | 33,322 | 34,006,771 | 84,017 |
-| P.acuta | 31 | 38,913 | 38,267,300 | 88,498 |
+|Species Alignment|k-mer length|# of targets|# of k-mers|# of equivalence classes|
+|--------------|------|--------|------|--------|--------|
+|A.cervicornis|31|33,322|34,006,771|84,017|
+|P.acuta|31|38,913|38,267,300|88,498|
 
 ### VI) Compare 
 
@@ -1101,12 +1101,16 @@ Sample 31_2 (P.acuta) had a very low # of read counts (~6000 raw reads), so it w
 
 #### Average alignment rates for each tool 
 
-| Species | STAR | Bowtie | Kallisto |
-| --------------| ------ | -------- | ------ | -------- | 
-| A.cervicornis | 70.72 | 97.24 | 34.67 | 
-| P.acuta | 69.40 | 94.93 | 33.54 | 
+|Species|STAR|Bowtie|Kallisto|
+|--------------|------|--------|------|--------| 
+|A.cervicornis|70.72|97.24|34.67| 
+|P.acuta|69.40|94.93|33.54| 
 
 These are interesting results. I was not expecting the Bowtie alignment to be so high, especially when I used a de novo transcriptome. Because I used a de novo transcriptome, that does give me a little less confidence in the alignment quality. 
+
+Check out the plot comparing alignment rates below. It gives a really nice visual to see the spread of the different aligners. Kallisto also has more variability in its alignment rates. 
+
+![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/course_project/JAshey/output/AlignmentRates.png)
 
 See STAR alignment [csv](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/output/STAR_Alignment.csv), Bowtie alignment [csv](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/output/Bowtie_Alignment.csv) and Kallisto alignment [csv](https://github.com/jpuritz/BIO_594_2022/blob/main/Exercises/course_project/JAshey/output/Kallisto_Alignment.csv) for more detail. 
 

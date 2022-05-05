@@ -97,6 +97,3 @@ ggsave("Desktop/URI/Spring2022/BIO594/github/BIO_594_2022/Exercises/course_proje
 
 ### Knit as html and save
 
-
-
-
