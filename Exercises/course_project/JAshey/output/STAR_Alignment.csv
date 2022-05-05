@@ -1,5 +1,4 @@
-﻿,,A.cervicornis genome,P.acuta genome
-Sample ID,Species ,%_uniquely_mapped,%_uniquely_mapped
+﻿SampleID,Species ,AlignmentRate.AcervGenome,AlignmentRate.PacutaGenome
 11_2,P.acuta,0.7,75.88
 1_2,P.acuta,2.97,71.82
 19_T33_Ac_WK,A.cervicornis,75.56,2.46
