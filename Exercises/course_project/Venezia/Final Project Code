@@ -189,7 +189,7 @@ x <- pcadapt(filename, K = 3)
 summary(x)
 
 #look for outliers
-#make a manhattan plot
+#make a manhattan plot 
 plot(x , option = "manhattan")
 #make qqplot
 plot(x, option = "qqplot", threshold = 0.1)
