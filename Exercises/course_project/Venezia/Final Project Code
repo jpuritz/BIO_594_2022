@@ -75,6 +75,9 @@ WC4_451.F.fq.gz WC4_451.R.fq.gz WC4_452.F.fq.gz WC4_452.R.fq.gz WC4_453.F.fq.gz 
 WC4_459.F.fq.gz WC4_459.R.fq.gz WC4_460.F.fq.gz WC4_460.R.fq.gz WC4_461.F.fq.gz WC4_461.R.fq.gz WC4_462.F.fq.gz WC4_462.R.fq.gz WC4_463.F.fq.gz WC4_463.R.fq.gz WC4_464.F.fq.gz WC4_464.R.fq.gz WC4_465.F.fq.gz WC4_465.R.fq.gz
 
 
+####################################################################################
+
+
 # Step 2:Run dDocent pipeline on all of the fq.gz files to produce Snps
 #This will be done with a refernce file, so it takes less time
 # The process will fitler the data uing trimmomatic with the following qualificaitons
@@ -129,28 +132,49 @@ rebecca_venezia@uri.edu
 #multiple filtration status will be used to see how the data and which is best to use 
 #The code for this is below
 
-#make directory for filtered data 
-mkdir Filter
-cd Filter
-ln -s ../TotalRawSNP.vcf .
+#This step will filter 
+#1. all genetopyes with 50% of sucessfual genyotyping with "max-missing -0.5"
+#2. a minimum quality score of 20 with "minQ 20"
+#3. minor allele frequency  of 0.001 with maf with maf "0.001"
 vcftools --vcf TotalRawSNPs.vcf --max-missing 0.5 --maf 0.001 --minQ 20 --recode --recode-INFO-all --out TRS
+
+#This step will fitler 
+# the minimum mean depth of the genopye with less than 5 reads with "minDP 5"
 vcftools --vcf TRS.recode.vcf --minDP 5 --recode --recode-INFO-all --out TRSdp5
+
+#This step will filter using the pop_missing_filter.sh file to sort by population
 pop_missing_filter.sh TRSdp5.recode.vcf ../popmap 0.05 1 TRSdp5p05
+
+#This step is an automated script to filter the loci further for 
+#1. site depth
+#2. quality versus depth
+#3.  strand representation 
+#4. allelic balance at heterzygous individuals
+#5. paired read representation.
 dDocent_filters TRSdp5p05.recode.vcf TRSdp5p05 
+
+#This converts the variant calls to SNPs so we can use HWE to sort by populations
 vcfallelicprimitives -k -g TRSdp5p05.FIL.recode.vcf |sed 's:\.|\.:\.\/\.:g' > TRSdp5p05F.prim
+
+# This step will fitler remove the indels from the data 
 vcftools --vcf TRSdp5p05F.prim --recode --recode-INFO-all --remove-indels --out SNP.TRSdp5p05F
+
+#This step is to apply HWE to remove erranous variant calls from the data
+# This will be applied by population and use the script filter_hwe_by_pop.p1
 filter_hwe_by_pop.pl -v SNP.TRSdp5p05F.recode.vcf -p popmap -o SNP.DP3g95p5maf05.HWE -h 0.01
+
+#This step will filter all minor allele frequency above 0.05 with maf with maf "0.05"
 vcftools --vcf SNP.DP3g95p5maf05.HWE.recode.vcf --maf 0.05 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWEmaf05
 
 #Convert from vcf to other outputs 
 cp /home/BIO594/DATA/Week7/example/BSsnp.spid .
-ln -s ../popmap .
-#use PDGspider 
+
+#use PDGspider to convert the file 
 java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWEmaf05.recode.vcf -outputfile SNP.TRSdp5p05FHWEBS -spid BSsnp.spid
 
+###################################################################################
 
-
-#Step4: Outlier Detection of samples 
+#Step4: Outlier Detection of samples with various methods 
 
 #Bayscan 
 BayeScan2.1_linux64bits SNP.TRSdp5p05FHWEBS -nbp 30 -thin 20 
