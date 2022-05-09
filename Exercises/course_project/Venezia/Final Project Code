@@ -176,12 +176,15 @@ java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWEmaf05.re
 
 #Step4: Outlier Detection of samples with various methods 
 
+################################################## #######################################################
 #Bayscan 
 BayeScan2.1_linux64bits SNP.TRSdp5p05FHWEBS -nbp 30 -thin 20 
 
 R
 source("plot_R.r")
 plot_bayescan("SNP.TRSdp5p05FH_fst.txt")
+
+################################################# ############################################################
 
 #outlier detection with ony 2 alleles
 vcftools --vcf SNP.TRSdp5p05FHWEmaf05.recode.vcf --max-alleles 2 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWE2A
@@ -280,13 +283,12 @@ my_vcf <- read.vcfR("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FHWE2A.recode.vcf"
 
 my_genind <- vcfR2genind(my_vcf)
 
-
+############################# ###############################33
 #Test Population Structure
 install.packages("devtools")
 library(devtools)
 install.packages("hierfstat")
 library("hierfstat")
-
 
 #Create population designations
 poplist.int <- c(rep(1,29),rep(2,31),rep(3,30),rep(4,41),rep(5,31),rep(6,31),rep(7,33),rep(8,31),rep(9,30),rep(10,31),rep(11,31),rep(12,30))
@@ -299,8 +301,7 @@ fstat(my_genind)
 
 matFst <- pairwise.fst(my_genind)
 
-
-
+################################################ ##############################################
 #PCA
 
 X <- tab(my_genind, freq = TRUE, NA.method = "mean")
@@ -331,7 +332,7 @@ contrib
 compoplot(dapc1, posi="bottomright",txt.leg=paste("Cluster", 1:6), lab="", ncol=1, xlab="individuals")
 
 
-######################################################################
+###################################################################### #################################################33
 #BayENV2
 cp /home/BIO594/DATA/Week7/example/SNPBayEnv.spid .
 cp /home/BIO594/DATA/Week7/example/environ .
@@ -350,7 +351,7 @@ plot(table_bay$BF1)
 
 table_bay[which(table_bay$BF1 > 100),]
 
- #########################################33
+ ######################################### ##################################################################
  #OUtflank
  ######################################################################
 #Outflank 
@@ -388,6 +389,8 @@ pop <- pop$V2
 
 #make fst values with chromosome and position
 my_fst <- MakeDiploidFSTMat(t(G), locusNames = paste0(chromosome,"_", position), popNames = pop)
+
+####################################### #########################################3
 
 #make distance 
 my_dist <- OutFLANK(my_fst, NumberOfSamples = 385, qthreshold=0.1, RightTrimFraction=0.1, LeftTrimFraction=0.1)
