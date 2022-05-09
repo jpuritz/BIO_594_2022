@@ -186,73 +186,152 @@ plot_bayescan("SNP.TRSdp5p05FH_fst.txt")
 #outlier detection with ony 2 alleles
 vcftools --vcf SNP.TRSdp5p05FHWEmaf05.recode.vcf --max-alleles 2 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWE2A
 
-#Open R studio to run PCAdapt
-#PCA adapt
-#load package to library in R
+
+#PCA adapt to identify outliers
+#load packages
 library(pcadapt)
-#load VCF file to R
-Fidler_Crab <- read.pcadapt("SNP.TRSdp5p05FHWE2A.recode.vcf", type = "vcf" )
-#create PCA 1st 
-x <- pcadapt(input = fidler_crab, K = 20)
-#plot likelyhoods
-plot(x, option = "screeplot")
-#plot likelyhoods for # of K 
-plot(x, option = "screeplot")
-#create pop designation
-poplist.names <- c(rep("OBN", 20),rep("WC1", 20),rep("POPC", 20), rep("POPD",20))
-#plot actualy PCA (1st 2)
-poplist.names <- c(rep("POPA", 20),rep("POPB", 20),rep("POPC", 20), rep("POPD",20))
-#plot PCA with PCA2 and PCA 3
+
+#load vcf file into R 
+fiddler_crab <- read.pcadapt("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FHWE2A.recode.vcf", type = "vcf" )
+
+#create firs PCA
+x <- pcadapt(input = fiddler_crab, K = 20)
+
+
+#plot the likelyhoods for only the first 20k
+plot(x, option = "screeplot", K = 19)
+
+#Create population designations
+poplist.int <- c(rep(1,29),rep(2,31),rep(3,30),rep(4,41),rep(5,31),rep(6,31),rep(7,33),rep(8,31),rep(9,30),rep(10,31),rep(11,31),rep(12,30))
+print(poplist.int)
+poplist.names <- c(rep("FBN",29),rep("FBS",31),rep("OBN",30),rep("OBS",41),rep("PCN",31), rep("PCS",31),rep("SPN",30),rep("SPS",31),rep("WC1",30),rep("WC2",31),rep("WC3",31),rep("WC4",30))
+print(poplist.names)
+
+#Plot the actual PA (1st two)
+plot(x, option = "scores", pop = poplist.names)
+
+#Plot PCA with PCA 2 and PCA 3
 plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
+
 #Plot PCA with PCA 3 and PCA 4
-plot(x, option = "scores", i = 3, j = 4, pop = poplist.names)
+plot(x, option = "scores", i = 1, j=3, pop = poplist.names)
 
 #Redo PCA with only 3 K
-x <- pcadapt(filename, K = 3)
+x <- pcadapt(fiddler_crab, K = 3)
 
 summary(x)
 
-#look for outliers
-#make a manhattan plot 
-plot(x , option = "manhattan")
+#Start looking for outlier 
+
+#make manhatten plot
+plot(x , option = "manhattan", pop = poplist.names)
+
 #make qqplot
 plot(x, option = "qqplot", threshold = 0.1)
-#look at p-value disturbtion
-plot(x, option = "stat.distribution")
 
 
-#set FDR 
+
+#set FDR
+#load package
 library(qvalue)
+
+#set values
 qval <- qvalue(x$pvalues)$qvalues
 alpha <- 0.1
-# Save outliers
+
+#save outliers
 outliers <- which(qval < alpha)
 
 
-# Testing for library effects
+#Test for library effects
 
-poplist.names <- c(rep("LIB1", 40),rep("LIB2", 40))
-x <- pcadapt(input = filename, K = 20)
 
+#set variables with first 20 runs
+x <- pcadapt(input = fiddler_crab, K = 20)
+
+#plot scores with populations
 plot(x, option = "scores", pop = poplist.names)
+
+#plot scores with PCA 2 and 3 
 plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
 
 
-
-x <- pcadapt(filename, K = 2)
-
+#set y to have K-2 and review summary
+x <- pcadapt(fiddler_crab, K = 2)
 summary(x)
 
+#plot with mannhattan,qqplot and stat.distrubiton
 plot(x , option = "manhattan")
 plot(x, option = "qqplot", threshold = 0.1)
 
-plot(x, option = "stat.distribution")
-
+#find outliers for K=2
 library(qvalue)
 qval <- qvalue(x$pvalues)$qvalues
 alpha <- 0.1
 outliers <- which(qval < alpha)
 
+#pca way 2
+library(adegenet)
+library(vcfR)
+
+
+my_vcf <- read.vcfR("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FHWE2A.recode.vcf")
+
+
+my_genind <- vcfR2genind(my_vcf)
+
+
+#Test Population Structure
+install.packages("devtools")
+library(devtools)
+install.packages("hierfstat")
+library("hierfstat")
+
+
+#Create population designations
+poplist.int <- c(rep(1,29),rep(2,31),rep(3,30),rep(4,41),rep(5,31),rep(6,31),rep(7,33),rep(8,31),rep(9,30),rep(10,31),rep(11,31),rep(12,30))
+print(poplist.int)
+poplist.names <- c(rep("FBN",29),rep("FBS",31),rep("OBN",30),rep("OBS",41),rep("PCN",31), rep("PCS",31),rep("SPN",30),rep("SPS",31),rep("WC1",30),rep("WC2",31),rep("WC3",31),rep("WC4",30))
+print(poplist.names)
+
+library(adegenet)
+fstat(my_genind)
+
+matFst <- pairwise.fst(my_genind)
+
+
+
+#PCA
+
+X <- tab(my_genind, freq = TRUE, NA.method = "mean")
+pca1 <- dudi.pca(X, scale = FALSE, scannf = FALSE, nf = 3)
+barplot(pca1$eig[1:50], main = "Fiddler_Crab_eigenvalues", col = heat.colors(50))
+add.scatter.eig(pca1$eig[1:20], 3,1,2)
+
+col <- funky(15)
+
+
+#DAPC
+#find clusters and PC to reatin
+#PC=300, clusers=40
+grp <- find.clusters(my_genind, max.n.clust=40)
+
+#choose PC=300, function=20
+dapc1 <- dapc(my_genind, grp$grp)
+scatter(dapc1,col=col,bg="white", solid=1)
+
+
+
+contrib <- loadingplot(dapc1$var.contr, axis=1, thres=.01, lab.jitter=1)
+contrib
+
+#Structure Like
+
+
+compoplot(dapc1, posi="bottomright",txt.leg=paste("Cluster", 1:6), lab="", ncol=1, xlab="individuals")
+
+
+######################################################################
 #BayENV2
 cp /home/BIO594/DATA/Week7/example/SNPBayEnv.spid .
 cp /home/BIO594/DATA/Week7/example/environ .
@@ -271,40 +350,28 @@ plot(table_bay$BF1)
 
 table_bay[which(table_bay$BF1 > 100),]
 
-
- 
-   
-  
-    
-
-5) Calculate Fst values 
-use R package Hierfstat to find Fst alues --> like the work for the paper for week8/week9
-in R 
-#load packages- hierfstat
-#silan et al was exaple of this in class 
-#use basic stats -1000 boostrap replicates, Ho/He, Fst, Fis each region
-#boots.ppffts to boostap with interval estimated with boots.ppbetas
-#alele richness  
-#gentic distances-pairwise Fst, heatmaps with ggplot2
-#matching 
-#coutn nubmer of alleles
-#estaimte parwise FSt values with WC, Noci
-#fst per pair
-# read.fst to get fst data from fasta fille 
-
-
-#Use outflank 
-R
-library(OutFLANK)  # outflank package
+ #########################################33
+ #OUtflank
+ ######################################################################
+#Outflank 
+#load packages for outflank, vcfr adn bigsnpr(for LD pruning) 
+library(OutFLANK)  
 library(vcfR)
-library(bigsnpr)   # package for LD pruning
+library(bigsnpr)  
 
-my_vcf <- read.vcfR("SNP.TRSdp5p05FHWE2A.recode.vcf")
+#make variable my_vcf
+my_vcf <- read.vcfR("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FHWE2A.recode.vcf")
 
-geno <- extract.gt(my_vcf) # Character matrix containing the genotypes
-position <- getPOS(my_vcf) # Positions in bp
-chromosome <- getCHROM(my_vcf) # Chromosome information
+#make character matrix with genotypes
+geno <- extract.gt(my_vcf) 
 
+#make positions in bp
+position <- getPOS(my_vcf)
+
+#make chromosome information
+chromosome <- getCHROM(my_vcf) 
+
+#make matrix 
 G <- matrix(NA, nrow = nrow(geno), ncol = ncol(geno))
 
 G[geno %in% c("0/0", "0|0")] <- 0
@@ -315,20 +382,28 @@ G[is.na(G)] <- 9
 
 head(G[,1:10])
 
-pop <- read.table("~/week7/popmap", header=FALSE)
+#make variable population with population map
+pop <- read.table("/home/rvenezia/Fiddler_Crab/popmap", header=FALSE)
 pop <- pop$V2
 
-
+#make fst values with chromosome and position
 my_fst <- MakeDiploidFSTMat(t(G), locusNames = paste0(chromosome,"_", position), popNames = pop)
 
-my_dist <- OutFLANK(my_fst, NumberOfSamples = 4, qthreshold=0.1, RightTrimFraction=0.1, LeftTrimFraction=0.1)
+#make distance 
+my_dist <- OutFLANK(my_fst, NumberOfSamples = 385, qthreshold=0.1, RightTrimFraction=0.1, LeftTrimFraction=0.1)
 
-
+#use outflank with distance provided 
 OutFLANKResultsPlotter(my_dist)
 
+#plot distance results and show results 
 plot(my_dist$results$FST, col=as.numeric(as.factor(chromosome)))
 
-
 my_dist$results[which(my_dist$results$OutlierFlag == TRUE),]
+
+##################################################################
+
+
+
+
 
 
