@@ -335,7 +335,6 @@ compoplot(dapc1, posi="bottomright",txt.leg=paste("Cluster", 1:6), lab="", ncol=
 ###################################################################### #################################################33
 #BayENV2
 cp /home/BIO594/DATA/Week7/example/SNPBayEnv.spid .
-cp /home/BIO594/DATA/Week7/example/environ .
 java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWE2A.recode.vcf -outputfile SNP.TRSdp5p05FHWEBayEnv.txt -spid SNPBayEnv.spid
 bayenv2 -i SNP.TRSdp5p05FHWEBayEnv.txt -p 4 -k 100000 -r 63479 > matrix.out
 tail -5 matrix.out | head -4 > matrix
