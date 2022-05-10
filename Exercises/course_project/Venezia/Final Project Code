@@ -8,7 +8,7 @@
 #I have included the code that didn't work as I would like to know what the problem is if possible 
 
 ## 2 ## 
-#I calcuated the fst values with the package Hierfstat/adegent as part of the PCA analysis and didn't make a new section for this process (lines 301-307)
+#I calcuated the fst values with the package Hierfstat/adegent as part of the PCA analysis and didn't make a new section for this process 
 # I found the the package would load but couldn't find the funciton at times in the code. To address this I have reinstalled the packages and it would work at times
 # I did this multiple times trying to figure out why but coulnd't see a reason, sometimes the package dind't load correctly. I added the code I used to address it at the lines with the issues itself
 # I also calcuated the fst values with the Outflank package as part of that analysis, so the fst is calcuated 2 ways 
@@ -350,8 +350,6 @@ contrib
 
 compoplot(dapc1, posi="bottomright",txt.leg=paste("Cluster", 1:6), lab="", ncol=1, xlab="individuals")
 
-
-#########################################################
 ################BayENV2##################################
 # I could not get this part to work for my data 
 # I think the issue is on Line 368 and not producing an matrix, 
@@ -395,7 +393,6 @@ plot(table_bay$BF1)
 #veiw the table created 
 table_bay[which(table_bay$BF1 > 100),]
 
-######################################### 
 ##############OUtflank###################
 #load packages for outflank, vcfr adn bigsnpr(for LD pruning) 
 library(OutFLANK)  
