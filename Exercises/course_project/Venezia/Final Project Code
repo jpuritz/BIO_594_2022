@@ -5,7 +5,6 @@
 #notes on the analysis
 ## 1 ##
 #I was not able to get the Bayenv2 analysis for outlier to work for this code. I found the line having problems and could not figure out why it would not produce a matrix
-#To make up for this I have added a BayeScan analysis after the fitlering step to identfity outliers (this was not in my plan)
 #I have included the code that didn't work as I would like to know what the problem is if possible 
 
 ## 2 ## 
@@ -17,7 +16,7 @@
 #3#
 #I have all the final graphs produced in the venezia folder for course_project to be viewed.
 #The graphs incldue the pCA plots, structure plot, manhatten plot, loading plot, cluster graph, the proprotion of variance plot, eigenvalues and likelyhood predictions
-#These are all from a variety of analysis that include PCA analysis, outflank, Hierfstat package to find the Fst values, and BayeScan 
+#These are all from a variety of analysis that include PCA analysis, outflank, Hierfstat package to find the Fst values. 
 
 #4#
 #The r code analysis is saved in the Fiddler_Crab file if you would like to see it  
@@ -25,7 +24,7 @@
 
 
 ##############################################################################################
-# Step 1: Examine the dat for data quality 
+# Step 1: Examine the data for data quality 
 #This will be done in linux terminal using the program fastqc to produce an html file for each sample 
 #fastqc will provide basic statistics and other visual representation of the data. The focus for looking at sequence quality will be perbase sequnces and per base sequence quality. 
 #Make sure to look over all the files to make sure you are aware of what the data looks like you are working with. 
@@ -201,27 +200,6 @@ java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWEmaf05.re
 #outlier detection with ony 2 alleles will be used 
 vcftools --vcf SNP.TRSdp5p05FHWEmaf05.recode.vcf --max-alleles 2 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWE2A
 
-########################################
-####Bayescan####
-# Run Bayescan in linux terminal
-BayeScan2.1_linux64bits SNP.TRSdp5p05FHWEBS -nbp 30 -thin 20
-
-#this will take a long time some move it to the background to run
-[ctrl] Z
-bg
-disown -h
-
-#copy the R source file to be able to plot in R studio 
-cp /home/BIO594/DATA/Week7/example/plot_R.r .
-
-#open R studio 
-#bring in source to add function for plotting 
-source("/home/rvenezia/Fiddler_Crab/plot_R.r")
-
-#plot the produced file 
-plot_bayescan("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FH_fst.txt")
-BS <-plot_bayescan("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FH_fst.txt")
-plot_bayescan("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FH_fst.txt",highlight = BS$outliers)
 
 #######################################################################
 #####PCA adapt to identify outliers and plot agaisnt each other########
@@ -376,7 +354,7 @@ compoplot(dapc1, posi="bottomright",txt.leg=paste("Cluster", 1:6), lab="", ncol=
 #########################################################
 ################BayENV2##################################
 # I could not get this part to work for my data 
-# I think the issue is on Line 345 and not producing an matrix, 
+# I think the issue is on Line 368 and not producing an matrix, 
 # I checked the input file and there is data in the text file, however the code runs but the matrix it produces at the end of the process is empty
 #This messes up the next steps in the process
 
