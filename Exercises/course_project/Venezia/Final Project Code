@@ -176,11 +176,11 @@ java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWEmaf05.re
 
 #Step4: Outlier Detection of samples with various methods 
 
-#outlier detection with ony 2 alleles
+#outlier detection with ony 2 alleles will be used 
 vcftools --vcf SNP.TRSdp5p05FHWEmaf05.recode.vcf --max-alleles 2 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWE2A
 
 
-#PCA adapt to identify outliers
+#####PCA adapt to identify outliers and plot agaisnt each other########
 #load packages
 library(pcadapt)
 
@@ -222,8 +222,6 @@ plot(x , option = "manhattan", pop = poplist.names)
 #make qqplot
 plot(x, option = "qqplot", threshold = 0.1)
 
-
-
 #set FDR
 #load package
 library(qvalue)
@@ -236,9 +234,7 @@ alpha <- 0.1
 outliers <- which(qval < alpha)
 
 
-#Test for library effects
-
-
+#####Test for library effects######
 #set variables with first 20 runs
 x <- pcadapt(input = fiddler_crab, K = 20)
 
@@ -263,17 +259,19 @@ qval <- qvalue(x$pvalues)$qvalues
 alpha <- 0.1
 outliers <- which(qval < alpha)
 
-#pca way 2
+####PCA analysis for structure of population and to show proportion of variance#########
+#load packages
 library(adegenet)
 library(vcfR)
 
-
+#create variable from vcf file 
 my_vcf <- read.vcfR("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FHWE2A.recode.vcf")
 
-
+#create gen id from vcf variable
 my_genind <- vcfR2genind(my_vcf)
 
-#Test Population Structure
+##Test Population Structure##
+#install packages
 install.packages("devtools")
 library(devtools)
 install.packages("hierfstat")
@@ -293,7 +291,7 @@ fstat(my_genind)
 matFst <- pairwise.fst(my_genind)
 
 ################################################ ##############################################
-#PCA
+#PCA graphs, barplot 
 
 X <- tab(my_genind, freq = TRUE, NA.method = "mean")
 pca1 <- dudi.pca(X, scale = FALSE, scannf = FALSE, nf = 3)
@@ -303,7 +301,7 @@ add.scatter.eig(pca1$eig[1:20], 3,1,2)
 col <- funky(15)
 
 
-#DAPC
+#DAPC for clusters in data 
 #find clusters and PC to reatin
 #PC=300, clusers=40
 grp <- find.clusters(my_genind, max.n.clust=40)
@@ -317,8 +315,7 @@ scatter(dapc1,col=col,bg="white", solid=1)
 contrib <- loadingplot(dapc1$var.contr, axis=1, thres=.01, lab.jitter=1)
 contrib
 
-#Structure Like
-
+#Structure Like plot 
 
 compoplot(dapc1, posi="bottomright",txt.leg=paste("Cluster", 1:6), lab="", ncol=1, xlab="individuals")
 
@@ -342,7 +339,7 @@ plot(table_bay$BF1)
 table_bay[which(table_bay$BF1 > 100),]
 
  ######################################### 
- #OUtflank
+#OUtflank
 #Outflank 
 #load packages for outflank, vcfr adn bigsnpr(for LD pruning) 
 library(OutFLANK)  
@@ -379,18 +376,19 @@ pop <- pop$V2
 #make fst values with chromosome and position
 my_fst <- MakeDiploidFSTMat(t(G), locusNames = paste0(chromosome,"_", position), popNames = pop)
 
-####################################### #########################################3
+head(my_fst)
 
-#make distance 
-my_dist <- OutFLANK(my_fst, NumberOfSamples = 385, qthreshold=0.1, RightTrimFraction=0.1, LeftTrimFraction=0.1)
+#check loci for uncorrected sample size that cannot be fit for the chi squred distribution
+#FastNOCorr are uncorrected for sample size 
+#FST has been corrected 
+plot(my_fst$FST, my_fst$FSTNoCorr, abline(0,1))
 
-#use outflank with distance provided 
-OutFLANKResultsPlotter(my_dist)
 
-#plot distance results and show results 
-plot(my_dist$results$FST, col=as.numeric(as.factor(chromosome)))
+#plot chi squared distribution as scatter
+plot(my_fst$He, my_fst$FSTNoCorr, pch =20, col ="grey")
 
-my_dist$results[which(my_dist$results$OutlierFlag == TRUE),]
+#plot histrogramof fst values
+hist(my_fst$FSTNoCorr)
 
 ##################################################################
 
