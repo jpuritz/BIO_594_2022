@@ -19,6 +19,10 @@
 #The graphs incldue the pCA plots, structure plot, manhatten plot, loading plot, cluster graph, the proprotion of variance plot, eigenvalues and likelyhood predictions
 #These are all from a variety of analysis that include PCA analysis, outflank, Hierfstat package to find the Fst values, and BayeScan 
 
+#4#
+#The r code analysis is saved in the Fiddler_Crab file if you would like to see it  
+#The r code is saved as a file in the Fiddler_Crab folder name rvezia_final_project_code.R
+
 
 ##############################################################################################
 # Step 1: Examine the dat for data quality 
