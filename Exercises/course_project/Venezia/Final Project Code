@@ -387,7 +387,7 @@ cp /home/BIO594/DATA/Week7/example/SNPBayEnv.spid .
 java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWE2A.recode.vcf -outputfile SNP.TRSdp5p05FHWEBayEnv.txt -spid SNPBayEnv.spid
 
 #run Bayenv2 to produce a covariance matrix 
-bayenv2 -i SNP.TRSdp5p05FHWEBayEnv.txt -p 4 -k 100000 -r 63479 > matrix.out
+bayenv2 -i SNP.TRSdp5p05FHWEBayEnv.txt -p 12 -k 100000 -r 63479 > matrix.out
 tail -5 matrix.out | head -4 > matrix
 
 #look at the environ file
