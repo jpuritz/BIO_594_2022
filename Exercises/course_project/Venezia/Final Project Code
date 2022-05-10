@@ -197,6 +197,28 @@ java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWEmaf05.re
 #outlier detection with ony 2 alleles will be used 
 vcftools --vcf SNP.TRSdp5p05FHWEmaf05.recode.vcf --max-alleles 2 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWE2A
 
+########################################
+####Bayescan####
+# Run Bayescan in linux terminal
+BayeScan2.1_linux64bits SNP.TRSdp5p05FHWEBS -nbp 30 -thin 20
+
+#this will take a long time some move it to the background to run
+[ctrl] Z
+bg
+disown -h
+
+#copy the R source file to be able to plot in R studio 
+cp /home/BIO594/DATA/Week7/example/plot_R.r .
+
+#open R studio 
+#bring in source to add function for plotting 
+source("/home/rvenezia/Fiddler_Crab/plot_R.r")
+
+#plot the produced file 
+plot_bayescan("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FH_fst.txt")
+BS <-plot_bayescan("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FH_fst.txt")
+plot_bayescan("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FH_fst.txt",highlight = BS$outliers)
+
 #######################################################################
 #####PCA adapt to identify outliers and plot agaisnt each other########
 #load packages
