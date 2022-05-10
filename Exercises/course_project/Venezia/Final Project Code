@@ -176,16 +176,6 @@ java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWEmaf05.re
 
 #Step4: Outlier Detection of samples with various methods 
 
-################################################## #######################################################
-#Bayscan 
-BayeScan2.1_linux64bits SNP.TRSdp5p05FHWEBS -nbp 30 -thin 20 
-
-R
-source("plot_R.r")
-plot_bayescan("SNP.TRSdp5p05FH_fst.txt")
-
-################################################# ############################################################
-
 #outlier detection with ony 2 alleles
 vcftools --vcf SNP.TRSdp5p05FHWEmaf05.recode.vcf --max-alleles 2 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWE2A
 
@@ -283,7 +273,6 @@ my_vcf <- read.vcfR("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FHWE2A.recode.vcf"
 
 my_genind <- vcfR2genind(my_vcf)
 
-############################# ###############################33
 #Test Population Structure
 install.packages("devtools")
 library(devtools)
@@ -295,6 +284,8 @@ poplist.int <- c(rep(1,29),rep(2,31),rep(3,30),rep(4,41),rep(5,31),rep(6,31),rep
 print(poplist.int)
 poplist.names <- c(rep("FBN",29),rep("FBS",31),rep("OBN",30),rep("OBS",41),rep("PCN",31), rep("PCS",31),rep("SPN",30),rep("SPS",31),rep("WC1",30),rep("WC2",31),rep("WC3",31),rep("WC4",30))
 print(poplist.names)
+
+############################################### ######3###############################
 
 library(adegenet)
 fstat(my_genind)
@@ -350,9 +341,8 @@ plot(table_bay$BF1)
 
 table_bay[which(table_bay$BF1 > 100),]
 
- ######################################### ##################################################################
+ ######################################### 
  #OUtflank
- ######################################################################
 #Outflank 
 #load packages for outflank, vcfr adn bigsnpr(for LD pruning) 
 library(OutFLANK)  
