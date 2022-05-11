@@ -3,16 +3,18 @@
   # author: "Samuel Gurr"
   # date: "January 8, 2021"
   ---
-  
-  # LOAD PACKAGES
-  library(WGCNA) # note: this was previously installed with the command `BiocManager::install("WGCNA")`
+
+# LOAD PACKAGES
+#packages <- c("WGCNA","dplyr","zoo","DESeq2",)
+#install.packages()
+library(WGCNA) # note: this was previously installed with the command `BiocManager::install("WGCNA")`
 library(dplyr)
 library(zoo)
 library(DESeq2)
 
-# for heatmap 
+# for heatmap
 # library(devtools)
-# install_github("jokergoo/ComplexHeatmap") first run these - commented out to avoid running a second time...
+install_github("jokergoo/ComplexHeatmap") # first run these - commented out to avoid running a second time...
 library(ComplexHeatmap)
 library(circlize)
 library(reshape)
@@ -105,7 +107,7 @@ par(mar = c(0,4,2,0))
 png("Presentations/URI/2022_URI_Puritz_Genomics_class/Day7_ClusterTree_Precut.png", 1000, 1000, pointsize=20)
 plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5, 
      cex.axis = 1.5, cex.main = 2) # appears there are two outliers SG59; can remove by hand or an automatic appraoch 
-abline(h = 110, col = "red") # add line to plot to show the cut-off od outlier samples (40000) SG105 and SG55
+abline(h = 110, col = "#dd2b17e6") # add line to plot to show the cut-off od outlier samples (40000) SG105 and SG55
 dev.off()
 
 # view your tree   ========================================================== #
