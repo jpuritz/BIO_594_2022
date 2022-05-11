@@ -1,0 +1,99 @@
+---
+title: "BIO594 final plots"
+author: "jillashey"
+date: "5/5/2022"
+output: html_document
+---
+
+### Load libraries 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Load alignment data 
+
+### STAR alignment  
+```{r}
+## Read data in 
+star <- read.csv("Desktop/URI/Spring2022/BIO594/github/BIO_594_2022/Exercises/course_project/JAshey/output/STAR_Alignment.csv", header = T)
+star$Aligner <- "STAR"
+
+## Remove low quality samples: 31_2 (low read count) and 24_T12_Ac_FM (low alignment, may be another species mislabeled during sequencing)
+star <- star[!(star$SampleID == "31_2" | star$SampleID == "24_T12_Ac_FM"),]
+
+## Separate by species, remove alignment rate of other species, and rename columns
+# Acerv
+star_acerv <- star %>% filter(Species=="A.cervicornis") %>% select(-AlignmentRate.PacutaGenome)
+colnames(star_acerv) <- c("SampleID", "Species", "AlignmentRate", "Aligner")   
+
+# Pacuta
+star_pacuta <- star %>% filter(Species=="P.acuta") %>% select(-AlignmentRate.AcervGenome)
+colnames(star_pacuta) <- c("SampleID", "Species", "AlignmentRate", "Aligner")   
+```
+
+### Bowtie alignment  
+```{r}
+## Read data in 
+bowtie <- read.csv("Desktop/URI/Spring2022/BIO594/github/BIO_594_2022/Exercises/course_project/JAshey/output/Bowtie_Alignment.csv", header = T)
+bowtie$Aligner <- "Bowtie"
+
+## Remove low quality samples: 31_2 (low read count) and 24_T12_Ac_FM (low alignment, may be another species mislabeled during sequencing)
+bowtie <- bowtie[!(bowtie$SampleID == "31_2" | bowtie$SampleID == "24_T12_Ac_FM"),]
+
+## Separate by species, remove alignment rate of other species, and rename columns
+# Acerv
+bowtie_acerv <- bowtie %>% filter(Species=="A.cervicornis") %>% select(-AlignmentRate.PacutaDeNovo)
+colnames(bowtie_acerv) <- c("SampleID", "Species", "AlignmentRate", "Aligner")   
+
+# Pacuta
+bowtie_pacuta <- bowtie %>% filter(Species=="P.acuta") %>% select(-AlignmentRate.AcervDeNovo)
+colnames(bowtie_pacuta) <- c("SampleID", "Species", "AlignmentRate", "Aligner")   
+```
+
+### Kallisto alignment 
+```{r}
+## Read data in 
+kallisto <- read.csv("Desktop/URI/Spring2022/BIO594/github/BIO_594_2022/Exercises/course_project/JAshey/output/Kallisto_Alignment.csv", header = T)
+kallisto$Aligner <- "Kallisto"
+
+## Remove low quality samples: 31_2 (low read count) and 24_T12_Ac_FM (low alignment, may be another species mislabeled during sequencing)
+kallisto <- kallisto[!(kallisto$SampleID == "31_2" | kallisto$SampleID == "24_T12_Ac_FM"),]
+
+## Separate by species, remove alignment rate of other species, and rename columns
+# Acerv
+kallisto_acerv <- kallisto %>% filter(Species=="A.cervicornis") %>% select(-c(ReadsProcessed.Pacuta, ReadsPseudoaligned.Pacuta, PseudoalignedRate.Pacuta, ReadsProcessed.Acerv, ReadsPseudoaligned.Acerv))
+colnames(kallisto_acerv) <- c("SampleID", "Species", "AlignmentRate", "Aligner")   
+
+# Pacuta
+kallisto_pacuta <- kallisto %>% filter(Species=="P.acuta") %>% select(-c(ReadsProcessed.Acerv, ReadsPseudoaligned.Acerv, PseudoalignedRate.Acerv, ReadsProcessed.Pacuta, ReadsPseudoaligned.Pacuta))
+colnames(kallisto_pacuta) <- c("SampleID", "Species", "AlignmentRate", "Aligner")   
+```
+
+
+## Bind data together and plot
+
+```{r}
+all <- rbind(star_acerv, bowtie_acerv, kallisto_acerv, star_pacuta, bowtie_pacuta, kallisto_pacuta)
+
+plot <- ggplot(all, aes(x=Species, y=AlignmentRate)) + 
+  geom_boxplot(aes(color=Aligner), outlier.size = 0, position = position_dodge(0.8), lwd=1) +
+  geom_point(aes(fill=Aligner, group=Aligner), pch = 21, size=4, position = position_jitterdodge(0.1)) + 
+  xlab("Species") + 
+  scale_fill_manual(name="Aligner", values=c("#DFC27D", "#80CDC1","#003C30"), labels=c("Bowtie", "Kallisto", "STAR")) + 
+  scale_color_manual(name="Aligner", values=c("#DFC27D", "#80CDC1","#003C30"), labels=c("Bowtie", "Kallisto", "STAR")) + 
+    ylab(expression(bold(paste("Alignment Rate (%)")))) +
+  scale_y_continuous(limits=c(0, 100), labels = scales::number_format(accuracy = 0.01, decimal.mark = '.')) +
+    theme_classic() + 
+    theme(
+      legend.position="right",
+      axis.title=element_text(face="bold", size=16),
+      axis.text=element_text(size=12, color="black"), 
+      legend.title=element_text(face="bold", size=16),
+      legend.text=element_text(size=14)
+      ); plot
+ggsave("Desktop/URI/Spring2022/BIO594/github/BIO_594_2022/Exercises/course_project/JAshey/output/AlignmentRates.png", plot, dpi=300, w=8.5, h=5, units="in")
+```
+
+### Knit as html and save
+

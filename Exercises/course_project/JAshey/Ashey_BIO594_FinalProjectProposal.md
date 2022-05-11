@@ -36,6 +36,16 @@ For my analysis, I will complete the following workflow:
 
 ![](https://raw.githubusercontent.com/jpuritz/BIO_594_2022/main/Exercises/course_project/JAshey/BIO594_FinalProject_Workflow.jpg)
 
+##### References 
+
+- [Baruzzo et al. 2018](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5792058/) - Simulation-based comprehensive benchmarking of RNA-seq aligners
+- [Corchete et al. 2020](https://www.nature.com/articles/s41598-020-76881-x) - Systematic comparison and assessment of RNA-seq procedures for gene expression quantitative analysis
+- [Jin et al. 2017](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5374695/) - Comprehensive evaluation of RNA-seq quantification methods for linearity
+- [Musich et al. 2021](https://www.frontiersin.org/articles/10.3389/fpls.2021.657240/full) - Comparison of Short-Read Sequence Aligners Indicates Strengths and Weaknesses for Biologists to Consider
+- [Schaarschmidt et al. 2020](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7084517/#B21-ijms-21-01720) - Evaluation of Seven Different RNA-Seq Alignment Tools Based on Experimental Data from the Model Plant Arabidopsis thaliana 
+
+
+
 
 
 

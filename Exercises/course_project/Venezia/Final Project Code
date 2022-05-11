@@ -1,0 +1,446 @@
+# Final Project on Fillder crabs
+#Rebecca Venezia 
+#BIO 592
+#05/02/2022 
+#notes on the analysis
+## 1 ##
+#I was not able to get the Bayenv2 analysis for outlier to work for this code. I found the line having problems and could not figure out why it would not produce a matrix
+#I have included the code that didn't work as I would like to know what the problem is if possible 
+
+## 2 ## 
+#I calcuated the fst values with the package Hierfstat/adegent as part of the PCA analysis and didn't make a new section for this process 
+# I found the the package would load but couldn't find the funciton at times in the code. To address this I have reinstalled the packages and it would work at times
+# I did this multiple times trying to figure out why but coulnd't see a reason, sometimes the package dind't load correctly. I added the code I used to address it at the lines with the issues itself
+# I also calcuated the fst values with the Outflank package as part of that analysis, so the fst is calcuated 2 ways 
+
+#3#
+#I have all the final graphs produced in the venezia folder for course_project to be viewed.
+#The graphs incldue the pCA plots, structure plot, manhatten plot, loading plot, cluster graph, the proprotion of variance plot, eigenvalues and likelyhood predictions
+#These are all from a variety of analysis that include PCA analysis, outflank, Hierfstat package to find the Fst values. 
+
+#4#
+#The r code analysis is saved in the Fiddler_Crab file if you would like to see it  
+#The r code is saved as a file in the Fiddler_Crab folder name rvezia_final_project_code.R
+
+
+##############################################################################################
+# Step 1: Examine the data for data quality 
+#This will be done in linux terminal using the program fastqc to produce an html file for each sample 
+#fastqc will provide basic statistics and other visual representation of the data. The focus for looking at sequence quality will be perbase sequnces and per base sequence quality. 
+#Make sure to look over all the files to make sure you are aware of what the data looks like you are working with. 
+# I expect to find all sequneces in the good range(green) and to have the first 5 to 10 sequences be messy 
+#The code for each of the sites in an individual line below 
+
+fastqc FBN_306.F.fq.gz FBN_306.R.F.fq.gz FBN_307.F.fq.gz FBN_307.R.F.fq.gz FBN_308.F.fq.gz FBN_308.R.F.fq.gz FBN_309.F.fq.gz FBN_309.R.F.fq.gz FBN_310.F.fq.gz FBN_310.R.F.fq.gzFBN_311.F.fq.gz FBN_311.R.F.fq.gz FBN_312.F.fq.gz FBN_312.R.F.fq.gz FBN_313.F.fq.gz
+FBN_313.R.F.fq.gz FBN_314.F.fq.gz FBN_314.R.F.fq.gz FBN_315.F.fq.gz FBN_315.R.F.fq.gz FBN_316.F.fq.gz FBN_316.R.F.fq.gz FBN_317.F.fq.gz FBN_317.R.F.fq.gz FBN_318.F.fq.gz FBN_318.R.F.fq.gz FBN_319.F.fq.gz FBN_319.R.F.fq.gz FBN_320.F.fq.gz FBN_320.R.F.fq.gz
+FBN_321.F.fq.gz FBN_321.R.F.fq.gz FBN_322.F.fq.gz FBN_322.R.F.fq.gz FBN_323.F.fq.gz FBN_323.R.F.fq.gz FBN_324.F.fq.gz FBN_324.R.F.fq.gz FBN_325.F.fq.gz FBN_325.R.F.fq.gz FBN_326.F.fq.gz FBN_326.R.F.fq.gz FBN_327a.F.fq.gz FBN_327a.R.F.fq.gz FBN_327b.F.fq.gz
+FBN_327b.R.F.fq.gz FBN_327c.F.fq.gz FBN_327c.R.F.fq.gz FBN_327d.F.fq.gz FBN_327d.R.F.fq.gz FBN_328.F.fq.gz FBN_328.R.F.fq.gz FBN_329.F.fq.gz FBN_329.R.F.fq.gz FBN_330.F.fq.gz FBN_330.R.F.fq.gz FBN_331.F.fq.gz FBN_331.R.F.fq.gz FBN_332.F.fq.gz FBN_332.R.F.fq.gz
+FBN_333.F.fq.gz FBN_333.R.F.fq.gz FBN_334.F.fq.gz FBN_334.R.F.fq.gz FBN_335.F.fq.gz FBN_335.R.F.fq.gz
+
+fastqc FBS_036.F.fq.gz FBS_036.R.fq.gz FBS_039.F.fq.gz FBS_039.R.fq.gzFBS_049.F.fq.gz FBS_049.R.fq.gz FBS_050F.fq.gz FBS_040.R.fq.gz FBS_058.F.fq.gz FBS_058.R.fq.gz FBS_059.F.fq.gz FBS_059.R.fq.gz FBS_31.F.fq.gz FBS_31.R.fq.gz FBS_32.F.fq.gz FBS_32.R.fq.gz 
+FBS_33.F.fq.gz FBS_33.R.fq.gz FBS_34.F.fq.gz FBS_34.R.fq.gz FBS_35.F.fq.gz FBS_35.R.fq.gz FBS_36.F.fq.gz FBS_36.R.fq.gz FBS_37.F.fq.gz FBS_37.R.fq.gz FBS_38.F.fq.gz FBS_38.R.fq.gz FBS_39.F.fq.gz FBS_39.R.fq.gz FBS_40.F.fq.gz FBS_40.R.fq.gz FBS_41.F.fq.gz
+FBS_41.R.fq.gz FBS_43.F.fq.gz FBS_43.R.fq.gz FBS_44.F.fq.gz FBS_44.R.fq.gz FBS_45.F.fq.gz FBS_45.R.fq.gz FBS_46.F.fq.gz FBS_46.R.fq.gz FBS_47.F.fq.gz FBS_47.R.fq.gz FBS_48F.fq.gz FBS_48.R.fq.gz FBS_51.F.fq.gz FBS_51.R.fq.gz FBS_52.F.fq.gz FBS_52.R.fq.gz
+FBS_53.F.fq.gz FBS_53.R.fq.gz FBS_54.F.fq.gz FBS_54.R.fq.gz FBS_55.F.fq.gz FBS_55.R.fq.gz FBS_57.F.fq.gz FBS_57.R.fq.gz FBS_60.F.fq.gz FBS_60.R.fq.gz FBS_61.F.fq.gz FBS_61.R.fq.gz FBS_62.F.fq.gz FBS_62.R.fq.gz 
+
+fastqc OBN_005.F.fq.gz OBN_005.R.fq.gz OBN_007.F.fq.gz OBN_007.R.fq.gz OBN_008.F.fq.gz OBN_008.R.fq.gz OBN_009a.F.fq.gz OBN_009a.R.fq.gz OBN_017.F.fq.gz OBN_017.R.fq.gz OBN_023.F.fq.gz OBN_023.R.fq.gz OBN_10.F.fq.gz OBN_10.R.fq.gz OBN_11.F.fq.gz
+OBN_11.R.fq.gz OBN_12.F.fq.gz OBN_12.R.fq.gz OBN_13.F.fq.gz OBN_13.R.fq.gz OBN_14.F.fq.gz OBN_14.R.fq.gz OBN_15.F.fq.gz OBN_15.R.fq.gz OBN_16.F.fq.gz OBN_16.R.fq.gz OBN_18.F.fq.gz OBN_18.R.fq.gz OBN_19.F.fq.gz OBN_19.R.fq.gz OBN_1.F.fq.gz OBN_1.R.fq.gz 
+OBN_21.F.fq.gz OBN_21.R.fq.gz OBN_22.F.fq.gz OBN_22.R.fq.gz OBN_23.F.fq.gz OBN_23.R.fq.gz OBN_24.F.fq.gz OBN_24.R.fq.gz OBN_25.F.fq.gz OBN_25.R.fq.gz OBN_26.F.fq.gz OBN_26.R.fq.gz OBN_27.F.fq.gz OBN_27.R.fq.gz OBN_28.F.fq.gz OBN_28.R.fq.gz OBN_29.F.fq.gz 
+OBN_29.R.fq.gz OBN_2.F.fq.gz OBN_2.R.fq.gz OBN_3.F.fq.gz OBN_3.R.fq.gz OBN_4.F.fq.gz OBN_4.R.fq.gz OBN_6.F.fq.gz OBN_6.R.fq.gz OBN_9b.F.fq.gz OBN_9b.R.fq.gz OBN_9c.F.fq.gz OBN_9c.R.fq.gz OBN_9d.F.fq.gz OBN_9d.R.fq.gz
+
+fastqc OBS_232.F.fq.gz OBS_232.R.fq.gz OBS_233.F.fq.gz OBS_233.R.fq.gz OBS_235.F.fq.gz OBS_235.R.fq.gz OBS_236.F.fq.gz OBS_236.R.fq.gz OBS_237.F.fq.gz OBS_237.R.fq.gz OBS_238.F.fq.gz OBS_238.R.fq.gz OBS_239.F.fq.gz OBS_239.R.fq.gz OBS_240.F.fq.gz 
+OBS_240.R.fq.gz OBS_241.F.fq.gz OBS_241.R.fq.gz OBS_242.F.fq.gz OBS_242.R.fq.gz OBS_243.F.fq.gz OBS_243.R.fq.gz OBS_244.F.fq.gz OBS_244.R.fq.gz OBS_245a.F.fq.gz OBS_245a.R.fq.gz OBS_245b.F.fq.gz OBS_245b.R.fq.gz OBS_245c.F.fq.gz OBS_245c.R.fq.gz 
+OBS_245d.F.fq.gz OBS_245d.R.fq.gz OBS_246.F.fq.gz OBS_246.R.fq.gz OBS_247.F.fq.gz OBS_247.R.fq.gz OBS_248.F.fq.gz OBS_248.R.fq.gz OBS_249.F.fq.gz OBS_249.R.fq.gz OBS_250.F.fq.gz OBS_250.R.fq.gz OBS_251.F.fq.gz OBS_251.R.fq.gz OBS_252.F.fq.gz OBS_252.R.fq.gz 
+OBS_253.F.fq.gz OBS_253.R.fq.gz OBS_254.F.fq.gz OBS_254.R.fq.gz OBS_255.F.fq.gz OBS_255.R.fq.gz OBS_256.F.fq.gz OBS_256.R.fq.gz OBS_258.F.fq.gz OBS_258.R.fq.gz OBS_270.F.fq.gz OBS_270.R.fq.gz OBS_272.F.fq.gz OBS_272.R.fq.gz OBS_273.F.fq.gz OBS_273.R.fq.gz 
+
+fastqc PCN_200.F.fq.gz PCN_200.R.fq.gz PCN_201.F.fq.gz PCN_201.R.fq.gz PCN_202.F.fq.gz PCN_202.R.fq.gz PCN_203.F.fq.gz PCN_203.R.fq.gz PCN_204.F.fq.gz PCN_204.R.fq.gz PCN_205.F.fq.gz PCN_205R.fq.gz PCN_206.F.fq.gz PCN_206.R.fq.gz PCN_207.F.fq.gz PCN_207.R.fq.gz 
+PCN_208.F.fq.gz PCN_208.R.fq.gz PCN_209.F.fq.gz PCN_209.R.fq.gz PCN_210a.F.fq.gz PCN_210a.R.fq.gz PCN_210b.F.fq.gz PCN_210b.R.fq.gz PCN_211.F.fq.gz PCN_211.R.fq.gz PCN_212.F.fq.gz PCN_212.R.fq.gz PCN_213.F.fq.gz PCN_213.R.fq.gz PCN_214.F.fq.gz PCN_214.R.fq.gz 
+PCN_215.F.fq.gz PCN_215.R.fq.gz PCN_216.F.fq.gz PCN_216.R.fq.gz PCN_217.F.fq.gz PCN_217.R.fq.gz PCN_218.F.fq.gz PCN_218.R.fq.gz PCN_219.F.fq.gz PCN_219.R.fq.gz PCN_220.F.fq.gz PCN_220.R.fq.gz PCN_222.F.fq.gz PCN_222.R.fq.gz PCN_223a.F.fq.gz PCN_223a.R.fq.gz 
+PCN_223b.F.fq.gz PCN_223b.R.fq.gz PCN_224.F.fq.gz PCN_224.R.fq.gz PCN_225.F.fq.gz PCN_225.R.fq.gz PCN_226.F.fq.gz PCN_226.R.fq.gz PCN_227.F.fq.gz PCN_227.R.fq.gz PCN_228.F.fq.gz PCN_228.R.fq.gz PCN_229.F.fq.gz PCN_229.R.fq.gz PCN_230.F.fq.gz PCN_230.R.fq.gz 
+PCN_231.F.fq.gz PCN_231.R.fq.gz
+
+fastqc PCS_338.F.fq.gz PCS_338.R.fq.gz PCS_340.F.fq.gz PCS_340.R.fq.gz PCS_341.F.fq.gz PCS_341.R.fq.gz PCS_342.F.fq.gz PCS_342.R.fq.gz PCS_344.F.fq.gz PCS_344.R.fq.gz PCS_345.F.fq.gz PCS_345.R.fq.gz PCS_346.F.fq.gz PCS_346.R.fq.gz PCS_347.fq.gz PCS_347.R.fq.gz 
+PCS_348.F.fq.gz PCS_348.R.fq.gz PCS_349.F.fq.gz PCS_349.R.fq.gz PCS_350.F.fq.gz PCS_350.R.fq.gz PCS_351.F.fq.gz PCS_351.R.fq.gz PCS_352.F.fq.gz PCS_352.R.fq.gz PCS_353.F.fq.gz PCS_353.R.fq.gz PCS_354.F.fq.gz PCS_354.R.fq.gz PCS_355.F.fq.gz PCS_355.R.fq.gz
+PCS_356.F.fq.gz PCS_356.R.fq.gz PCS_357.F.fq.gz PCS_357.R.fq.gz PCS_358.F.fq.gz PCS_358.R.fq.gz PCS_359.F.fq.gz PCS_359.R.fq.gz PCS_360.F.fq.gz PCS_360.R.fq.gz PCS_361a.F.fq.gz PCS_361a.R.fq.gz PCS_361b.F.fq.gz PCS_361b.R.fq.gz PCS_362.F.fq.gz PCS_362.R.fq.gz
+PCS_363.F.fq.gz PCS_363.R.fq.gz PCS_364.F.fq.gz PCS_364.R.fq.gz PCS_365a.F.fq.gz PCS_365a.R.fq.gz PCS_365b.F.fq.gz PCS_365b.R.fq.gz PCS_366.F.fq.gz PCS_366.R.fq.gz PCS_367.F.fq.gz PCS_367.R.fq.gz PCS_368.F.fq.gz PCS_368.R.fq.gz PCS_369.F.fq.gz PCS_369.R.fq.gz                   
+
+fastqc SPN_370.F.fq.gz SPN_370.R.fq.gz SPN_371.F.fq.gz SPN_371.R.fq.gz SPN_372.F.fq.gz SPN_372.R.fq.gz SPN_373.F.fq.gz SPN_373.R.fq.gz SPN_374.F.fq.gz SPN_374.R.fq.gz SPN_375.F.fq.gz SPN_375.R.fq.gz SPN_376.F.fq.gz SPN_376.R.fq.gz SPN_377.F.fq.gz SPN_377.R.fq.gz
+SPN_378.F.fq.gz SPN_378.R.fq.gz SPN_379.F.fq.gz SPN_379.R.fq.gz SPN_380.F.fq.gz SPN_380.R.fq.gz SPN_381.F.fq.gz SPN_381.R.fq.gz SPN_381.F.fq.gz SPN_381.R.fq.gz SPN_382.F.fq.gz SPN_382R.fq.gz SPN_383.F.fq.gz SPN_383.R.fq.gz SPN_384.F.fq.gz SPN_384.R.fq.gz
+SPN_385.F.fq.gz SPN_385.R.fq.gz SPN_387.F.fq.gz SPN_387.R.fq.gz SPN_388.F.fq.gz SPN_388.R.fq.gz SPN_389.F.fq.gz SPN_389.R.fq.gz SPN_390.F.fq.gz SPN_390.R.fq.gz SPN_391.F.fq.gz SPN_391.R.fq.gz SPN_392.F.fq.gz SPN_392.R.fq.gz SPN_393.F.fq.gz SPN_393.R.fq.gz
+SPN_394.F.fq.gz SPN_394.R.fq.gz SPN_395.F.fq.gz SPN_395.R.fq.gz SPN_396.F.fq.gz SPN_396.R.fq.gz SPN_397.F.fq.gz SPN_397.R.fq.gz SPN_398.F.fq.gz SPN_398.R.fq.gz SPN_399.F.fq.gz SPN_399.R.fq.gz SPN_400.F.fq.gz SPN_400.R.fq.gz SPN_401.F.fq.gz SPN_401.R.fq.gz 
+SPN_402.F.fq.gz SPN_402.R.fq.gz SPN_403.F.fq.gz SPN_403.R.fq.gz   
+
+fastqc SPS_077.F.fq.gz SPS_077.R.fq.gz SPS_082.F.fq.gz SPS_082.R.fq.gz SPS_63.F.fq.gz SPS_63.R.fq.gz SPS_64.F.fq.gz SPS_64.R.fq.gz SPS_65.F.fq.gz SPS_65.R.fq.gz SPS_66.F.fq.gz SPS_66.R.fq.gz SPS_67.F.fq.gz SPS_67.R.fq.gz SPS_68.F.fq.gz SPS_68.R.fq.gz
+SPS_70.F.fq.gz SPS_70.R.fq.gz SPS_71.F.fq.gz SPS_71.R.fq.gz SPS_72.F.fq.gz SPS_72.R.fq.gz SPS_73.F.fq.gz SPS_73.R.fq.gz SPS_74a.F.fq.gz SPS_74a.R.fq.gz SPS_74b.F.fq.gz SPS_74b.R.fq.gz SPS_75.F.fq.gz SPS_75.R.fq.gz SPS_78.F.fq.gz SPS_78.R.fq.gz 
+SPS_79.F.fq.gz SPS_79.R.fq.gz SPS_80.F.fq.gz SPS_80.R.fq.gz SPS_81.F.fq.gz SPS_81.R.fq.gz SPS_83.F.fq.gz SPS_832.R.fq.gz SPS_85.F.fq.gz SPS_85.R.fq.gz SPS_86.F.fq.gz SPS_86.R.fq.gz SPS_87.F.fq.gz SPS_87.R.fq.gz SPS_88.F.fq.gz SPS_88.R.fq.gz 
+SPS_89.F.fq.gz SPS_89.R.fq.gz SPS_90.F.fq.gz SPS_90.R.fq.gz SPS_91.F.fq.gz SPS_91.R.fq.gz SPS_92a.F.fq.gz SPS_92a.R.fq.gz SPS_92b.F.fq.gz SPS_92b.R.fq.gz SPS_92c.F.fq.gz SPS_92c.R.fq.gz SPS_92d.F.fq.gz SPS_92d.R.fq.gz SPS_93.F.fq.gz SPS_93.R.fq.gz SPS_94.F.fq.gz
+SPS_94.R.fq.gz
+
+fastqc WC1_404.F.fq.gz WC1_404.R.fq.gz WC1_405.F.fq.gz WC1_405.R.fq.gz WC1_406.F.fq.gz WC1_406.R.fq.gz WC1_407.F.fq.gz WC1_407.R.fq.gz WC1_408.F.fq.gz WC1_408.R.fq.gz WC1_409.F.fq.gz WC1_409.R.fq.gz WC1_410.F.fq.gz WC1_410.R.fq.gz WC1_411.F.fq.gz WC1_411.R.fq.gz 
+WC1_412.F.fq.gz WC1_412.R.fq.gz WC1_413.F.fq.gz WC1_413.R.fq.gz WC1_414.F.fq.gz WC1_414.R.fq.gz WC1_415.F.fq.gz WC1_415.R.fq.gz WC1_416.F.fq.gz WC1_416.R.fq.gz WC1_417.F.fq.gz WC1_417.R.fq.gz WC1_418.F.fq.gz WC1_418.R.fq.gz WC1_419.F.fq.gz WC1_410.R.fq.gz 
+WC1_420.F.fq.gz WC1_420.R.fq.gz WC1_421.F.fq.gz WC1_421.R.fq.gz WC1_422.F.fq.gz WC1_422.R.fq.gz WC1_423.F.fq.gz WC1_423.R.fq.gz WC1_424.F.fq.gz WC1_424.R.fq.gz WC1_435.F.fq.gz WC1_425.R.fq.gz WC1_426.F.fq.gz WC1_426.R.fq.gz WC1_429.F.fq.gz WC1_429.R.fq.gz 
+WC1_430.F.fq.gz WC1_430.R.fq.gz WC1_431.F.fq.gz WC1_431.R.fq.gz WC1_432.F.fq.gz WC1_432.R.fq.gz WC1_433.F.fq.gz WC1_433.R.fq.gz WC1_434.F.fq.gz WC1_434.R.fq.gz 
+
+fastqc WC2_274.F.fq.gz WC2_274.R.fq.gz WC2_275.F.fq.gz WC2_275.R.fq.gz WC2_276.F.fq.gz WC2_276.R.fq.gz WC2_278.F.fq.gz WC2_278.R.fq.gz WC2_279.F.fq.gz WC2_279.R.fq.gz WC2_280.F.fq.gz WC2_280.R.fq.gz WC2_282.F.fq.gz WC2_282.R.fq.gz WC2_283.F.fq.gz WC2_283.R.fq.gz 
+WC2_284.F.fq.gz WC2_284.R.fq.gz WC2_285.F.fq.gz WC2_285.R.fq.gz WC2_286.F.fq.gz WC2_286.R.fq.gz WC2_287.F.fq.gz WC2_287.R.fq.gz WC2_288.F.fq.gz WC2_288.R.fq.gz WC2_289.F.fq.gz WC2_289.R.fq.gz WC2_291.F.fq.gz WC2_291.R.fq.gz WC2_292.F.fq.gz WC2_292.R.fq.gz
+WC2_293.F.fq.gz WC2_293.R.fq.gz WC2_294.F.fq.gz WC2_294.R.fq.gz WC2_295.F.fq.gz WC2_295.R.fq.gz WC2_296.F.fq.gz WC2_296.R.fq.gz WC2_297.F.fq.gz WC2_297.R.fq.gz WC2_298.F.fq.gz WC2_298.R.fq.gz WC2_299.F.fq.gz WC2_299.R.fq.gz WC2_300.F.fq.gz WC2_300.R.fq.gz
+WC2_301a.F.fq.gz WC2_301a.R.fq.gz WC2_301b.F.fq.gz WC2_301b.R.fq.gz WC2_302.F.fq.gz WC2_302.R.fq.gz WC2_303.F.fq.gz WC2_303.R.fq.gz WC2_304.F.fq.gz WC2_304.R.fq.gz WC2_305aF.fq.gz WC2_305a.R.fq.gz WC2_305b.F.fq.gz WC2_305b.R.fq.gz WC2_305c.F.fq.gz WC2_305c.R.fq.gz                    
+
+fastqc WC3_467.F.fq.gz WC3_467.R.fq.gz WC3_468.F.fq.gz WC3_468.R.fq.gz WC3_469.F.fq.gz WC3_469.R.fq.gz WC3_471.F.fq.gz WC3_471.R.fq.gz WC3_472.F.fq.gz WC3_472.R.fq.gz WC3_473.F.fq.gz WC3_473.R.fq.gz WC3_475.F.fq.gz WC3_475.R.fq.gz WC3_477.F.fq.gz WC3_4767.R.fq.gz 
+WC3_478.F.fq.gz WC3_478.R.fq.gz WC3_479.F.fq.gz WC3_479.R.fq.gz WC3_480.F.fq.gz WC3_480.R.fq.gz WC3_481.F.fq.gz WC3_481.R.fq.gz WC3_482.F.fq.gz WC3_482.R.fq.gz WC3_483.F.fq.gz WC3_483.R.fq.gz WC3_484.F.fq.gz WC3_484.R.fq.gz WC3_485.F.fq.gz WC3_485.R.fq.gz 
+WC3_486.F.fq.gz WC3_486.R.fq.gz WC3_487.F.fq.gz WC3_487.R.fq.gz WC3_489.F.fq.gz WC3_489.R.fq.gz WC3_490.F.fq.gz WC3_490.R.fq.gz WC3_491.F.fq.gz WC3_491.R.fq.gz WC3_492.F.fq.gz WC3_492.R.fq.gz WC3_493.F.fq.gz WC3_493.R.fq.gz WC3_494.F.fq.gz WC3_494.R.fq.gz
+WC3_495.F.fq.gz WC3_495.R.fq.gz WC3_496.F.fq.gz WC3_496.R.fq.gz WC3_497.F.fq.gz WC3_497.R.fq.gz WC3_498.F.fq.gz WC3_498.R.fq.gz
+
+fastqc WC4_435.F.fq.gz WC4_435.R.fq.gz WC4_436.F.fq.gz WC4_436.R.fq.gz WC4_437.F.fq.gz WC4_437.R.fq.gz WC4_438.F.fq.gz WC4_438.R.fq.gz WC4_439.F.fq.gz WC4_439.R.fq.gz WC4_440.F.fq.gz WC4_440.R.fq.gz WC4_441.F.fq.gz WC4_441.R.fq.gz WC4_442.F.fq.gz WC4_442.R.fq.gz 
+WC4_443.F.fq.gz WC4_443.R.fq.gz WC4_444.F.fq.gz WC4_444.R.fq.gz WC4_445.F.fq.gz WC4_445.R.fq.gz WC4_446.F.fq.gz WC4_446.R.fq.gz WC4_447.F.fq.gz WC4_447.R.fq.gz WC4_448.F.fq.gz WC4_448.R.fq.gz WC4_449.F.fq.gz WC4_449.R.fq.gz WC4_450.F.fq.gz WC4_450.R.fq.gz 
+WC4_451.F.fq.gz WC4_451.R.fq.gz WC4_452.F.fq.gz WC4_452.R.fq.gz WC4_453.F.fq.gz WC4_453.R.fq.gz WC4_454.F.fq.gz WC4_454.R.fq.gz WC4_455.F.fq.gz WC4_455.R.fq.gz WC4_456.F.fq.gz WC4_456.R.fq.gz WC4_457.F.fq.gz WC4_457.R.fq.gz WC4_458.F.fq.gz WC4_458.R.fq.gz 
+WC4_459.F.fq.gz WC4_459.R.fq.gz WC4_460.F.fq.gz WC4_460.R.fq.gz WC4_461.F.fq.gz WC4_461.R.fq.gz WC4_462.F.fq.gz WC4_462.R.fq.gz WC4_463.F.fq.gz WC4_463.R.fq.gz WC4_464.F.fq.gz WC4_464.R.fq.gz WC4_465.F.fq.gz WC4_465.R.fq.gz
+
+
+####################################################################################
+
+
+# Step 2:Run dDocent pipeline on all of the fq.gz files to produce Snps
+#This will be done with a refernce file, so it takes less time
+# The process will fitler the data uing trimmomatic with the following qualificaitons
+# low base quality(20) at begning and end of reads, 5pb sliding window with average below 10, and adaptors from Illumina are removed
+#The Assembly will not be used and a refernce.fasta file will be used for the assembly portion of the analysis. 
+#Read mapping wil be used to align sequnces with the program BWA and SAMtools
+#SNP calling and filtering will be done by the program FreeBayes and VCFtools to have 90% of individuals
+#Outputs: 
+#TotalRaw.SNP.vcf: raw SNP, INDEL, NMP and copmlex variant for each indiviiidual, This will be used in further filtering with VCFtools
+#Final.recode.vcf: final vcf file, used to compare runs
+#x.bam: binary alignment maps(BAM) that map reads to the reference contigs
+#uniqseq.data: tab file to show coverage and unique sequences
+#log files: dDocent_main.LOG (all terminal outpt during run), dDocent.runs(paramaters of each run), logfiles directory to hold all log files(as reffernce for issues)
+#The code for this step is below
+
+conda create -n ddocent_env ddocent
+yes
+source conda activate ddocent_env 
+dDocent
+Number of Processors
+10
+Trimming 
+yes
+Assembly?
+no
+Type_of_Assembly?
+
+Clusstering_Similarity%
+
+Minimum withing individual coverage level to include a read for assembly(K1)
+CUTOFF1_NOTSET
+Minimum withing individual coverage level to include a read for assembly(K2)
+CUTOFF2_NOTSET
+Mapping_Reads?
+yes
+Mapping_Match_Value
+1
+Mapping_Mismatch_Value
+4
+Mapping_GapOpen_Penalty
+6
+Calling__SNPs?
+yes
+Email
+rebecca_venezia@uri.edu
+
+#############################################################################
+
+# Step 3: SNP filtering 
+# This will be done with the TOtalRawSNP.vcf file from dDocent 
+# VCFtools iwll be used to complete the filtrations 
+#multiple filtration status will be used to see how the data and which is best to use 
+#The code for this is below
+
+#This step will filter 
+#1. all genetopyes with 50% of sucessfual genyotyping with "max-missing -0.5"
+#2. a minimum quality score of 20 with "minQ 20"
+#3. minor allele frequency  of 0.001 with maf with maf "0.001"
+vcftools --vcf TotalRawSNPs.vcf --max-missing 0.5 --maf 0.001 --minQ 20 --recode --recode-INFO-all --out TRS
+
+#This step will fitler 
+# the minimum mean depth of the genopye with less than 5 reads with "minDP 5"
+vcftools --vcf TRS.recode.vcf --minDP 5 --recode --recode-INFO-all --out TRSdp5
+
+#This step will filter using the pop_missing_filter.sh file to sort by population
+pop_missing_filter.sh TRSdp5.recode.vcf ../popmap 0.05 1 TRSdp5p05
+
+#This step is an automated script to filter the loci further for 
+#1. site depth
+#2. quality versus depth
+#3.  strand representation 
+#4. allelic balance at heterzygous individuals
+#5. paired read representation.
+dDocent_filters TRSdp5p05.recode.vcf TRSdp5p05 
+
+#This converts the variant calls to SNPs so we can use HWE to sort by populations
+vcfallelicprimitives -k -g TRSdp5p05.FIL.recode.vcf |sed 's:\.|\.:\.\/\.:g' > TRSdp5p05F.prim
+
+# This step will fitler remove the indels from the data 
+vcftools --vcf TRSdp5p05F.prim --recode --recode-INFO-all --remove-indels --out SNP.TRSdp5p05F
+
+#This step is to apply HWE to remove erranous variant calls from the data
+# This will be applied by population and use the script filter_hwe_by_pop.p1
+filter_hwe_by_pop.pl -v SNP.TRSdp5p05F.recode.vcf -p popmap -o SNP.DP3g95p5maf05.HWE -h 0.01
+
+#This step will filter all minor allele frequency above 0.05 with maf with maf "0.05"
+vcftools --vcf SNP.DP3g95p5maf05.HWE.recode.vcf --maf 0.05 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWEmaf05
+
+#Convert from vcf to other outputs 
+cp /home/BIO594/DATA/Week7/example/BSsnp.spid .
+
+#use PDGspider to convert the file 
+java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWEmaf05.recode.vcf -outputfile SNP.TRSdp5p05FHWEBS -spid BSsnp.spid
+
+###################################################################################
+
+#Step4: Outlier Detection of samples with various methods 
+
+#outlier detection with ony 2 alleles will be used 
+vcftools --vcf SNP.TRSdp5p05FHWEmaf05.recode.vcf --max-alleles 2 --recode --recode-INFO-all --out SNP.TRSdp5p05FHWE2A
+
+
+#######################################################################
+#####PCA adapt to identify outliers and plot agaisnt each other########
+#load packages
+library(pcadapt)
+
+#load vcf file into R 
+fiddler_crab <- read.pcadapt("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FHWE2A.recode.vcf", type = "vcf" )
+
+#create firs PCA
+x <- pcadapt(input = fiddler_crab, K = 20)
+
+
+#plot the likelyhoods for only the first 20k
+plot(x, option = "screeplot", K = 19)
+
+#Create population designations
+poplist.int <- c(rep(1,29),rep(2,31),rep(3,30),rep(4,41),rep(5,31),rep(6,31),rep(7,33),rep(8,31),rep(9,30),rep(10,31),rep(11,31),rep(12,30))
+print(poplist.int)
+poplist.names <- c(rep("FBN",29),rep("FBS",31),rep("OBN",30),rep("OBS",41),rep("PCN",31), rep("PCS",31),rep("SPN",30),rep("SPS",31),rep("WC1",30),rep("WC2",31),rep("WC3",31),rep("WC4",30))
+print(poplist.names)
+
+#Plot the actual PA (1st two)
+plot(x, option = "scores", pop = poplist.names)
+
+#Plot PCA with PCA 2 and PCA 3
+plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
+
+#Plot PCA with PCA 3 and PCA 4
+plot(x, option = "scores", i = 1, j=3, pop = poplist.names)
+
+#Redo PCA with only 3 K
+x <- pcadapt(fiddler_crab, K = 3)
+
+summary(x)
+
+#Start looking for outlier 
+
+#make manhatten plot
+plot(x , option = "manhattan", pop = poplist.names)
+
+#make qqplot
+plot(x, option = "qqplot", threshold = 0.1)
+
+#set FDR
+#load package
+library(qvalue)
+
+#set values
+qval <- qvalue(x$pvalues)$qvalues
+alpha <- 0.1
+
+#save outliers
+outliers <- which(qval < alpha)
+
+
+#####Test for library effects######
+#set variables with first 20 runs
+x <- pcadapt(input = fiddler_crab, K = 20)
+
+#plot scores with populations
+plot(x, option = "scores", pop = poplist.names)
+
+#plot scores with PCA 2 and 3 
+plot(x, option = "scores", i = 2, j = 3, pop = poplist.names)
+
+
+#set y to have K-2 and review summary
+x <- pcadapt(fiddler_crab, K = 2)
+summary(x)
+
+#plot with mannhattan,qqplot and stat.distrubiton
+plot(x , option = "manhattan")
+plot(x, option = "qqplot", threshold = 0.1)
+
+#find outliers for K=2
+library(qvalue)
+qval <- qvalue(x$pvalues)$qvalues
+alpha <- 0.1
+outliers <- which(qval < alpha)
+
+####PCA analysis for structure of population and to show proportion of variance#########
+#load packages
+library(adegenet)
+library(vcfR)
+
+#create variable from vcf file 
+my_vcf <- read.vcfR("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FHWE2A.recode.vcf")
+
+#create gen id from vcf variable
+my_genind <- vcfR2genind(my_vcf)
+
+##Test Population Structure##
+#install packages
+install.packages("devtools")
+library(devtools)
+install.packages("hierfstat")
+library("hierfstat")
+
+#Create population designations
+poplist.int <- c(rep(1,29),rep(2,31),rep(3,30),rep(4,41),rep(5,31),rep(6,31),rep(7,33),rep(8,31),rep(9,30),rep(10,31),rep(11,31),rep(12,30))
+print(poplist.int)
+poplist.names <- c(rep("FBN",29),rep("FBS",31),rep("OBN",30),rep("OBS",41),rep("PCN",31), rep("PCS",31),rep("SPN",30),rep("SPS",31),rep("WC1",30),rep("WC2",31),rep("WC3",31),rep("WC4",30))
+print(poplist.names)
+
+#calcualte fst and pairwise Fst values
+#I ran this a couple of times and sometime the functions could not be found with the package install, however sometimes it did find the function
+#not sure why this was the case it seemed to fix itself if I just reinstalled the package and loadeded, those c
+
+#load packages
+library(adegenet)
+#if you can't find the function I ran this to reinstall the packages
+install.packages("adegenet")
+library(adegenet)
+install.packages("hierfstat")
+library("hierfstat")
+
+#calcuating Fst for the data, with 
+fstat(my_genind)
+
+matFst <- pairwise.fst(my_genind)
+
+#PCA graphs, barplot 
+
+X <- tab(my_genind, freq = TRUE, NA.method = "mean")
+pca1 <- dudi.pca(X, scale = FALSE, scannf = FALSE, nf = 3)
+barplot(pca1$eig[1:50], main = "Fiddler_Crab_eigenvalues", col = heat.colors(50))
+add.scatter.eig(pca1$eig[1:20], 3,1,2)
+
+col <- funky(15)
+
+
+#DAPC for clusters in data 
+#find clusters and PC to reatin
+#PC=300, clusers=40
+grp <- find.clusters(my_genind, max.n.clust=40)
+
+#choose PC=300, function=20
+dapc1 <- dapc(my_genind, grp$grp)
+scatter(dapc1,col=col,bg="white", solid=1)
+
+
+
+contrib <- loadingplot(dapc1$var.contr, axis=1, thres=.01, lab.jitter=1)
+contrib
+
+#Structure Like plot 
+
+compoplot(dapc1, posi="bottomright",txt.leg=paste("Cluster", 1:6), lab="", ncol=1, xlab="individuals")
+
+################BayENV2##################################
+# I could not get this part to work for my data 
+# I think the issue is on Line 368 and not producing an matrix, 
+# I checked the input file and there is data in the text file, however the code runs but the matrix it produces at the end of the process is empty
+#This messes up the next steps in the process
+
+#copy the spid file to use for the analysis to the folder
+cp /home/BIO594/DATA/Week7/example/SNPBayEnv.spid .
+
+#transform the vcf file into a text file for bayenv2 to use 
+java -jar /usr/local/bin/PGDSpider2-cli.jar -inputfile SNP.TRSdp5p05FHWE2A.recode.vcf -outputfile SNP.TRSdp5p05FHWEBayEnv.txt -spid SNPBayEnv.spid
+
+#run Bayenv2 to produce a covariance matrix 
+bayenv2 -i SNP.TRSdp5p05FHWEBayEnv.txt -p 12 -k 100000 -r 63479 > matrix.out
+tail -5 matrix.out | head -4 > matrix
+
+#look at the environ file
+# I made this using the metadata file provided with the data 
+# the data I used for each of the 12 populations is latatude and longitude as environmetnal data 
+# the other data in the metadata file seemed more about the individual biological data (length, width, sex) 
+cat environ
+
+#copy bayenv2 into the folder to run
+ln -s /usr/local/bin/bayenv2 .
+
+#calcuate the Bayes Factor for each SNP for each environmental variable (lat and long)
+calc_bf.sh SNP.TRSdp5p05FHWEBayEnv.txt environ matrix 4 10000 2 > bf_environ.environ
+
+#transform the output into something that can be used in R 
+paste <(seq 1 923) <(cut -f2,3 bf_environ.environ ) > bayenv.out
+cat <(echo -e "Locus\tBF1\tBF2") bayenv.out > bayenv.final
+
+R
+#open R studio 
+#make the final output for R from linux into a variable table_bay
+table_bay <- read.table("bayenv.final",header=TRUE)
+
+#plot the table_bay variable
+plot(table_bay$BF1)
+
+#veiw the table created 
+table_bay[which(table_bay$BF1 > 100),]
+
+##############OUtflank###################
+#load packages for outflank, vcfr adn bigsnpr(for LD pruning) 
+library(OutFLANK)  
+library(vcfR)
+library(bigsnpr)  
+
+#make variable my_vcf
+my_vcf <- read.vcfR("/home/rvenezia/Fiddler_Crab/SNP.TRSdp5p05FHWE2A.recode.vcf")
+
+#make character matrix with genotypes
+geno <- extract.gt(my_vcf) 
+
+#make positions in bp
+position <- getPOS(my_vcf)
+
+#make chromosome information
+chromosome <- getCHROM(my_vcf) 
+
+#make matrix 
+G <- matrix(NA, nrow = nrow(geno), ncol = ncol(geno))
+
+G[geno %in% c("0/0", "0|0")] <- 0
+G[geno  %in% c("0/1", "1/0", "1|0", "0|1")] <- 1
+G[geno %in% c("1/1", "1|1")] <- 2
+
+G[is.na(G)] <- 9
+
+head(G[,1:10])
+
+#make variable population with population map
+pop <- read.table("/home/rvenezia/Fiddler_Crab/popmap", header=FALSE)
+pop <- pop$V2
+
+#make fst values with chromosome and position and check out 
+my_fst <- MakeDiploidFSTMat(t(G), locusNames = paste0(chromosome,"_", position), popNames = pop)
+
+head(my_fst)
+
+#check loci for uncorrected sample size that cannot be fit for the chi squred distribution
+#FastNOCorr are uncorrected for sample size 
+#FST has been corrected 
+plot(my_fst$FST, my_fst$FSTNoCorr, abline(0,1))
+
+
+#plot chi squared distribution as scatter
+plot(my_fst$He, my_fst$FSTNoCorr, pch =20, col ="grey")
+
+#plot histrogramof fst values
+hist(my_fst$FSTNoCorr)
+
+##################################################################

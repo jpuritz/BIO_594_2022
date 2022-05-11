@@ -486,7 +486,7 @@ dev.off()
 
 # this heatmap looks better
 d7.PRIMARYtreatment.text <-  as.matrix(signif(moduleTraitPvalue_Primary, 3))
-pa = cluster::pam(d7.PRIMARYtreatment.text, k = 3)
+pa = cluster::pam(d7.PRIMARYtreatment.text, k = 1)
 col_fun = colorRamp2(c(-0.5, 0, 0.5), c("blue", "white", "red"))
 pdf("Presentations/URI/2022_URI_Puritz_Genomics_class/Day7_Treatments_Primary_heatmap.pdf", width=5, height=6)
 Heatmap(moduleTraitCor_Primary, 
