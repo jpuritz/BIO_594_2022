@@ -14,7 +14,8 @@ EecSeq is a new tool for evolutionary biologists to explore questions concerning
        * Nommalization
 3) Cluster cDNA files
 4) Use itero to assemble gDNA reads with cDNA "seeds"
-5) Assess the assembly
+5) Use trinity to build a de novo transcriptome
+6) Assess the assembly
        * BUSCO
        * Quast
        * Detonate
@@ -27,14 +28,9 @@ Using https://itero.readthedocs.io/en/latest/ to assembly gDNA reads. A simple P
 
 * cDNA reads from CASE study
 * gDNA reads from CASE study
-* Experimental design map
-    * including library preparation
-    * exposure condition
-
-## Link and Organize reads
 
 
-### cDNA reads
+## cDNA reads
 
 Make directory for cDNA reads
 
@@ -75,7 +71,6 @@ fastp --detect_adapter_for_pe --thread 10 -V -e 30 -q 30 -p -i /home/jgreen/repo
 Run fastqc on all cDNA trimmed reads
 
 ```bash
-
 fastqc -f fastq *.fq.gz
 multiqc -o multiqc .
 ```
@@ -91,7 +86,6 @@ process_shortreads -1 /home/jgreen/repos/BIO594_work/course_project/data/cDNA/po
 We can create a for loop to demultiplex all of our samples 
 
 ```bash
-#!/bin/bash
 for ((i=1;i<=8;i++));
 do
 process_shortreads -1 /home/jgreen/repos/BIO594_work/course_project/data/cDNA/pool$i/cDNApool-${i}_R1_001.fastq.gz -2 /home/jgreen/repos/BIO594_work/course_project/data/cDNA/pool$i/cDNApool-${i}_R2_001.fastq.gz -b /home/jgreen/repos/BIO594_work/course_project/data/cDNA/barcodes.txt --inline_inline -D --barcode_dist_1 2 --barcode_dist_2 2 -o /home/jgreen/repos/BIO594_work/course_project/data/cDNA/demux/pool$i/
@@ -445,14 +439,14 @@ Convert fastq to fasta file for use in itero
 
 ```bash
 # seqtk is a program that has a ton of great tools to manipulate fastq and fasta files
-# -N: remove N's
+# -N: remove N'sbow
 # # use conda to create seqkit env
 # mamba create -n seqkit seqkit
 seqtk seq -N all.norm.merge.assembled.fastq > all.norm.merge.assembled.fasta
 ```
 
 ```bash
-cd-hit-est -i "$i".cDNA.assembled.fastq -o "$i".cDNA.c95.cluster -c 0.95 -n 10 -d 0 -M 16000 -T 8
+cd-hit-est -i all.norm.merge.assembled.fastq -o ~/repos/BIO594_work/course_project/data/cDNA/cluster/cDNA.norm.assembled.c95.cluster -c 0.80 -n 10 -d 0 -M 16000 -T 10
 ```
 
 ## Itero assembly
@@ -503,6 +497,163 @@ Run trinity
 ```bash
 Trinity --no_normalize_reads --seqType fq --max_memory 100G --left cDNA.F.fq.gz  --right cDNA.R.fq.gz --CPU 10
 ```
+
+Once trinity assembly is finished run the Trinitysta.pl
+
+```bash
+################################
+## Counts of transcripts, etc.
+################################
+Total trinity 'genes':  348348
+Total trinity transcripts:      648435
+Percent GC: 38.76
+
+########################################
+Stats based on ALL transcript contigs:
+########################################
+
+        Contig N10: 5280
+        Contig N20: 3537
+        Contig N30: 2552
+        Contig N40: 1852
+        Contig N50: 1312
+
+        Median contig length: 398
+        Average contig: 765.37
+        Total assembled bases: 496294732
+
+
+#####################################################
+## Stats based on ONLY LONGEST ISOFORM per 'GENE':
+#####################################################
+
+        Contig N10: 4378
+        Contig N20: 2669
+        Contig N30: 1654
+        Contig N40: 1014
+        Contig N50: 675
+
+        Median contig length: 329
+        Average contig: 556.54
+        Total assembled bases: 193868658
+```
+
+Run cd-hit-est on this assembly
+
+
+```bash
+cd-hit-est -i trinity_out_dir.Trinity.fasta -o trinity.transcripts.cluster90.fasta -n 10 -d 0 -M 16000 -T 10
+```
+
+Once cluserting the trinity assembly is finished run the Trinitysta.pl
+
+```bash
+TrinityStats.pl trinity.transcripts.cluster90.fasta
+
+################################
+## Counts of transcripts, etc.
+################################
+Total trinity 'genes':  323613
+Total trinity transcripts:      434806
+Percent GC: 38.29
+
+########################################
+Stats based on ALL transcript contigs:
+########################################
+
+        Contig N10: 4719
+        Contig N20: 3040
+        Contig N30: 2043
+        Contig N40: 1359
+        Contig N50: 894
+
+        Median contig length: 358
+        Average contig: 638.23
+        Total assembled bases: 277504415
+
+
+#####################################################
+## Stats based on ONLY LONGEST ISOFORM per 'GENE':
+#####################################################
+
+        Contig N10: 4462
+        Contig N20: 2768
+        Contig N30: 1748
+        Contig N40: 1091
+        Contig N50: 721
+
+        Median contig length: 336
+        Average contig: 575.23
+        Total assembled bases: 186151685
+```
+
+### Assessing Trinity Assembly
+
+#### Detonate
+
+```bash
+rsem-eval-estimate-transcript-length-distribution input.fasta parameter_file
+rsem-eval-calculate-score -p 5 --transcript-length-parameters trinity.rsem.eval.ETLD.param --paired-end cDNA.F.fq.gz cDNA.R.fq.gz trinity.transcripts.cluster90.fasta trinity_cluster 638
+```
+Output from Rsem-eval score file
+
+```bash
+Score	-17910641055.22
+BIC_penalty	-3982401.69
+Prior_score_on_contig_lengths_(f_function_canceled)	-447798.78
+Prior_score_on_contig_sequences	-384702805.70
+Data_likelihood_in_log_space_without_correction	-17523466405.51
+Correction_term_(f_function_canceled)	-1958356.47
+Number_of_contigs	434806
+Expected_number_of_aligned_reads_given_the_data	45800154.04
+Number_of_contigs_smaller_than_expected_read/fragment_length	335638
+Number_of_contigs_with_no_read_aligned_to	43536
+Maximum_data_likelihood_in_log_space	-17498868545.99
+Number_of_alignable_reads	52009248
+Number_of_alignments_in_total	99279348
+```
+
+Output from RSEM-eval cluster gene results
+
+```bash
+gene_id	transcript_id(s)	length	effective_length	expected_count	TPM	FPKM
+TRINITY_DN0_c0_g1_i3	TRINITY_DN0_c0_g1_i3	974.00	763.32	528.54	15.84	15.10
+TRINITY_DN0_c0_g1_i5	TRINITY_DN0_c0_g1_i5	934.00	723.32	554.87	17.55	16.73
+TRINITY_DN0_c0_g1_i9	TRINITY_DN0_c0_g1_i9	1011.00	800.32	122.59	3.50	3.34
+TRINITY_DN0_c1_g1_i10	TRINITY_DN0_c1_g1_i10	4244.00	4033.32	3880.42	22.01	20.99
+TRINITY_DN0_c2_g1_i2	TRINITY_DN0_c2_g1_i2	498.00	287.68	10.31	0.82	0.78
+TRINITY_DN0_c2_g1_i4	TRINITY_DN0_c2_g1_i4	389.00	179.91	10.00	1.27	1.21
+TRINITY_DN0_c2_g1_i7	TRINITY_DN0_c2_g1_i7	241.00	46.28	0.00	0.00	0.00
+TRINITY_DN0_c2_g1_i8	TRINITY_DN0_c2_g1_i8	588.00	377.47	87.68	5.31	5.07
+```
+
+#### Transrate
+
+```bash
+transrate --assembly transcripts.fa --left left.norm.fq --right right.norm.fq --threads 10 --output transrate_oases 
+```
+|assembly|n_seqs|smallest|largest|n_bases|mean_len|n_under_200|n_over_1k|n_over_10k|n_with_orf|mean_orf_percent|n90|n70|n50|n30|n10|gc|bases_n|proportion_n|fragments|fragments_mapped|p_fragments_mapped|good_mappings|p_good_mapping|bad_mappings|potential_bridges|bases_uncovered|p_bases_uncovered|contigs_uncovbase|p_contigs_uncovbase|contigs_uncovered|p_contigs_uncovered|contigs_lowcovered|p_contigs_lowcovered|contigs_segmented|p_contigs_segmented|score|optimal_score|cutoff|weighted|
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|/home/jgreen/repos/BIO594_work/course_project/data/assembly/trinity/trinity_out_dir.Trinity.fasta|648435|177|40397|496294732|765.32192|173|120054|768|100909|48.46403|299|595|1313|2553|5281|0.38756|0|0.0|90243319|32124228|0.35597|8320550|0.0922|23803678|0|186218129|0.37522|470161|0.72507|648435|1.0|648435|1.0|68753|0.10603|0.00958|0.02607|0.13427|0.0|
+
+#### RNAquast
+
+```bash
+rnaQUAST.py -c trinity_out_dir.Trinity.fasta -1 cDNA.F.fq.gz -2 cDNA.R.fq.gz --busco ~/databases/mollusca_odb10/ -t 10 -o trinity_rnaquast
+```
+
+SHORT SUMMARY REPORT 
+
+METRICS/TRANSCRIPTS                                    trinity_out_dir.Trinity  
+
+ == BASIC TRANSCRIPTS METRICS == 
+Transcripts                                            648435                   
+Transcripts > 500 bp                                   249381                   
+Transcripts > 1000 bp                                  120165
+
+ == BUSCO METRICS == 
+Complete                                               97.658                   
+Partial                                                1.228
 
 ### gDNA reads
 
@@ -736,3 +887,26 @@ done
 |SE_J04-READ2.fq|4935837|
 |SE_J07-READ1.fq|5755544|
 |SE_J07-READ2.fq|5755544|
+
+## Mapping gDNA reads to de novo transcriptome
+
+```bash
+bwa index -a bwtsw trinity.transcripts.cluster90.fasta trinity.bwa
+bwa mem -t 20 trinity.transcripts.cluster90.fasta gDNA.F.fq gDNA.R.fq | samtools view -bu - | samtools sort -@4 - -o trinity.c90.sorted.bam
+```
+
+## Trinity transcriptome guided assembly
+
+```bash
+ Trinity --genome_guided_bam trinity.c90.sorted.bam \
+         --genome_guided_max_intron 5000 \
+         --max_memory 50G --CPU 20
+```
+Unfortunately the project will have to end abruptly here. This specific line of code generated ~ 1 TB of data overnight. We are reconsidering how to subset data and creating upperthresholds and standard practice for analyzing this many samples.
+
+```bash
+~/miniconda3/envs/trinity/util/misc/process_GMAP_alignments_gff3_chimeras_ok.pl \
+     --genome trinity_out_dir.Trinity.fasta \
+     --transcripts trinity_out_dir/<filename>.fasta \
+     --SAM | samtools view -Sb | samtools sort -o trinity-GG.gmap.bam
+```
