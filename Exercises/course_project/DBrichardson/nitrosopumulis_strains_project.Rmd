@@ -2,12 +2,15 @@
 title: "Final Project"
 author: "DB Richardson"
 date: "5/2/2022"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+# Nitrosopumilus strains project
+
+## Summary
 This project uses data from 68 metagenomes collected between September 2017 and March 2020. The main focus of this work is the exploration of witihin species diversity in the Nitrosopumilus sp. of Narragansett Bay. To achieve this goal, we performed:
   1. Illumina read quality filtering
   2. NGS read assembly 
@@ -18,11 +21,11 @@ This project uses data from 68 metagenomes collected between September 2017 and 
 
 Most of these analyses were performed using the Andromeda and Bluewaves high performance computing clusters. Given the size of the dataset and the fact that much of this work has not yet been published, the data used in steps 1-4 will not be uploaded onto the class GitHub. However, the unfiltered VCF containing the SNPs resulting from the analyses performed in step 5, the representative Nitrosopumilus MAG, and the filtered VCF produced in the middle of step 6 will be uploaded onto the site. 
 
-Part 1: NGS read quality filtering 
+## Part 1: NGS read quality filtering 
 
 This slurm array job begins with combining the reads from the separate lanes into forward and reverse read files for each sample. Next, PCR duplicates were removed using the clumpify.sh module in the BBtools (v.38.87) software package. The overlapping de-duplicated reads were then merged together using bbmerge.sh, another module from the BBtools package. Then, adapters were removed from the reads, low-quality bases were trimmed from the reads, and the quality-trimmed reads that are shorter 251 bp long are dropped using Trimmomatic (v. 0.39). Unmerged reads can suffer from an abundance of erroneous homopolymer repeats. To remove these reads, AfterQC (v. 0.9.7) was used. In preparation for metagenomic read assembly, the quality-filtered reads were normalized  to 100 - i.e. reads containing k-mers observed more than 100 times in the sample were removed - using the bbnorm.sh script from BBtools. 
 
-```{bash}
+```{bash, eval=FALSE}
 #!/bin/bash
 #SBATCH -t 100:00:00
 #SBATCH --nodes=1
@@ -106,10 +109,10 @@ echo "Ending Run"
 date
 ```
 
-Part 2: NGS read assembly
+## Part 2: NGS read assembly
 
 To study Nitrosopumilis population structure, the  short NGS reads were assembled into contigs using metaSPAdes (v. 3.15.2). This program can be very memory intensive, so it was necessary to run these jobs in parallel using the High Performance Computing Clusters Andromeda and Bluewaves. When Bluewaves was used, it was necessary to move the files from the data directory to the data4 directory. A few of the samples required up to 500GB of RAM and so the higher memory requirement is shown in the code below
-```{bash}
+```{bash, eval=FALSE}
 #!/bin/bash
 #SBATCH -t 100:00:00
 #SBATCH --nodes=1
@@ -157,10 +160,10 @@ date
 
 ```
 
-Part 3: Identifying MAGs
+## Part 3: Identifying MAGs
 
 This array job builds a bowtie2 index for each contig in every  metagenome assembly using Bowtie2 (v. 2.4.1). It then calls another script, recruit_reads_10022021.sh, to map the quality filtered reads to the contigs. 
-```{bash}
+```{bash, eval=FALSE}
 #!/bin/bash
 #SBATCH -t 100:00:00
 #SBATCH --array=1-68%2
@@ -205,7 +208,7 @@ date
 
 This array job, recruit_reads_10022021.sh, uses Bowtie2 to align the quality filtered reads from each sample to all of the contigs produced by metaSPAdes. Then, it uses samtools (v. 1.10) to convert the sam files to bam files, sort the resulting bam files, and then index those bam files. 
 
-```{bash}
+```{bash, eval=FALSE}
 #!/bin/bash
 #SBATCH -t 100:00:00
 #SBATCH --array=1-68%15
@@ -257,7 +260,7 @@ date
 
 Binning the contigs, clustering the contigs together based on their k-mer composition and abundance, using metabat2 (v. 2.12.1)
 
-```{bash}
+```{bash, eval=FALSE}
 #!/bin/bash
 #SBATCH -t 100:00:00
 #SBATCH --nodes=1
@@ -296,7 +299,7 @@ date
 ```
 
 Binning the contigs using CONCOCT (v. 1.1.0)
-```{bash}
+```{bash, eval=FALSE}
 #!/bin/bash
 #SBATCH -t 100:00:00
 #SBATCH --nodes=1
@@ -357,7 +360,7 @@ date
 ```
 
 Binning the contigs using MaxBin2 (v. 2.2.7)
-```{bash}
+```{bash, eval=FALSE}
 #!/bin/bash
 #SBATCH -t 100:00:00
 #SBATCH --nodes=1
@@ -441,7 +444,7 @@ date
 Finding high-quality MAGs using metaWRAP (v. 1.13)
 
 Some samples needed to run with 250GB or 510GB of RAM, but this is how the vast majority were run. All samples were analyzed using the same metaWRAP parameters. 
-```{bash}
+```{bash, eval=FALSE}
 #!/bin/bash
 #SBATCH -t 100:00:00
 #SBATCH --nodes=1
@@ -482,7 +485,7 @@ Part 4: Selecting a representative Nitrosopumulis MAG
 
 
 This creates a csv file with each MAGs score. This score incorporates estimated genome completeness and contamination as well as genome length. 
-```{python}
+```{python, eval=FALSE}
 from collections import defaultdict
 import collections
 
@@ -522,7 +525,7 @@ with open('/data2/dbrichardson/projects/NB/04_binning/MAG_Scores.csv', 'w') as f
 ```
 
 Creating data tables with MAG ID, path, taxonomy, and score 
-```{bash}
+```{bash, eval=FALSE}
 #combining the GTDB-tk taxonomic annotations for the bacteria and archaea into a single list
 cat /data2/dbrichardson/projects/NB/04_binning/bacterial_taxa.list /data2/dbrichardson/projects/NB/04_binning/archaeal_taxa.list > /data2/dbrichardson/projects/NB/04_binning/all_taxa.list
 
@@ -580,7 +583,7 @@ done
 ```
 
 This is the highest scoring Nitrosopumilus MAG
-```{bash}
+```{bash, eval=FALSE}
 clust_by_taxonomy_DIR="/data2/dbrichardson/projects/NB/04_binning/clust_by_taxonomy"
 cat ${clust_by_taxonomy_DIR}/sp_level_rep_MAGS.list | grep "Nitrosopumilus" | sort -k3 -r -h | head -1
 ```
@@ -588,7 +591,7 @@ cat ${clust_by_taxonomy_DIR}/sp_level_rep_MAGS.list | grep "Nitrosopumilus" | so
 ZTP33_S7_bin.42 d__Archaea_p__Thermoproteota_c__Nitrososphaeria_o__Nitrososphaerales_f__Nitrosopumilaceae_g__Nitrosopumilus_s___count_23 80.42 /data2/dbrichardson/projects/NB/04_binning/HQ_MAGs/ZTP33_S7_completeness_76.27_contamination_0.970_length_900089_bin.42.fa
 
 This script creates a bowtie2 index using the representative MAG
-```{bash}
+```{bash, eval=FALSE}
 #!/bin/bash
 #SBATCH -t 100:00:00
 #SBATCH --mem=120GB
@@ -613,10 +616,10 @@ echo "Ending"
 date
 ```
 
-Part 5: Identify variants 
+## Part 5: Identify variants 
 
 This pipeline maps quality filtered reads to the representative Nitrosopumilus genome, removed duplicates from the alignment using MarkDuplicates and CleanSam modules from Picard tools (v. 2.18.17), re-sorts and indexes the cleaned bam files using samtools (v. 1.15),  and uses GATK HaplotypeCaller (v.4.2.0) to find variants.
-```{bash}
+```{bash, eval=FALSE}
 #!/bin/bash
 #SBATCH -t 100:00:00
 #SBATCH --array=1-68%15
@@ -718,7 +721,7 @@ gatk --java-options "-Xmx120g" GenotypeGVCFs \
 ```
 
 Combining all of the gVCF files from HaplotypeCaller
-```{bash}
+```{bash, eval=FALSE}
 #!/bin/bash
 #SBATCH -t 100:00:00
 #SBATCH --mem=120GB
@@ -838,7 +841,7 @@ date
 ```
 
 Performing joint genotyping using the GenotypeGVCFs module from GATK. Previous authors have found that this could reduce the precision of the variant calling, so additional variant filtering will be performed later.
-```{bash}
+```{bash, eval=FALSE}
 #This genotypes the all_sample gVCF. Although, it's not recommended it might improve our analyses
 gatk --java-options "-Xmx4g" GenotypeGVCFs \
    -R ${REP_MAG} \
@@ -849,7 +852,7 @@ gatk --java-options "-Xmx4g" GenotypeGVCFs \
 ```
 
 Selecting the SNPs
-```{bash}
+```{bash, eval=FALSE}
 DATA_DIR="/data2/dbrichardson/projects/NB/05_Pop_Evo_Genomics/Nitro"
 
 #This creates a SNPs variant file
@@ -859,7 +862,7 @@ gatk SelectVariants \
     -O ${DATA_DIR}/NB_Nitrosopumilus_all_jc.snps.vcf.gz
 ```
 
-Part 6: Variant filtering and clustering  samples by variant composition.
+## Part 6: Variant filtering and clustering  samples by variant composition.
 
 This allowed us to look at variant depth, mapping quality, and other statistics that allowed us filter the called variants. 
 ```{r}
@@ -878,7 +881,7 @@ chromoqc(chrom)
 ```
 
 Filtering the variants based on the GATK recommendations, the depth distribution from the ChromR plots, and some recommendations from Olm et al., 2021.
-```{bash}
+```{bash, eval=FALSE}
 #This hard filters SNP variant file
 gatk VariantFiltration \
     -V ${DATA_DIR}/NB_Nitrosopumilus_all_jc.snps.vcf.gz \
@@ -932,7 +935,9 @@ pca1 <- dudi.pca(X, scale = FALSE, scannf = FALSE, nf = 3)
 barplot(pca1$eig[1:50], main = "PCA eigenvalues", col = heat.colors(50))
 
 #Plotting the results of the PCA
-s.label(pca1$li, clabel=0.3) +title("PCA of Nitrosopumilus sp. dataset\naxes 1-2")
+s.label(pca1$li, clabel=0.3) 
+
+#+title("PCA of Nitrosopumilus sp. dataset\naxes 1-2")
 
 #Producing a more colorful version of this plot
 colorplot(pca1$li, pca1$li, transp=TRUE, cex=0.5, xlab="PC 1", ylab="PC 2" )
