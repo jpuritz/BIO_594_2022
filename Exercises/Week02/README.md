@@ -19,10 +19,11 @@
 * If you know how, commit the changes to the github repository
 
 ### Tutorial 2 (On your own time)
-<<<<<<< HEAD
+
 Please follow the this [LINK](https://www.codecademy.com/learn/learn-the-command-line) to a wonderful basic command line tutorial and please complete it
+
 There is also the following [tutorial] (https://astrobiomike.github.io/unix/) that has no need for a subscription.
-=======
+
 
 **Codecademy now charges for this, but you can do a 7 day free trial**
 
@@ -30,4 +31,4 @@ There is also the following [tutorial] (https://astrobiomike.github.io/unix/) th
 
 
 Please follow the this [LINK](https://www.codecademy.com/learn/learn-the-command-line) to a wonderful basic command line tutorial
->>>>>>> 7f1ba27fd607f36b35439fd4f181e450ceb91ad4
+
