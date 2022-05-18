@@ -1089,7 +1089,7 @@ Submitted batch job 131613
 Pseudoalignment information by species:
 
 |Species Alignment|k-mer length|# of targets|# of k-mers|# of equivalence classes|
-|--------------|------|--------|------|--------|--------|
+|-----------------|------------|------------|-----------|------------------------|
 |A.cervicornis|31|33,322|34,006,771|84,017|
 |P.acuta|31|38,913|38,267,300|88,498|
 
@@ -1102,7 +1102,7 @@ Sample 31_2 (P.acuta) had a very low # of read counts (~6000 raw reads), so it w
 #### Average alignment rates for each tool 
 
 |Species|STAR|Bowtie|Kallisto|
-|--------------|------|--------|------|--------| 
+|-------|----|------|--------| 
 |A.cervicornis|70.72|97.24|34.67| 
 |P.acuta|69.40|94.93|33.54| 
 
