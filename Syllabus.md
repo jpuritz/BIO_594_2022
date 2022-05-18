@@ -73,7 +73,7 @@ This class will be most effective when students come prepared for class (finishe
 The culmination of this course will be the completion of a final Population Genomics Project.  Each student must analyze a NGS data set from raw sequencing files to a completed population level analysis.  Students are encouraged to use their own data sets, but students can also use an actual data set of Dr. Puritz or a simulated data set.  Projects can be completed on a different computing system or may use software and packages not discussed in the course, but all analyses and results must be documented and repeatable.  
 
 * Project Plan and Approval (10 points)
-  * A detailed outline of the proposed data set and analyses must be submitted and approved by Dr. Puritz by 4/11/19
+  * A detailed outline of the proposed data set and analyses must be submitted and approved by Dr. Puritz by 4/11/22
 * Analysis (20 points)
   * All bioinformatic are properly completed
   * Appropriate population genomic analyses are utilized and properly completed
