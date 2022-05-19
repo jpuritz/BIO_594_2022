@@ -8,12 +8,17 @@ Genome-wide association and differientation methods are a valuable tool for honi
 
 ## Usage
 
-`nextflow run main.nf` 
+`nextflow run main.nf`
 
 ## ToDo
 
-    1. write docker container 
-    2. High SNPs in Consensus vcf: VCF stats
-    3. switch to lfmm2
-    4. add RDA
-    5. add MINOTAUR
+    1. write docker container to run MINOTAUR R package
+    2. add MINOTAUR
+    2. High SNPs in Consensus vcf: VCF stats potentially due to bcftools norm 
+    4. switch to lfmm2
+    5. add RDA
+
+
+## Final Comments
+
+Due to time constraints I was unable to combine gwas statistics described above into a composite statistic for manhattan plot visualization. I also was unable to include RDA analysis and visualizations.
