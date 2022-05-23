@@ -9,7 +9,7 @@ I would like you to complete the following and push it to your own folder in thi
 * For the realdata
   * Run BayeScan
   * Run BayEnv
-  * Run at least one PCA and one DAPC using outlier free data set
+  * Run at least one PCA and one DAPC using outlier free data set - prune for linkage
   * Perform at least two analyses from Silliman et al	
     
 Each directory has a `popmap` `environ` and `LibraryInfo` files

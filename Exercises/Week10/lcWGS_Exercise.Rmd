@@ -288,9 +288,6 @@ abline(v=cumsum(sapply(unique(pop[ord,1]),function(x){sum(pop[ord,1]==x)})),col=
 ```
  - how does this compare to the NGSadmix analysis?
 
-
-
-
 ## Inbreeding in the admixed individuals
 
 Inbreeding in admixed samples is usually not possible to estimate using standard approaches. 
